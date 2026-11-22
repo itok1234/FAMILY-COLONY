@@ -10,7 +10,7 @@ android {
         applicationId 'com.cdl.familycolonyv5d'
         minSdk 23
         targetSdk 35
-        versionCode 4
+        versionCode 5
         versionName '4.1-online-auth'
     }
 
@@ -21,8 +21,8 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix '.debug'
-            versionNameSuffix '-debug'
+            applicationIdSuffix '.online-test'
+            versionNameSuffix '-online-test'
         }
         release {
             minifyEnabled false
