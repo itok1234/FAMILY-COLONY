@@ -101,8 +101,8 @@ public class MainActivity extends Activity {
                 if (filePathCallback != null) filePathCallback.onReceiveValue(null);
                 filePathCallback = callback;
 
-                // Always return a document URI to the WebView. Do not launch Android's
-                // package installer just because the selected document happens to be an APK.
+                // Return a document URI to the WebView. Selecting an APK for upload
+                // must never launch Android Package Installer automatically.
                 Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 String[] accepted = params != null ? params.getAcceptTypes() : null;
@@ -113,91 +113,7 @@ public class MainActivity extends Activity {
                         for (String part : type.split(",")) {
                             String value = part.trim();
                             if (value.startsWith(".")) continue;
-                            if (value.matches("[a-zA-Z0-9!#            @Override
-            public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
-                if (filePathCallback != null) filePathCallback.onReceiveValue(null);
-                filePathCallback = callback;
-                // Use the system document picker so APK files are returned as content URIs
-                // instead of being opened directly by a package installer/file manager.
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("*/*");
-                intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
-                        "application/vnd.android.package-archive",
-                        "application/octet-stream",
-                        "application/zip",
-                        "application/json",
-                        "image/*",
-                        "audio/*",
-                        "video/*"
-                });
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                try {
-                    startActivityForResult(Intent.createChooser(intent, "Pilih file untuk diunggah"), FILE_CHOOSER_REQUEST);
-                } catch (ActivityNotFoundException e) {
-                    filePathCallback.onReceiveValue(null);
-                    filePathCallback = null;
-                    Toast.makeText(MainActivity.this, "Pengelola file tidak tersedia", Toast.LENGTH_SHORT).show();
-                    return false;
-                }
-                return true;
-            }^_.+-]+/[a-zA-Z0-9!#            @Override
-            public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
-                if (filePathCallback != null) filePathCallback.onReceiveValue(null);
-                filePathCallback = callback;
-                // Use the system document picker so APK files are returned as content URIs
-                // instead of being opened directly by a package installer/file manager.
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("*/*");
-                intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
-                        "application/vnd.android.package-archive",
-                        "application/octet-stream",
-                        "application/zip",
-                        "application/json",
-                        "image/*",
-                        "audio/*",
-                        "video/*"
-                });
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                try {
-                    startActivityForResult(Intent.createChooser(intent, "Pilih file untuk diunggah"), FILE_CHOOSER_REQUEST);
-                } catch (ActivityNotFoundException e) {
-                    filePathCallback.onReceiveValue(null);
-                    filePathCallback = null;
-                    Toast.makeText(MainActivity.this, "Pengelola file tidak tersedia", Toast.LENGTH_SHORT).show();
-                    return false;
-                }
-                return true;
-            }^_.+-]+|[a-zA-Z0-9!#            @Override
-            public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
-                if (filePathCallback != null) filePathCallback.onReceiveValue(null);
-                filePathCallback = callback;
-                // Use the system document picker so APK files are returned as content URIs
-                // instead of being opened directly by a package installer/file manager.
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("*/*");
-                intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
-                        "application/vnd.android.package-archive",
-                        "application/octet-stream",
-                        "application/zip",
-                        "application/json",
-                        "image/*",
-                        "audio/*",
-                        "video/*"
-                });
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                try {
-                    startActivityForResult(Intent.createChooser(intent, "Pilih file untuk diunggah"), FILE_CHOOSER_REQUEST);
-                } catch (ActivityNotFoundException e) {
-                    filePathCallback.onReceiveValue(null);
-                    filePathCallback = null;
-                    Toast.makeText(MainActivity.this, "Pengelola file tidak tersedia", Toast.LENGTH_SHORT).show();
-                    return false;
-                }
-                return true;
-            }^_.+-]+/\\*")) {
+                            if (value.matches("[A-Za-z0-9._+-]+/[A-Za-z0-9._+-]+") || value.endsWith("/*")) {
                                 if (!mimeTypes.contains(value)) mimeTypes.add(value);
                             }
                         }
@@ -217,15 +133,10 @@ public class MainActivity extends Activity {
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
                 try {
                     startActivityForResult(Intent.createChooser(intent, "Pilih file untuk diunggah"), FILE_CHOOSER_REQUEST);
-                } catch (ActivityNotFoundException e) {
+                } catch (ActivityNotFoundException | SecurityException e) {
                     filePathCallback.onReceiveValue(null);
                     filePathCallback = null;
                     Toast.makeText(MainActivity.this, "Pengelola file tidak tersedia", Toast.LENGTH_SHORT).show();
-                    return false;
-                } catch (RuntimeException e) {
-                    filePathCallback.onReceiveValue(null);
-                    filePathCallback = null;
-                    Toast.makeText(MainActivity.this, "Tidak dapat membuka pemilih berkas", Toast.LENGTH_SHORT).show();
                     return false;
                 }
                 return true;
