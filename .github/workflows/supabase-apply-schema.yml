@@ -1,0 +1,42 @@
+name: Apply Supabase Schema
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  apply-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply secure Family Colony schema
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: irwtnqekrwhgompulach
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN" || { echo "SUPABASE_ACCESS_TOKEN is missing"; exit 1; }
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          sql=Path("supabase/migrations/202611220001_family_colony_core.sql").read_text()
+          Path("/tmp/query.json").write_text(json.dumps({"query":sql}))
+          PY
+          code=$(curl -sS -w "%{http_code}" -o /tmp/result.json -X POST \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data-binary @/tmp/query.json \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")
+          echo "HTTP: $code"
+          if [[ "$code" != 2* ]]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+            d=json.loads(Path("/tmp/result.json").read_text())
+            print("Supabase error:",d.get("message") or d.get("error") or "Request rejected")
+          except Exception:
+            print("Supabase rejected the request; response omitted.")
+          PY
+            exit 1
+          fi
+          echo "Schema submitted successfully. Credentials and row data were not printed."
