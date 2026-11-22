@@ -185,6 +185,8 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
     <p class="tiny">Khusus setup awal oleh Developer. Ini hanya membuat kode aktivasi sekali pakai untuk Dhita sebagai Kepsuk pertama. Secret harus sama dengan FC_BOOTSTRAP_SECRET di Supabase Function Secrets.</p>
     <div class="field"><label for="bootstrapSecret">Bootstrap secret</label><input id="bootstrapSecret" type="password" autocomplete="off" placeholder="Masukkan secret setup awal"></div>
     <button class="btn primary" style="width:100%" onclick="bootstrapFirstManager()">BUAT KODE AKTIVASI KEPSUK</button>
+    <button class="btn" style="width:100%;margin-top:9px" onclick="bootstrapDeveloper()">BUAT KODE AKTIVASI DEVELOPER</button>
+    <div id="developerBootstrapResult" class="notice hidden"></div>
     <div id="bootstrapResult" class="notice hidden"></div>
     <p class="tiny" style="margin-top:13px">Developer tetap tidak memiliki hak mengelola akses anggota setelah inisialisasi. Kepsuk, Deputi, dan Admin yang mengurusnya.</p>
   </div>
@@ -337,6 +339,19 @@ async function bootstrapFirstManager(){
   $("bootstrapResult").classList.remove("hidden");$("bootstrapSecret").value="";
  }catch(err){$("bootstrapResult").textContent=fcFriendlyError(String(err.message||"").split(":")[0]);$("bootstrapResult").classList.remove("hidden")}
  finally{if(button){button.disabled=false;button.textContent="BUAT KODE AKTIVASI KEPSUK"}}
+}
+async function bootstrapDeveloper(){
+ const secret=$("bootstrapSecret").value;
+ if(secret.length<32){toast("Bootstrap secret minimal 32 karakter.");return}
+ const button=document.querySelector('#developerGate button[onclick="bootstrapDeveloper()"]');if(button){button.disabled=true;button.textContent="MEMBUAT KODE..."}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json","x-fc-bootstrap-secret":secret},body:JSON.stringify({action:"bootstrap_developer_issue"})});
+  const result=await response.json();
+  if(!response.ok||!result.ok)throw new Error(result.error||"developer_activation_issue_failed");
+  $("developerBootstrapResult").innerHTML="Kode aktivasi untuk <strong>edrick (@edrick) — Developer</strong>:<br><strong style='font-size:1.25rem;letter-spacing:.12em'>"+escapeHTML(result.activation_code)+"</strong><br><span class='tiny'>Berlaku 24 jam, sekali pakai. Gunakan pada menu Aktivasi Anggota.</span>";
+  $("developerBootstrapResult").classList.remove("hidden");$("bootstrapSecret").value="";
+ }catch(err){$("developerBootstrapResult").textContent=fcFriendlyError(String(err.message||"").split(":")[0]);$("developerBootstrapResult").classList.remove("hidden")}
+ finally{if(button){button.disabled=false;button.textContent="BUAT KODE AKTIVASI DEVELOPER"}}
 }
 function developerLogin(){closeDeveloperGate();toast("Developer masuk melalui login utama menggunakan username @edrick dan password akun Family Colony.")}
 function closeDeveloperGate(){$("developerGate").classList.add("hidden");$("devGateCode").value="";if($("bootstrapSecret"))$("bootstrapSecret").value=""}
