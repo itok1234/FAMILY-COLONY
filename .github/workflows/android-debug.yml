@@ -29,8 +29,15 @@ jobs:
           unzip -q "$ARCHIVE" -d /tmp/family-colony-src
           SRC="/tmp/family-colony-src/FAMILY_COLONY_V5D_Android_Project"
           test -f "$SRC/settings.gradle"
-          cp -a "$SRC/README.md" "$SRC/BUILD_STATUS.txt" "$SRC/settings.gradle" "$SRC/gradle.properties" "$SRC/build.gradle" .
-          cp -a "$SRC/app" .
+          # The ZIP is a recovery source only. Never overwrite tracked source changes.
+          for file in README.md BUILD_STATUS.txt settings.gradle gradle.properties build.gradle; do
+            if [ ! -f "$file" ]; then cp -a "$SRC/$file" "$file"; fi
+          done
+          if [ ! -f app/src/main/assets/index.html ]; then
+            cp -a "$SRC/app" .
+          else
+            echo "Tracked Android source found; preserving repository version."
+          fi
 
       - name: Commit extracted Android source to repository
         shell: bash
