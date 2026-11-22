@@ -46,6 +46,30 @@ Deno.serve(async req => {
     const body = await req.json();
     const action = String(body.action || "");
 
+    if (action === "bootstrap_developer_issue") {
+      const expected = Deno.env.get("FC_BOOTSTRAP_SECRET");
+      const supplied = req.headers.get("x-fc-bootstrap-secret") || "";
+      if (!expected || supplied.length < 32 || supplied !== expected) {
+        return json({ error: "bootstrap_not_authorized" }, 403);
+      }
+      const { data: member, error: memberError } = await admin.from("fc_members")
+        .select("member_id,username,name,role,status,auth_user_id")
+        .eq("username", "edrick").maybeSingle();
+      if (memberError || !member || member.status !== "Aktif" || member.role !== "Developer" || member.auth_user_id) {
+        return json({ error: "developer_member_not_eligible" }, 409);
+      }
+      const code = makeCode();
+      const { error } = await admin.from("fc_member_activation_codes").upsert({
+        member_id: member.member_id,
+        code_hash: await sha256(code),
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        created_by: null,
+        used_at: null,
+      });
+      if (error) return json({ error: "developer_activation_issue_failed" }, 500);
+      return json({ ok: true, username: member.username, activation_code: code, expires_in_hours: 24 });
+    }
+
     if (action === "bootstrap_issue") {
       const expected = Deno.env.get("FC_BOOTSTRAP_SECRET");
       const supplied = req.headers.get("x-fc-bootstrap-secret") || "";
