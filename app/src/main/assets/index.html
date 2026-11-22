@@ -179,8 +179,14 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
     <div class="eyebrow">PRIVATE ACCESS</div><h2 id="devGateTitle">Developer Entry</h2>
     <p class="tiny">Akses Developer menggunakan akun @edrick melalui halaman login utama. Kode demo tidak lagi digunakan.</p>
     <div class="field"><label for="devGateCode">Login Developer</label><input id="devGateCode" type="text" autocomplete="off" placeholder="Gunakan login utama" disabled></div>
-    <div class="toolbar"><button class="btn primary" onclick="developerLogin()">MASUK</button><button class="btn ghost" onclick="closeDeveloperGate()">BATAL</button></div>
-    <p class="tiny" style="margin-top:13px">Pintu masuk disembunyikan dari halaman member. Kode demo tetap bukan keamanan produksi.</p>
+    <div class="toolbar"><button class="btn primary" onclick="developerLogin()">LOGIN UTAMA</button><button class="btn ghost" onclick="closeDeveloperGate()">TUTUP</button></div>
+    <div class="divider" style="margin:16px 0"></div>
+    <h3>Inisialisasi Pengurus Pertama</h3>
+    <p class="tiny">Khusus setup awal oleh Developer. Ini hanya membuat kode aktivasi sekali pakai untuk Dhita sebagai Kepsuk pertama. Secret harus sama dengan FC_BOOTSTRAP_SECRET di Supabase Function Secrets.</p>
+    <div class="field"><label for="bootstrapSecret">Bootstrap secret</label><input id="bootstrapSecret" type="password" autocomplete="off" placeholder="Masukkan secret setup awal"></div>
+    <button class="btn primary" style="width:100%" onclick="bootstrapFirstManager()">BUAT KODE AKTIVASI KEPSUK</button>
+    <div id="bootstrapResult" class="notice hidden"></div>
+    <p class="tiny" style="margin-top:13px">Developer tetap tidak memiliki hak mengelola akses anggota setelah inisialisasi. Kepsuk, Deputi, dan Admin yang mengurusnya.</p>
   </div>
 </div>
 <div id="toast" class="toast"></div>
@@ -319,6 +325,19 @@ async function activateMemberAccount(){
 }
 function showMemberFeedback(msg){$("memberFeedback").textContent=msg;$("memberFeedback").classList.remove("hidden")}
 function demoDecision(approve){const name=$("memberName").value.trim();const req=db.requests.find(r=>r.name.toLowerCase()===name.toLowerCase()&&r.status==="pending");if(!req){toast("Tidak ada permintaan yang menunggu.");return}req.status=approve?"approved":"rejected";if(approve){const migrated=db.members.find(m=>m.name.toLowerCase()===req.name.toLowerCase());if(migrated){migrated.status="approved";migrated.approvedAt=new Date().toISOString();migrated.mustChangePassword=!!migrated.legacyMemberId;}else{db.members.push({name:req.name,role:"Member",status:"approved",joined:new Date().toLocaleDateString("id-ID"),coins:0,xp:0,level:1});}showMemberFeedback("Akses disetujui. Selamat datang di koloni!");session={name:req.name,role:"Member"};log("Permintaan disetujui (simulasi)",req.name);saveDB();enterApp()}else{showMemberFeedback("Pengajuan akses ditolak dalam simulasi demo.");$("pendingActions").classList.add("hidden");log("Permintaan ditolak (simulasi)",req.name);saveDB()}}
+async function bootstrapFirstManager(){
+ const secret=$("bootstrapSecret").value;
+ if(secret.length<20){toast("Bootstrap secret belum valid.");return}
+ const button=document.querySelector('#developerGate button[onclick="bootstrapFirstManager()"]');if(button){button.disabled=true;button.textContent="MEMBUAT KODE..."}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json","x-fc-bootstrap-secret":secret},body:JSON.stringify({action:"bootstrap_issue"})});
+  const result=await response.json();
+  if(!response.ok||!result.ok)throw new Error(result.error||"bootstrap_not_authorized");
+  $("bootstrapResult").innerHTML="Kode aktivasi pertama untuk <strong>Dhita (@dhita) — Kepsuk</strong>:<br><strong style='font-size:1.25rem;letter-spacing:.12em'>"+escapeHTML(result.activation_code)+"</strong><br><span class='tiny'>Berlaku 24 jam. Kirim langsung secara pribadi kepada Dhita. Kode hanya dapat dipakai sekali.</span>";
+  $("bootstrapResult").classList.remove("hidden");$("bootstrapSecret").value="";
+ }catch(err){$("bootstrapResult").textContent=fcFriendlyError(String(err.message||"").split(":")[0]);$("bootstrapResult").classList.remove("hidden")}
+ finally{if(button){button.disabled=false;button.textContent="BUAT KODE AKTIVASI KEPSUK"}}
+}
 function developerLogin(){closeDeveloperGate();toast("Developer masuk melalui login utama menggunakan username @edrick dan password akun Family Colony.")}
 function closeDeveloperGate(){$("developerGate").classList.add("hidden");$("devGateCode").value=""}
 let secretTapCount=0,secretTapTimer=null;
