@@ -191,7 +191,7 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
     <div class="field"><label for="bootstrapSecret">Bootstrap secret</label><input id="bootstrapSecret" type="password" autocomplete="off" placeholder="Masukkan secret setup awal"></div>
     <button class="btn primary" style="width:100%" onclick="bootstrapFirstManager()">BUAT KODE AKTIVASI KEPSUK</button>
     <div class="field"><label for="developerInitialPassword">Password awal Developer (@edrick)</label><input id="developerInitialPassword" type="password" minlength="12" maxlength="128" autocomplete="new-password" placeholder="Buat password awal minimal 12 karakter"></div>
-    <button class="btn primary" style="width:100%;margin-top:9px" onclick="bootstrapDeveloperPassword()">SIAPKAN LOGIN DEVELOPER</button>
+    <button id="developerSetupButton" type="button" class="btn primary" style="width:100%;margin-top:9px">SIAPKAN LOGIN DEVELOPER</button>
     <div id="developerBootstrapResult" class="notice hidden"></div>
     <div id="bootstrapResult" class="notice hidden"></div>
     <p class="tiny" style="margin-top:13px">Developer tetap tidak memiliki hak mengelola akses anggota setelah inisialisasi. Kepsuk, Deputi, dan Admin yang mengurusnya.</p>
@@ -361,19 +361,24 @@ async function bootstrapFirstManager(){
  finally{if(button){button.disabled=false;button.textContent="BUAT KODE AKTIVASI KEPSUK"}}
 }
 async function bootstrapDeveloperPassword(){
- const secret=$("bootstrapSecret").value,initialPassword=$("developerInitialPassword").value;
- if(secret.length<32){toast("Bootstrap secret minimal 32 karakter.");return}
- if(initialPassword.length<12){toast("Password awal minimal 12 karakter.");return}
- const button=document.querySelector('#developerGate button[onclick="bootstrapDeveloperPassword()"]');
+ const secret=$("bootstrapSecret")?.value||"",initialPassword=$("developerInitialPassword")?.value||"";
+ const resultBox=$("developerBootstrapResult");
+ const button=$("developerSetupButton");
+ const showResult=(message)=>{if(resultBox){resultBox.textContent=message;resultBox.classList.remove("hidden")}};
+ showResult("Memeriksa data setup Developer...");
+ if(secret.length<32){showResult("Gagal: Bootstrap Secret harus sama dengan FC_BOOTSTRAP_SECRET dan minimal 32 karakter.");return}
+ if(initialPassword.length<12){showResult("Gagal: Password awal Developer minimal 12 karakter.");return}
+ if(!window.FC_SUPABASE_URL){showResult("Gagal: alamat server Supabase belum tersedia pada APK ini.");return}
  if(button){button.disabled=true;button.textContent="MENYIAPKAN AKUN..."}
  try{
   const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json","x-fc-bootstrap-secret":secret},body:JSON.stringify({action:"developer_password_setup",initial_password:initialPassword})});
   const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"developer_account_setup_failed");
-  $("developerBootstrapResult").textContent="Login Developer @edrick berhasil disiapkan. Masuk melalui formulir utama; sistem akan mewajibkan penggantian password.";
-  $("developerBootstrapResult").classList.remove("hidden");$("bootstrapSecret").value="";
-  $("memberName").value="edrick";$("memberPassword").value=initialPassword;$("developerInitialPassword").value="";closeDeveloperGate();
+  showResult("Login Developer @edrick berhasil disiapkan. Silakan masuk melalui formulir utama untuk mengganti password awal.");
+  $("bootstrapSecret").value="";
+  $("memberName").value="edrick";$("memberPassword").value=initialPassword;$("developerInitialPassword").value="";
+  closeDeveloperGate();
   showMemberFeedback("Akun Developer siap. Tekan MASUK KE FAMILY COLONY untuk mengganti password awal.");
- }catch(err){$("developerBootstrapResult").textContent=fcFriendlyError(String(err.message||"").split(":")[0]);$("developerBootstrapResult").classList.remove("hidden")}
+ }catch(err){showResult("Gagal menyiapkan login Developer: "+fcFriendlyError(String(err.message||"").split(":")[0]))}
  finally{if(button){button.disabled=false;button.textContent="SIAPKAN LOGIN DEVELOPER"}}
 }
 function developerLogin(){closeDeveloperGate();$("memberName").value="edrick";$("memberPassword").focus();toast("Masukkan password akun Developer @edrick pada login utama.")}
@@ -1344,6 +1349,7 @@ function fc12ExportBackup(){if(session?.role!=="Developer")return toast("Akses D
 // Initial safe setup and small runtime checks.
 $("memberName").addEventListener("keydown",e=>{if(e.key==="Enter")requestAccess()});
 $("devGateCode").addEventListener("keydown",e=>{if(e.key==="Enter")developerLogin()});
+const developerSetupButton=$("developerSetupButton");if(developerSetupButton)developerSetupButton.addEventListener("click",()=>bootstrapDeveloperPassword());
 $("secretGate").addEventListener("click",secretGateTap);
 $("developerGate").addEventListener("click",e=>{if(e.target.id==="developerGate")closeDeveloperGate()});
 if(!Array.isArray(db.members))db.members=[];if(!Array.isArray(db.requests))db.requests=[];if(!Array.isArray(db.announcements))db.announcements=[];if(!Array.isArray(db.activity))db.activity=[];ensureEconomyData();ensureMissionData();ensureHoneyChallengeData();ensureGuessWhoData();saveDB();try{const saved=JSON.parse(sessionStorage.getItem("fc_session")||"null");if(saved&&saved.accessToken&&saved.expiresAt>Date.now()+30000){session=saved;enterApp()}}catch(e){}
