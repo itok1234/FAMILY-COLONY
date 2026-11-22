@@ -9,7 +9,7 @@ on:
       - '.github/workflows/android-debug.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-debug-apk:
@@ -31,6 +31,20 @@ jobs:
           test -f "$SRC/settings.gradle"
           cp -a "$SRC/README.md" "$SRC/BUILD_STATUS.txt" "$SRC/settings.gradle" "$SRC/gradle.properties" "$SRC/build.gradle" .
           cp -a "$SRC/app" .
+
+      - name: Commit extracted Android source to repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md BUILD_STATUS.txt settings.gradle gradle.properties build.gradle app
+          if ! git diff --cached --quiet; then
+            git commit -m "Extract Android project source for Supabase integration"
+            git push
+          else
+            echo "Android source is already extracted."
+          fi
 
       - name: Upload extracted project for inspection
         uses: actions/upload-artifact@v4
