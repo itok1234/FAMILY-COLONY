@@ -136,7 +136,7 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
 .room-music-queue{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;max-height:110px;overflow:auto;}
 .room-music-queue .btn{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 </style>
-<script src="fc-config.js"></script>
+<script>window.FC_SUPABASE_URL="https://irwtnqekrwhgompulach.supabase.co";</script>
 </head>
 <body>
 <header class="topbar"><div class="shell topbar-inner">
@@ -283,27 +283,22 @@ function log(action,who="System"){db.activity.unshift({action,who,at:new Date().
 function toast(s){const t=$("toast");t.textContent=s;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500)}
 function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function fcAuthEmail(username){const bytes=new TextEncoder().encode(String(username||"").trim().replace(/^@/,"").toLowerCase());const hex=Array.from(bytes).map(b=>b.toString(16).padStart(2,"0")).join("");return "fc_"+hex+"@members.familycolony.invalid"}
-function fcConfigReady(){return !!(window.FC_SUPABASE_URL&&window.FC_SUPABASE_ANON_KEY)}
-function fcFriendlyError(code){const map={invalid_credentials:"Username atau password salah.",email_not_confirmed:"Akun belum aktif. Hubungi pengurus.",invalid_login_credentials:"Username atau password salah.",activation_code_invalid_expired_or_used:"Kode aktivasi salah, kedaluwarsa, atau sudah digunakan.",member_not_eligible:"Akun belum disiapkan pengurus atau sudah aktif.",account_creation_failed:"Akun tidak dapat dibuat. Periksa kode aktivasi atau hubungi pengurus.",bootstrap_not_authorized:"Akses aktivasi pengurus tidak diizinkan."};return map[code]||"Terjadi kendala koneksi atau akun. Coba lagi atau hubungi pengurus."}
+function fcConfigReady(){return !!window.FC_SUPABASE_URL}
+function fcFriendlyError(code){const map={invalid_credentials:"Username atau password salah.",credentials_required:"Isi username dan password.",member_not_eligible:"Akun belum disiapkan pengurus atau statusnya tidak aktif.",email_not_confirmed:"Akun belum aktif. Hubungi pengurus.",activation_code_invalid_expired_or_used:"Kode aktivasi salah, kedaluwarsa, atau sudah digunakan.",account_creation_failed:"Akun tidak dapat dibuat. Periksa kode aktivasi atau hubungi pengurus.",bootstrap_not_authorized:"Akses aktivasi pengurus tidak diizinkan."};return map[code]||"Terjadi kendala koneksi atau akun. Coba lagi atau hubungi pengurus."}
 function toggleActivationPanel(){$("activationPanel").classList.toggle("hidden")}
 async function requestAccess(){
  const username=$("memberName").value.trim().replace(/^@/,"").toLowerCase();
  const password=$("memberPassword").value;
  if(username.length<2||!password){showMemberFeedback("Isi username dan password terlebih dahulu.");return}
- if(!fcConfigReady()){showMemberFeedback("Konfigurasi server belum tersedia. APK perlu dibangun melalui pipeline resmi.");return}
+ if(!fcConfigReady()){showMemberFeedback("Alamat server belum dikonfigurasi pada aplikasi.");return}
  const btn=document.querySelector(".login-panel button.primary");if(btn){btn.disabled=true;btn.textContent="MEMERIKSA AKUN..."}
  try{
-  const response=await fetch(window.FC_SUPABASE_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"apikey":window.FC_SUPABASE_ANON_KEY,"Content-Type":"application/json"},body:JSON.stringify({email:fcAuthEmail(username),password})});
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"login",username,password})});
   const auth=await response.json();
-  if(!response.ok||!auth.access_token)throw new Error(auth.error_code||auth.msg||auth.message||"invalid_credentials");
-  const memberResponse=await fetch(window.FC_SUPABASE_URL+"/rest/v1/fc_members?select=member_id,name,username,role,status&auth_user_id=eq."+encodeURIComponent(auth.user.id),{headers:{"apikey":window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+auth.access_token}});
-  const members=await memberResponse.json();
-  if(!memberResponse.ok||!Array.isArray(members)||!members.length||members[0].status!=="Aktif"){
-   fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+auth.access_token}});
-   throw new Error("member_not_eligible");
-  }
-  const m=members[0];
-  session={name:m.name,role:m.role,memberId:m.member_id,username:m.username,accessToken:auth.access_token,refreshToken:auth.refresh_token,expiresAt:Date.now()+Number(auth.expires_in||3600)*1000};
+  if(!response.ok||!auth.ok||!auth.access_token||!auth.member)throw new Error(auth.error||"invalid_credentials");
+  window.FC_SUPABASE_ANON_KEY=auth.anon_key||"";
+  const m=auth.member;
+  session={name:m.name,role:m.role,memberId:m.member_id,username:m.username,accessToken:auth.access_token,refreshToken:auth.refresh_token,anonKey:auth.anon_key,expiresAt:Date.now()+Number(auth.expires_in||3600)*1000};
   try{sessionStorage.setItem("fc_session",JSON.stringify(session))}catch(e){}
   $("memberFeedback").classList.add("hidden");$("memberPassword").value="";log("Login online",m.username);enterApp();
  }catch(err){showMemberFeedback(fcFriendlyError(String(err.message||"").split(":")[0]))}
@@ -316,7 +311,7 @@ async function activateMemberAccount(){
  if(!username||!code||password.length<10){showMemberFeedback("Lengkapi username, kode aktivasi, dan password minimal 10 karakter.");return}
  if(!fcConfigReady()){showMemberFeedback("Konfigurasi server belum tersedia. APK perlu dibangun melalui pipeline resmi.");return}
  try{
-  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"apikey":window.FC_SUPABASE_ANON_KEY,"Content-Type":"application/json"},body:JSON.stringify({action:"activate",username,activation_code:code,password})});
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"activate",username,activation_code:code,password})});
   const result=await response.json();
   if(!response.ok||!result.ok)throw new Error(result.error||"activation_failed");
   $("activationPassword").value="";$("activationCode").value="";$("memberName").value=username;$("memberFeedback").textContent="Akun berhasil diaktifkan. Silakan masuk menggunakan username dan password baru.";$("memberFeedback").classList.remove("hidden");$("activationPanel").classList.add("hidden");
@@ -328,7 +323,7 @@ function developerLogin(){closeDeveloperGate();toast("Developer masuk melalui lo
 function closeDeveloperGate(){$("developerGate").classList.add("hidden");$("devGateCode").value=""}
 let secretTapCount=0,secretTapTimer=null;
 function secretGateTap(){secretTapCount++;clearTimeout(secretTapTimer);secretTapTimer=setTimeout(()=>{secretTapCount=0},2200);if(secretTapCount>=7){secretTapCount=0;$("developerGate").classList.remove("hidden");$("devGateCode").focus()}}
-function logout(){if(session?.accessToken&&fcConfigReady())fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.accessToken}}).catch(()=>{});if(session)log("Logout",session.name);session=null;try{sessionStorage.removeItem("fc_session")}catch(e){}audio.pause();$("workspace").classList.add("hidden");$("landing").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("homeBtn").classList.add("hidden");$("topUser").textContent="";$("devGateCode").value=""}
+function logout(){if(session?.accessToken&&fcConfigReady())fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":session.anonKey||window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.accessToken}}).catch(()=>{});if(session)log("Logout",session.name);session=null;try{sessionStorage.removeItem("fc_session")}catch(e){}audio.pause();$("workspace").classList.add("hidden");$("landing").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("homeBtn").classList.add("hidden");$("topUser").textContent="";$("devGateCode").value=""}
 function goHome(){currentPage="overview";renderPage()}
 function enterApp(){$("landing").classList.add("hidden");$("workspace").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("homeBtn").classList.remove("hidden");$("topUser").textContent=session.name+" · "+session.role;currentPage=session.role==="Developer"?"developer":"overview";$("sideName").textContent=session.name;$("sideRole").textContent=session.role.toUpperCase();buildNav();recordMissionEvent("login","Login ke kerajaan");renderPage();requestLandscape()}
 async function requestLandscape(){
@@ -985,7 +980,7 @@ async function issueMemberActivation(){
  if(!session?.accessToken||!fcConfigReady()){toast("Sesi pengurus tidak valid.");return}
  const button=$("issueActivationBtn");if(button){button.disabled=true;button.textContent="MEMBUAT KODE..."}
  try{
-  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"apikey":window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.accessToken,"Content-Type":"application/json"},body:JSON.stringify({action:"issue_activation",username})});
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Authorization":"Bearer "+session.accessToken,"Content-Type":"application/json"},body:JSON.stringify({action:"issue_activation",username})});
   const result=await response.json();
   if(!response.ok||!result.ok)throw new Error(result.error||"activation_issue_failed");
   $("activationCodeResult").innerHTML="Kode aktivasi untuk <strong>"+escapeHTML(result.name)+" (@"+escapeHTML(result.username)+")</strong>:<br><strong style='font-size:1.2rem;letter-spacing:.12em'>"+escapeHTML(result.activation_code)+"</strong><br><span class='tiny'>Berlaku 24 jam. Kirim secara pribadi kepada anggota dan jangan bagikan di grup umum.</span>";
