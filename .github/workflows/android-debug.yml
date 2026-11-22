@@ -1,0 +1,73 @@
+
+name: Build FAMILY COLONY V5D Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'FAMILY_COLONY_V5D_SOURCE_UPLOAD.zip'
+
+permissions:
+  contents: read
+
+jobs:
+  build-debug-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Android project
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARCHIVE="FAMILY_COLONY_V5D_SOURCE_UPLOAD.zip"
+          test -f "$ARCHIVE"
+          mkdir -p /tmp/family-colony-src
+          unzip -q "$ARCHIVE" -d /tmp/family-colony-src
+          SRC="/tmp/family-colony-src/FAMILY_COLONY_V5D_Android_Project"
+          test -f "$SRC/settings.gradle"
+          cp -a "$SRC/README.md" "$SRC/BUILD_STATUS.txt" "$SRC/settings.gradle" "$SRC/gradle.properties" "$SRC/build.gradle" .
+          cp -a "$SRC/app" .
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Verify project files
+        run: |
+          test -f settings.gradle
+          test -f app/build.gradle
+          test -f app/src/main/AndroidManifest.xml
+          test -f app/src/main/assets/index.html
+
+      - name: Build Debug APK
+        run: gradle --no-daemon assembleDebug --stacktrace
+
+      - name: Verify APK
+        run: |
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          ls -lh app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FAMILY-COLONY-V5D-DEBUG-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
