@@ -33,6 +33,21 @@ jobs:
           select 'policy', policyname, cmd || ' / ' || coalesce(qual,'') || ' / ' || coalesce(with_check,'')
           from pg_policies
           where schemaname='public' and tablename='fc_members'
+          union all
+          select 'table', c.relname,
+                 'RLS enabled=' || c.relrowsecurity::text || ', forced=' || c.relforcerowsecurity::text
+          from pg_class c
+          join pg_namespace n on n.oid=c.relnamespace
+          where n.nspname='public' and c.relname in ('fc_members','fc_wallets','fc_wallet_transactions')
+          union all
+          select 'trigger', tgname, pg_get_triggerdef(oid)
+          from pg_trigger
+          where tgrelid='public.fc_members'::regclass and not tgisinternal
+          union all
+          select 'function', p.proname, pg_get_functiondef(p.oid)
+          from pg_proc p
+          join pg_namespace n on n.oid=p.pronamespace
+          where n.nspname='public' and p.proname in ('fc_current_member_id','fc_is_staff')
           order by item_type, item_name
           """
           Path("/tmp/query.json").write_text(json.dumps({"query": sql}))
