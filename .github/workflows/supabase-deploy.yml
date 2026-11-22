@@ -57,7 +57,7 @@ jobs:
       - name: Deploy member authentication function
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase functions deploy fc-member-auth --project-ref irwtnqekrwhgompulach
+        run: supabase functions deploy fc-member-auth --project-ref irwtnqekrwhgompulach --yes --no-verify-jwt
 
       - name: Deployment summary
         run: echo "Member activation backend deployed. No member passwords or service-role keys were exposed."
