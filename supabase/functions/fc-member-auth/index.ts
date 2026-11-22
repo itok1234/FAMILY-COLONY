@@ -46,29 +46,51 @@ Deno.serve(async req => {
     const body = await req.json();
     const action = String(body.action || "");
 
-    if (action === "bootstrap_developer_issue") {
-      const expected = Deno.env.get("FC_BOOTSTRAP_SECRET");
+    if (action === "developer_password_setup") {
+      const expected = Deno.env.get("FC_BOOTSTRAP_SECRET") || "";
       const supplied = req.headers.get("x-fc-bootstrap-secret") || "";
-      if (!expected || supplied.length < 32 || supplied !== expected) {
-        return json({ error: "bootstrap_not_authorized" }, 403);
-      }
+      const initialPassword = String(body.initial_password || "");
+      if (!expected || supplied.length < 32 || supplied !== expected) return json({ error: "bootstrap_not_authorized" }, 403);
+      if (initialPassword.length < 12) return json({ error: "initial_password_min_12" }, 400);
       const { data: member, error: memberError } = await admin.from("fc_members")
-        .select("member_id,username,name,role,status,auth_user_id")
-        .eq("username", "edrick").maybeSingle();
+        .select("member_id,username,name,role,status,auth_user_id").eq("username", "edrick").maybeSingle();
       if (memberError || !member || member.status !== "Aktif" || member.role !== "Developer" || member.auth_user_id) {
         return json({ error: "developer_member_not_eligible" }, 409);
       }
-      const code = makeCode();
-      const { error } = await admin.from("fc_member_activation_codes").upsert({
-        member_id: member.member_id,
-        code_hash: await sha256(code),
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        created_by: null,
-        used_at: null,
+      const { data: created, error: createError } = await admin.auth.admin.createUser({
+        email: authEmail("edrick"), password: initialPassword, email_confirm: true,
+        user_metadata: { family_colony_username: "edrick", fc_must_change_password: true },
       });
-      if (error) return json({ error: "developer_activation_issue_failed" }, 500);
-      return json({ ok: true, username: member.username, activation_code: code, expires_in_hours: 24 });
+      if (createError || !created.user) return json({ error: "developer_account_setup_failed" }, 409);
+      const { error: linkError } = await admin.from("fc_members").update({ auth_user_id: created.user.id })
+        .eq("member_id", member.member_id).is("auth_user_id", null);
+      if (linkError) {
+        await admin.auth.admin.deleteUser(created.user.id);
+        return json({ error: "developer_account_link_failed" }, 500);
+      }
+      return json({ ok: true, username: "edrick", must_change_password: true });
     }
+
+    if (action === "developer_change_password") {
+      const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
+      const newPassword = String(body.new_password || "");
+      if (!bearer) return json({ error: "authentication_required" }, 401);
+      if (newPassword.length < 12) return json({ error: "password_min_12" }, 400);
+      const { data: authData, error: authError } = await admin.auth.getUser(bearer);
+      if (authError || !authData.user) return json({ error: "invalid_session" }, 401);
+      const { data: member } = await admin.from("fc_members").select("username,role,status,auth_user_id")
+        .eq("auth_user_id", authData.user.id).maybeSingle();
+      if (!member || member.username !== "edrick" || member.role !== "Developer" || member.status !== "Aktif" || member.auth_user_id !== authData.user.id) {
+        return json({ error: "not_authorized" }, 403);
+      }
+      const { error: updateError } = await admin.auth.admin.updateUserById(authData.user.id, {
+        password: newPassword,
+        user_metadata: { ...authData.user.user_metadata, fc_must_change_password: false },
+      });
+      if (updateError) return json({ error: "password_update_failed" }, 500);
+      return json({ ok: true, must_change_password: false });
+    }
+
 
     if (action === "bootstrap_issue") {
       const expected = Deno.env.get("FC_BOOTSTRAP_SECRET");
@@ -133,6 +155,7 @@ Deno.serve(async req => {
         refresh_token: signedIn.session.refresh_token,
         expires_in: signedIn.session.expires_in,
         anon_key: anonKey,
+        must_change_password: member.role === "Developer" && signedIn.user.user_metadata?.fc_must_change_password === true,
       });
     }
 
