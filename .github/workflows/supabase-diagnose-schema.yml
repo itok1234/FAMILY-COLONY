@@ -18,11 +18,25 @@ jobs:
           import json
           from pathlib import Path
           sql = """
-          select table_name, column_name, data_type
+          select 'column' as item_type, table_name as item_name,
+                 column_name || ' : ' || data_type as details
           from information_schema.columns
           where table_schema='public'
             and table_name in ('fc_members','fc_wallets','fc_wallet_transactions')
-          order by table_name, ordinal_position
+          union all
+          select 'table_rls', c.relname,
+                 'enabled=' || c.relrowsecurity::text || ', forced=' || c.relforcerowsecurity::text
+          from pg_class c
+          join pg_namespace n on n.oid=c.relnamespace
+          where n.nspname='public'
+            and c.relname in ('fc_members','fc_wallets','fc_wallet_transactions')
+          union all
+          select 'policy', tablename || '.' || policyname,
+                 cmd || ' / ' || coalesce(qual,'')
+          from pg_policies
+          where schemaname='public'
+            and tablename in ('fc_members','fc_wallets','fc_wallet_transactions')
+          order by item_type, item_name
           """
           Path("/tmp/query.json").write_text(json.dumps({"query": sql}))
           PY
