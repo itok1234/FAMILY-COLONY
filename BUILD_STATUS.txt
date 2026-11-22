@@ -1,0 +1,6 @@
+PROJECT: FAMILY COLONY V5D — Android Project V4
+STATUS: Source project packaged; APK NOT built in this environment.
+SOURCE HTML: copied unchanged into app/src/main/assets/index.html
+BUILD CONFIG: Android Gradle Plugin 8.7.3 / Gradle 8.9 / JDK 17 / SDK 35
+LOCAL ENVIRONMENT: Android SDK and Gradle CLI were not available during packaging.
+NEXT: Build with the included GitHub Actions workflow or Android Studio, then test on a physical Android device.
