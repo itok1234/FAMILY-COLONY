@@ -289,8 +289,9 @@ async function requestLandscape(){
   try{if(screen.orientation&&typeof screen.orientation.lock==="function"){await screen.orientation.lock("landscape");toast("Mode Landscape diaktifkan.");return}}catch(e){}
   toast("Browser tidak mengizinkan kunci Landscape. Tampilan tetap menyesuaikan orientasi perangkat.");
 }
-function isStaff(){return ["Kepsuk","Deputi","Admin","Developer"].includes(session?.role)}
-function canManage(){return ["Kepsuk","Deputi","Admin","Developer"].includes(session?.role)}
+// Pengurus operasional: Kepsuk, Deputi, dan Admin. Developer hanya memantau teknis.
+function isStaff(){return ["Kepsuk","Deputi","Admin"].includes(session?.role)}
+function canManage(){return ["Kepsuk","Deputi","Admin"].includes(session?.role)}
 function visibleModules(){let arr=modules.filter(m=>m[0]!=="developer"&&m[0]!=="management");if(isStaff())arr.push(modules.find(m=>m[0]==="management"));if(session.role==="Developer"){arr.push(modules.find(m=>m[0]==="developer"));arr.push(modules.find(m=>m[0]==="cloudIntegration"))}return arr}
 function buildNav(){const nav=$("sideNav");nav.innerHTML=visibleModules().map(m=>`<button class="navbtn ${m[0]===currentPage?"active":""}" onclick="navigate('${m[0]}')"><span class="ico">${m[1]}</span>${m[2]}</button>`).join("")}
 function navigate(page){if(!session||!authorizedMissionPage(page)){toast("Akses tidak diizinkan.");return}if(currentPage==="games"&&page!=="games"&&typeof rbStopOnNavigation==="function")rbStopOnNavigation();if(currentPage==="games"&&page!=="games"&&typeof rmClearTalk==="function"){rmClearTalk();rmGame=null;}currentPage=page;if(page==="games")recordMissionEvent("game_visit","Mengunjungi Royal Game Center");buildNav();renderPage();window.scrollTo({top:0,behavior:"smooth"})}
