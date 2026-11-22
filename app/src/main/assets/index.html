@@ -371,7 +371,7 @@ async function bootstrapDeveloperPassword(){
   const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"developer_account_setup_failed");
   $("developerBootstrapResult").textContent="Login Developer @edrick berhasil disiapkan. Masuk melalui formulir utama; sistem akan mewajibkan penggantian password.";
   $("developerBootstrapResult").classList.remove("hidden");$("bootstrapSecret").value="";
-  $("memberName").value="edrick";$("memberPassword").value=initialPassword;closeDeveloperGate();
+  $("memberName").value="edrick";$("memberPassword").value=initialPassword;$("developerInitialPassword").value="";closeDeveloperGate();
   showMemberFeedback("Akun Developer siap. Tekan MASUK KE FAMILY COLONY untuk mengganti password awal.");
  }catch(err){$("developerBootstrapResult").textContent=fcFriendlyError(String(err.message||"").split(":")[0]);$("developerBootstrapResult").classList.remove("hidden")}
  finally{if(button){button.disabled=false;button.textContent="SIAPKAN LOGIN DEVELOPER"}}
