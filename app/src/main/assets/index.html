@@ -339,7 +339,7 @@ async function bootstrapFirstManager(){
  finally{if(button){button.disabled=false;button.textContent="BUAT KODE AKTIVASI KEPSUK"}}
 }
 function developerLogin(){closeDeveloperGate();toast("Developer masuk melalui login utama menggunakan username @edrick dan password akun Family Colony.")}
-function closeDeveloperGate(){$("developerGate").classList.add("hidden");$("devGateCode").value=""}
+function closeDeveloperGate(){$("developerGate").classList.add("hidden");$("devGateCode").value="";if($("bootstrapSecret"))$("bootstrapSecret").value=""}
 let secretTapCount=0,secretTapTimer=null;
 function secretGateTap(){secretTapCount++;clearTimeout(secretTapTimer);secretTapTimer=setTimeout(()=>{secretTapCount=0},2200);if(secretTapCount>=7){secretTapCount=0;$("developerGate").classList.remove("hidden");$("devGateCode").focus()}}
 function logout(){if(session?.accessToken&&fcConfigReady())fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":session.anonKey||window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.accessToken}}).catch(()=>{});if(session)log("Logout",session.name);session=null;try{sessionStorage.removeItem("fc_session")}catch(e){}audio.pause();$("workspace").classList.add("hidden");$("landing").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("homeBtn").classList.add("hidden");$("topUser").textContent="";$("devGateCode").value=""}
