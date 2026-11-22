@@ -32,7 +32,10 @@ Deno.serve(async req => {
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
   const url = Deno.env.get("SUPABASE_URL");
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const secretKeysRaw = Deno.env.get("SUPABASE_SECRET_KEYS") || "{}";
+  let secretKeys: Record<string, string> = {};
+  try { secretKeys = JSON.parse(secretKeysRaw); } catch { secretKeys = {}; }
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || secretKeys.default;
   if (!url || !serviceKey) return json({ error: "server_not_configured" }, 500);
 
   const admin = createClient(url, serviceKey, {
@@ -76,7 +79,11 @@ Deno.serve(async req => {
       const username = String(body.username || "").trim().replace(/^@/, "").toLowerCase();
       const password = String(body.password || "");
       if (!username || !password) return json({ error: "credentials_required" }, 400);
-      const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+      const publishableKeysRaw = Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}";
+      let publishableKeys: Record<string, string> = {};
+      try { publishableKeys = JSON.parse(publishableKeysRaw); } catch { publishableKeys = {}; }
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ||
+        Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || publishableKeys.default;
       if (!anonKey) return json({ error: "auth_server_not_configured" }, 500);
       const publicClient = createClient(url, anonKey, {
         auth: { autoRefreshToken: false, persistSession: false },
