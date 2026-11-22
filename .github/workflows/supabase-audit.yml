@@ -1,4 +1,3 @@
-
 name: Supabase Security Audit
 
 on:
@@ -28,3 +27,47 @@ jobs:
 
           echo "Daftar API Key (tanpa nilai rahasia):"
           jq '[.[] | {id, name, type}]' keys.json
+
+      - name: Inspect database structure (read only)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          cat > inspect.sql <<'SQL'
+          select json_build_object(
+            'tables', coalesce((
+              select json_agg(json_build_object(
+                'schema', t.table_schema,
+                'name', t.table_name,
+                'rls_enabled', c.relrowsecurity,
+                'rls_forced', c.relforcerowsecurity
+              ) order by t.table_schema, t.table_name)
+              from information_schema.tables t
+              join pg_catalog.pg_class c on c.relname = t.table_name
+              join pg_catalog.pg_namespace n on n.oid = c.relnamespace and n.nspname = t.table_schema
+              where t.table_type = 'BASE TABLE'
+                and t.table_schema in ('public', 'auth')
+            ), '[]'::json),
+            'policies', coalesce((
+              select json_agg(json_build_object(
+                'schema', schemaname,
+                'table', tablename,
+                'policy', policyname,
+                'command', cmd,
+                'roles', roles
+              ) order by schemaname, tablename, policyname)
+              from pg_catalog.pg_policies
+              where schemaname = 'public'
+            ), '[]'::json)
+          ) as database_audit;
+          SQL
+
+          jq -n --arg query "$(cat inspect.sql)" '{query:$query,read_only:true}' > request.json
+          curl -fsS -X POST \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data-binary @request.json \
+            "https://api.supabase.com/v1/projects/irwtnqekrwhgompulach/database/query" \
+            -o database-audit.json
+
+          echo "Database structure and RLS audit (metadata only; no member or wallet records):"
+          jq . database-audit.json
