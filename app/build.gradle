@@ -21,8 +21,8 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix '.onlinetest4' // Install alongside the previous test package
-            versionNameSuffix '-online-test-4'
+            applicationIdSuffix '.onlinetest5' // Install alongside the previous test package
+            versionNameSuffix '-online-test-5'
         }
         release {
             minifyEnabled false
