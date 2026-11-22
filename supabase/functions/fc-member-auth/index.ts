@@ -72,6 +72,39 @@ Deno.serve(async req => {
       return json({ ok: true, username: member.username, activation_code: code, expires_in_hours: 24 });
     }
 
+    if (action === "login") {
+      const username = String(body.username || "").trim().replace(/^@/, "").toLowerCase();
+      const password = String(body.password || "");
+      if (!username || !password) return json({ error: "credentials_required" }, 400);
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+      if (!anonKey) return json({ error: "auth_server_not_configured" }, 500);
+      const publicClient = createClient(url, anonKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      const { data: signedIn, error: signInError } = await publicClient.auth.signInWithPassword({
+        email: authEmail(username),
+        password,
+      });
+      if (signInError || !signedIn.user || !signedIn.session) {
+        return json({ error: "invalid_credentials" }, 401);
+      }
+      const { data: member, error: memberError } = await admin.from("fc_members")
+        .select("member_id,name,username,role,status")
+        .eq("auth_user_id", signedIn.user.id).maybeSingle();
+      if (memberError || !member || member.status !== "Aktif") {
+        await publicClient.auth.signOut();
+        return json({ error: "member_not_eligible" }, 403);
+      }
+      return json({
+        ok: true,
+        member,
+        access_token: signedIn.session.access_token,
+        refresh_token: signedIn.session.refresh_token,
+        expires_in: signedIn.session.expires_in,
+        anon_key: anonKey,
+      });
+    }
+
     if (action === "issue_activation") {
       const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
       if (!bearer) return json({ error: "authentication_required" }, 401);
