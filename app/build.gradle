@@ -21,8 +21,8 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix '.onlinetest8' // Install alongside earlier test builds without uninstalling
-            versionNameSuffix '-online-test-8'
+            applicationIdSuffix '.onlinetest9' // Install alongside earlier test builds without uninstalling
+            versionNameSuffix '-online-test-9'
         }
         release {
             minifyEnabled false
