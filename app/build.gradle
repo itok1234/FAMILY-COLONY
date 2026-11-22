@@ -21,7 +21,7 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix '.onlinetest4'
+            applicationIdSuffix '.onlinetest4' // Install alongside the previous test package
             versionNameSuffix '-online-test-4'
         }
         release {
