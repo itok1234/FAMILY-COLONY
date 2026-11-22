@@ -30,7 +30,7 @@ jobs:
           join pg_namespace n on n.oid=t.relnamespace
           where n.nspname='public' and t.relname='fc_members'
           union all
-          select 'policy', polname, cmd || ' / ' || coalesce(qual,'') || ' / ' || coalesce(with_check,'')
+          select 'policy', policyname, cmd || ' / ' || coalesce(qual,'') || ' / ' || coalesce(with_check,'')
           from pg_policies
           where schemaname='public' and tablename='fc_members'
           order by item_type, item_name
