@@ -136,6 +136,7 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
 .room-music-queue{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;max-height:110px;overflow:auto;}
 .room-music-queue .btn{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 </style>
+<script src="fc-config.js"></script>
 </head>
 <body>
 <header class="topbar"><div class="shell topbar-inner">
@@ -146,12 +147,21 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
 <section id="landing">
   <div class="hero"><div><div class="eyebrow">A DIGITAL KINGDOM • EST. BY COMMUNITY</div><h1>One Colony.<br><span>One Kingdom.</span></h1><p>Selamat datang di dunia Family Colony — Bee Kingdom. Ruang digital untuk mengenal anggota, membangun kebersamaan, menikmati hiburan, dan menjaga kehidupan koloni.</p><div class="toolbar"><span class="status ok">● DEMO WEBSITE</span><span class="status">♢ Premium Royal Experience</span></div></div><div class="hero-art"><div class="hive"><span>🐝</span></div></div></div>
   <div class="login-grid">
-    <section class="panel login-panel"><div class="eyebrow">COLONY ACCESS</div><h2>Member Login</h2><p class="muted tiny">Ajukan akses menggunakan nama atau nickname koloni.</p>
-      <div class="field"><label for="memberName">Nama / Nickname</label><input id="memberName" maxlength="32" placeholder="Masukkan nickname"></div>
-      <button class="btn primary" style="width:100%" onclick="requestAccess()">AJUKAN MASUK</button>
+    <section class="panel login-panel"><div class="eyebrow">COLONY ACCESS</div><h2>Member Login</h2><p class="muted tiny">Masuk menggunakan username Family Colony dan password akunmu. Email pribadi tidak diperlukan.</p>
+      <div class="field"><label for="memberName">Username</label><input id="memberName" maxlength="32" autocomplete="username" placeholder="Contoh: dhita atau @dhita"></div>
+      <div class="field"><label for="memberPassword">Password</label><input id="memberPassword" type="password" maxlength="128" autocomplete="current-password" placeholder="Masukkan password"></div>
+      <button class="btn primary" style="width:100%" onclick="requestAccess()">MASUK KE FAMILY COLONY</button>
+      <div class="rowline" style="margin-top:14px"><span class="tiny">Pertama kali menggunakan akun?</span><button class="btn ghost small" onclick="toggleActivationPanel()">AKTIVASI AKUN</button></div>
+      <div id="activationPanel" class="notice hidden">
+        <strong>Aktivasi akun anggota</strong>
+        <p class="tiny">Masukkan username dan kode aktivasi yang diberikan Kepsuk, Deputi, atau Admin. Buat password baru minimal 10 karakter.</p>
+        <div class="field"><label for="activationUsername">Username</label><input id="activationUsername" maxlength="32" autocomplete="username" placeholder="Username Family Colony"></div>
+        <div class="field"><label for="activationCode">Kode aktivasi</label><input id="activationCode" maxlength="16" autocomplete="one-time-code" placeholder="16 karakter"></div>
+        <div class="field"><label for="activationPassword">Password baru</label><input id="activationPassword" type="password" maxlength="128" autocomplete="new-password" placeholder="Minimal 10 karakter"></div>
+        <button class="btn primary" style="width:100%" onclick="activateMemberAccount()">AKTIFKAN AKUN</button>
+      </div>
       <div id="memberFeedback" class="notice hidden"></div>
-      <div id="pendingActions" class="toolbar hidden"><button class="btn small" onclick="demoDecision(true)">Simulasi Setujui</button><button class="btn danger small" onclick="demoDecision(false)">Simulasi Tolak</button></div>
-      <p class="tiny">Mode demonstrasi: keputusan persetujuan hanya disimpan di browser ini.</p>
+      <p class="tiny">Akun diverifikasi melalui server Family Colony. Jangan gunakan password WePlay.</p>
     </section>
 
   </div>
@@ -272,15 +282,53 @@ function saveDB(){try{localStorage.setItem(STORE,JSON.stringify(db))}catch(e){to
 function log(action,who="System"){db.activity.unshift({action,who,at:new Date().toLocaleString("id-ID")});db.activity=db.activity.slice(0,80);saveDB()}
 function toast(s){const t=$("toast");t.textContent=s;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500)}
 function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function requestAccess(){const name=$("memberName").value.trim();if(name.length<2){toast("Nama minimal 2 karakter.");return}let existing=db.members.find(m=>m.name.toLowerCase()===name.toLowerCase());if(existing){if(existing.status==="approved"){session={name:existing.name,role:existing.role};enterApp();return}if(existing.status==="rejected"){showMemberFeedback("Pengajuan sebelumnya ditolak. Hubungi pengurus koloni.");return}}
-let pending=db.requests.find(r=>r.name.toLowerCase()===name.toLowerCase()&&r.status==="pending");if(!pending){db.requests.push({id:Date.now(),name,role:"Member",status:"pending",at:new Date().toLocaleString("id-ID")});saveDB();log("Pengajuan akses baru",name)}showMemberFeedback("Permintaan akses untuk "+name+" sedang menunggu persetujuan pengurus.");$("pendingActions").classList.remove("hidden")}
+function fcAuthEmail(username){const bytes=new TextEncoder().encode(String(username||"").trim().replace(/^@/,"").toLowerCase());const hex=Array.from(bytes).map(b=>b.toString(16).padStart(2,"0")).join("");return "fc_"+hex+"@members.familycolony.invalid"}
+function fcConfigReady(){return !!(window.FC_SUPABASE_URL&&window.FC_SUPABASE_ANON_KEY)}
+function fcFriendlyError(code){const map={invalid_credentials:"Username atau password salah.",email_not_confirmed:"Akun belum aktif. Hubungi pengurus.",invalid_login_credentials:"Username atau password salah.",activation_code_invalid_expired_or_used:"Kode aktivasi salah, kedaluwarsa, atau sudah digunakan.",member_not_eligible:"Akun belum disiapkan pengurus atau sudah aktif.",account_creation_failed:"Akun tidak dapat dibuat. Periksa kode aktivasi atau hubungi pengurus.",bootstrap_not_authorized:"Akses aktivasi pengurus tidak diizinkan."};return map[code]||"Terjadi kendala koneksi atau akun. Coba lagi atau hubungi pengurus."}
+function toggleActivationPanel(){$("activationPanel").classList.toggle("hidden")}
+async function requestAccess(){
+ const username=$("memberName").value.trim().replace(/^@/,"").toLowerCase();
+ const password=$("memberPassword").value;
+ if(username.length<2||!password){showMemberFeedback("Isi username dan password terlebih dahulu.");return}
+ if(!fcConfigReady()){showMemberFeedback("Konfigurasi server belum tersedia. APK perlu dibangun melalui pipeline resmi.");return}
+ const btn=document.querySelector(".login-panel button.primary");if(btn){btn.disabled=true;btn.textContent="MEMERIKSA AKUN..."}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"apikey":window.FC_SUPABASE_ANON_KEY,"Content-Type":"application/json"},body:JSON.stringify({email:fcAuthEmail(username),password})});
+  const auth=await response.json();
+  if(!response.ok||!auth.access_token)throw new Error(auth.error_code||auth.msg||auth.message||"invalid_credentials");
+  const memberResponse=await fetch(window.FC_SUPABASE_URL+"/rest/v1/fc_members?select=member_id,name,username,role,status&auth_user_id=eq."+encodeURIComponent(auth.user.id),{headers:{"apikey":window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+auth.access_token}});
+  const members=await memberResponse.json();
+  if(!memberResponse.ok||!Array.isArray(members)||!members.length||members[0].status!=="Aktif"){
+   fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+auth.access_token}});
+   throw new Error("member_not_eligible");
+  }
+  const m=members[0];
+  session={name:m.name,role:m.role,memberId:m.member_id,username:m.username,accessToken:auth.access_token,refreshToken:auth.refresh_token,expiresAt:Date.now()+Number(auth.expires_in||3600)*1000};
+  try{sessionStorage.setItem("fc_session",JSON.stringify(session))}catch(e){}
+  $("memberFeedback").classList.add("hidden");$("memberPassword").value="";log("Login online",m.username);enterApp();
+ }catch(err){showMemberFeedback(fcFriendlyError(String(err.message||"").split(":")[0]))}
+ finally{if(btn){btn.disabled=false;btn.textContent="MASUK KE FAMILY COLONY"}}
+}
+async function activateMemberAccount(){
+ const username=$("activationUsername").value.trim().replace(/^@/,"").toLowerCase();
+ const code=$("activationCode").value.trim().toUpperCase();
+ const password=$("activationPassword").value;
+ if(!username||!code||password.length<10){showMemberFeedback("Lengkapi username, kode aktivasi, dan password minimal 10 karakter.");return}
+ if(!fcConfigReady()){showMemberFeedback("Konfigurasi server belum tersedia. APK perlu dibangun melalui pipeline resmi.");return}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"apikey":window.FC_SUPABASE_ANON_KEY,"Content-Type":"application/json"},body:JSON.stringify({action:"activate",username,activation_code:code,password})});
+  const result=await response.json();
+  if(!response.ok||!result.ok)throw new Error(result.error||"activation_failed");
+  $("activationPassword").value="";$("activationCode").value="";$("memberName").value=username;$("memberFeedback").textContent="Akun berhasil diaktifkan. Silakan masuk menggunakan username dan password baru.";$("memberFeedback").classList.remove("hidden");$("activationPanel").classList.add("hidden");
+ }catch(err){showMemberFeedback(fcFriendlyError(String(err.message||"").split(":")[0]))}
+}
 function showMemberFeedback(msg){$("memberFeedback").textContent=msg;$("memberFeedback").classList.remove("hidden")}
 function demoDecision(approve){const name=$("memberName").value.trim();const req=db.requests.find(r=>r.name.toLowerCase()===name.toLowerCase()&&r.status==="pending");if(!req){toast("Tidak ada permintaan yang menunggu.");return}req.status=approve?"approved":"rejected";if(approve){const migrated=db.members.find(m=>m.name.toLowerCase()===req.name.toLowerCase());if(migrated){migrated.status="approved";migrated.approvedAt=new Date().toISOString();migrated.mustChangePassword=!!migrated.legacyMemberId;}else{db.members.push({name:req.name,role:"Member",status:"approved",joined:new Date().toLocaleDateString("id-ID"),coins:0,xp:0,level:1});}showMemberFeedback("Akses disetujui. Selamat datang di koloni!");session={name:req.name,role:"Member"};log("Permintaan disetujui (simulasi)",req.name);saveDB();enterApp()}else{showMemberFeedback("Pengajuan akses ditolak dalam simulasi demo.");$("pendingActions").classList.add("hidden");log("Permintaan ditolak (simulasi)",req.name);saveDB()}}
-function developerLogin(){const code=$("devGateCode").value;if(code!=="DEV-DEMO"){toast("Kode developer tidak sesuai.");return}closeDeveloperGate();session={name:"Developer",role:"Developer"};log("Developer login","Developer");enterApp()}
+function developerLogin(){closeDeveloperGate();toast("Developer masuk melalui login utama menggunakan username @edrick dan password akun Family Colony.")}
 function closeDeveloperGate(){$("developerGate").classList.add("hidden");$("devGateCode").value=""}
 let secretTapCount=0,secretTapTimer=null;
 function secretGateTap(){secretTapCount++;clearTimeout(secretTapTimer);secretTapTimer=setTimeout(()=>{secretTapCount=0},2200);if(secretTapCount>=7){secretTapCount=0;$("developerGate").classList.remove("hidden");$("devGateCode").focus()}}
-function logout(){if(session)log("Logout",session.name);session=null;audio.pause();$("workspace").classList.add("hidden");$("landing").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("homeBtn").classList.add("hidden");$("topUser").textContent="";$("devGateCode").value=""}
+function logout(){if(session?.accessToken&&fcConfigReady())fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.accessToken}}).catch(()=>{});if(session)log("Logout",session.name);session=null;try{sessionStorage.removeItem("fc_session")}catch(e){}audio.pause();$("workspace").classList.add("hidden");$("landing").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("homeBtn").classList.add("hidden");$("topUser").textContent="";$("devGateCode").value=""}
 function goHome(){currentPage="overview";renderPage()}
 function enterApp(){$("landing").classList.add("hidden");$("workspace").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("homeBtn").classList.remove("hidden");$("topUser").textContent=session.name+" · "+session.role;currentPage=session.role==="Developer"?"developer":"overview";$("sideName").textContent=session.name;$("sideRole").textContent=session.role.toUpperCase();buildNav();recordMissionEvent("login","Login ke kerajaan");renderPage();requestLandscape()}
 async function requestLandscape(){
