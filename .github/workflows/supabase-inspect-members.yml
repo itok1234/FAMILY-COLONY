@@ -1,0 +1,63 @@
+name: Inspect Existing Member Table
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read table structure and security metadata
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: irwtnqekrwhgompulach
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN" || { echo "SUPABASE_ACCESS_TOKEN is missing"; exit 1; }
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          sql = """
+          select 'column' as item_type, column_name as item_name,
+                 data_type || case when is_nullable='NO' then ' NOT NULL' else '' end as details
+          from information_schema.columns
+          where table_schema='public' and table_name='fc_members'
+          union all
+          select 'constraint', c.conname,
+                 pg_get_constraintdef(c.oid)
+          from pg_constraint c
+          join pg_class t on t.oid=c.conrelid
+          join pg_namespace n on n.oid=t.relnamespace
+          where n.nspname='public' and t.relname='fc_members'
+          union all
+          select 'policy', polname, cmd || ' / ' || coalesce(qual,'') || ' / ' || coalesce(with_check,'')
+          from pg_policies
+          where schemaname='public' and tablename='fc_members'
+          order by item_type, item_name
+          """
+          Path("/tmp/query.json").write_text(json.dumps({"query": sql}))
+          PY
+          code=$(curl -sS -w "%{http_code}" -o /tmp/result.json -X POST \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data-binary @/tmp/query.json \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")
+          echo "HTTP: $code"
+          if [[ "$code" != 2* ]]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+            d=json.loads(Path("/tmp/result.json").read_text())
+            print("Supabase error:",d.get("message") or d.get("error") or "Request rejected")
+          except Exception:
+            print("Supabase rejected the request; response omitted.")
+          PY
+            exit 1
+          fi
+          echo "Member table metadata (no member rows):"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          print(json.dumps(json.loads(Path("/tmp/result.json").read_text()), indent=2))
+          PY
