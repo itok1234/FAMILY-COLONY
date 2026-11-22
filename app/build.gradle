@@ -21,8 +21,8 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix '.onlinetest'
-            versionNameSuffix '-online-test'
+            applicationIdSuffix '.onlinetest2'
+            versionNameSuffix '-online-test-2'
         }
         release {
             minifyEnabled false
