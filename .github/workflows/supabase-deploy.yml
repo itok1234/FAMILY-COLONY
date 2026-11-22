@@ -1,4 +1,5 @@
 name: Deploy Family Colony Supabase backend
+# Re-run deployment to publish the Developer activation bootstrap endpoint.
 
 on:
   push:
