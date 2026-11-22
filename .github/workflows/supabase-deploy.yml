@@ -49,15 +49,31 @@ jobs:
             exit 1
           fi
 
-      - name: Set up Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
-      - name: Deploy member authentication function
+      - name: Deploy member authentication Edge Function
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase functions deploy fc-member-auth --project-ref irwtnqekrwhgompulach --yes --no-verify-jwt
+          SUPABASE_PROJECT_REF: irwtnqekrwhgompulach
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -w "%{http_code}" -o /tmp/fc-function-result.json -X POST \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -F 'metadata={"name":"fc-member-auth","entrypoint_path":"index.ts","verify_jwt":false}' \
+            -F 'file=@supabase/functions/fc-member-auth/index.ts;type=application/typescript' \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/functions/deploy?slug=fc-member-auth")
+          echo "Edge Function deployment HTTP status: $code"
+          if [[ "$code" != 2* ]]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+            d=json.loads(Path("/tmp/fc-function-result.json").read_text())
+            print(d.get("message") or d.get("error") or "Edge Function deployment rejected")
+          except Exception:
+            print("Edge Function deployment rejected; response omitted.")
+          PY
+            exit 1
+          fi
+          echo "Member authentication Edge Function deployed."
 
       - name: Deployment summary
         run: echo "Member activation backend deployed. No member passwords or service-role keys were exposed."
