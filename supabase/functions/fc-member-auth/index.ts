@@ -55,19 +55,52 @@ Deno.serve(async req => {
       if (initialPassword.length < 12) return json({ error: "initial_password_min_12" }, 400);
       const { data: member, error: memberError } = await admin.from("fc_members")
         .select("member_id,username,name,role,status,auth_user_id").eq("username", "edrick").maybeSingle();
-      if (memberError || !member || member.status !== "Aktif" || member.role !== "Developer" || member.auth_user_id) {
-        return json({ error: "developer_member_not_eligible" }, 409);
+      if (memberError) return json({ error: "developer_member_lookup_failed" }, 500);
+      if (!member) return json({ error: "developer_member_missing" }, 409);
+
+      // Normalize legacy capitalization and restore the reserved owner role only
+      // after the bootstrap secret has been verified above.
+      const normalizedStatus = String(member.status || "").trim().toLowerCase();
+      if (!["aktif", "active"].includes(normalizedStatus)) {
+        return json({ error: "developer_member_inactive" }, 409);
       }
-      const { data: created, error: createError } = await admin.auth.admin.createUser({
-        email: authEmail("edrick"), password: initialPassword, email_confirm: true,
-        user_metadata: { family_colony_username: "edrick", fc_must_change_password: true },
-      });
-      if (createError || !created.user) return json({ error: "developer_account_setup_failed" }, 409);
-      const { error: linkError } = await admin.from("fc_members").update({ auth_user_id: created.user.id })
-        .eq("member_id", member.member_id).is("auth_user_id", null);
-      if (linkError) {
-        await admin.auth.admin.deleteUser(created.user.id);
-        return json({ error: "developer_account_link_failed" }, 500);
+      const memberPatch: Record<string, string> = {};
+      if (String(member.role || "").trim().toLowerCase() !== "developer") memberPatch.role = "Developer";
+      if (member.status !== "Aktif") memberPatch.status = "Aktif";
+      if (Object.keys(memberPatch).length) {
+        const { error: repairError } = await admin.from("fc_members")
+          .update(memberPatch).eq("member_id", member.member_id);
+        if (repairError) return json({ error: "developer_member_repair_failed" }, 500);
+      }
+
+      const expectedEmail = authEmail("edrick");
+      let authUserId = member.auth_user_id as string | null;
+      if (authUserId) {
+        // Make setup repeatable if the first attempt already linked the Auth user.
+        const { data: existingAuth, error: existingAuthError } = await admin.auth.admin.getUserById(authUserId);
+        if (existingAuthError || !existingAuth.user) return json({ error: "developer_account_link_missing" }, 409);
+        if (String(existingAuth.user.email || "").toLowerCase() !== expectedEmail.toLowerCase()) {
+          return json({ error: "developer_account_link_mismatch" }, 409);
+        }
+        const { error: resetError } = await admin.auth.admin.updateUserById(authUserId, {
+          password: initialPassword,
+          email_confirm: true,
+          user_metadata: { ...existingAuth.user.user_metadata, family_colony_username: "edrick", fc_must_change_password: true },
+        });
+        if (resetError) return json({ error: "developer_account_setup_failed" }, 409);
+      } else {
+        const { data: created, error: createError } = await admin.auth.admin.createUser({
+          email: expectedEmail, password: initialPassword, email_confirm: true,
+          user_metadata: { family_colony_username: "edrick", fc_must_change_password: true },
+        });
+        if (createError || !created.user) return json({ error: "developer_account_setup_failed" }, 409);
+        authUserId = created.user.id;
+        const { error: linkError } = await admin.from("fc_members").update({ auth_user_id: authUserId })
+          .eq("member_id", member.member_id).is("auth_user_id", null);
+        if (linkError) {
+          await admin.auth.admin.deleteUser(authUserId);
+          return json({ error: "developer_account_link_failed" }, 500);
+        }
       }
       return json({ ok: true, username: "edrick", must_change_password: true });
     }
