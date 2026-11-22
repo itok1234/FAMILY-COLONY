@@ -21,7 +21,7 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix '.online-test'
+            applicationIdSuffix '.onlinetest'
             versionNameSuffix '-online-test'
         }
         release {
