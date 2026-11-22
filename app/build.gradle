@@ -21,8 +21,8 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix '.onlinetest6' // Avoid signature conflicts with earlier test builds
-            versionNameSuffix '-online-test-6'
+            applicationIdSuffix '.onlinetest7' // Fresh package ID for this CI-signed test build
+            versionNameSuffix '-online-test-7'
         }
         release {
             minifyEnabled false
