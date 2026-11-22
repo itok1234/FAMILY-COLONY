@@ -47,10 +47,11 @@ Deno.serve(async req => {
     const action = String(body.action || "");
 
     if (action === "developer_password_setup") {
-      const expected = Deno.env.get("FC_BOOTSTRAP_SECRET") || "";
-      const supplied = req.headers.get("x-fc-bootstrap-secret") || "";
+      const expected = (Deno.env.get("FC_BOOTSTRAP_SECRET") || "").trim();
+      const supplied = (req.headers.get("x-fc-bootstrap-secret") || "").trim();
       const initialPassword = String(body.initial_password || "");
-      if (!expected || supplied.length < 32 || supplied !== expected) return json({ error: "bootstrap_not_authorized" }, 403);
+      if (!expected) return json({ error: "bootstrap_secret_not_configured" }, 503);
+      if (supplied.length < 32 || supplied !== expected) return json({ error: "bootstrap_secret_mismatch" }, 403);
       if (initialPassword.length < 12) return json({ error: "initial_password_min_12" }, 400);
       const { data: member, error: memberError } = await admin.from("fc_members")
         .select("member_id,username,name,role,status,auth_user_id").eq("username", "edrick").maybeSingle();
