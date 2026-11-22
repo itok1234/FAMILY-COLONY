@@ -18,62 +18,48 @@ jobs:
             echo "Token belum tersedia."
             exit 1
           fi
-
           curl -fsS \
             -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
             -H "Accept: application/json" \
             "https://api.supabase.com/v1/projects/irwtnqekrwhgompulach/api-keys" \
             -o keys.json
-
-          echo "Daftar API Key (tanpa nilai rahasia):"
+          echo "API key names only:"
           jq '[.[] | {id, name, type}]' keys.json
 
-      - name: Inspect database structure (read only)
+      - name: Test read-only database access
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
-          cat > inspect.sql <<'SQL'
-          select json_build_object(
-            'tables', coalesce((
-              select json_agg(json_build_object(
-                'schema', t.table_schema,
-                'name', t.table_name,
-                'rls_enabled', c.relrowsecurity,
-                'rls_forced', c.relforcerowsecurity
-              ) order by t.table_schema, t.table_name)
-              from information_schema.tables t
-              join pg_catalog.pg_class c on c.relname = t.table_name
-              join pg_catalog.pg_namespace n on n.oid = c.relnamespace and n.nspname = t.table_schema
-              where t.table_type = 'BASE TABLE'
-                and t.table_schema = 'public'
-            ), '[]'::json),
-            'policies', coalesce((
-              select json_agg(json_build_object(
-                'schema', schemaname,
-                'table', tablename,
-                'policy', policyname,
-                'command', cmd,
-                'roles', roles
-              ) order by schemaname, tablename, policyname)
-              from pg_catalog.pg_policies
-              where schemaname = 'public'
-            ), '[]'::json)
-          ) as database_audit;
-          SQL
+          http_code=$(curl -sS -w "%{http_code}" -o query-test.json -X POST \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"query":"select 1 as connection_ok","parameters":[]}' \
+            "https://api.supabase.com/v1/projects/irwtnqekrwhgompulach/database/query/read-only")
+          echo "Read-only connection HTTP: $http_code"
+          cat query-test.json
+          case "$http_code" in
+            2*) ;;
+            *) echo "Database read access is not available. See the response above."; exit 1 ;;
+          esac
 
-          jq -n --arg query "$(cat inspect.sql)" '{query:$query}' > request.json
+      - name: Inspect tables and RLS (read only)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          cat > request.json <<'JSON'
+          {
+            "query": "select json_build_object('tables', coalesce((select json_agg(json_build_object('schema', table_schema, 'name', table_name) order by table_schema, table_name) from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE'), '[]'::json), 'policies', coalesce((select json_agg(json_build_object('table', tablename, 'policy', policyname, 'command', cmd, 'roles', roles) order by tablename, policyname) from pg_catalog.pg_policies where schemaname = 'public'), '[]'::json)) as database_audit;",
+            "parameters": []
+          }
+          JSON
           http_code=$(curl -sS -w "%{http_code}" -o database-audit.json -X POST \
             -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
             -H "Content-Type: application/json" \
             --data-binary @request.json \
             "https://api.supabase.com/v1/projects/irwtnqekrwhgompulach/database/query/read-only")
-
-          echo "Supabase database audit HTTP status: $http_code"
-          if [ "$http_code" != "201" ]; then
-            echo "Supabase returned an error (response below; no credentials are included):"
-            cat database-audit.json
-            exit 1
-          fi
-
-          echo "Database structure and RLS audit (metadata only; no member or wallet records):"
-          jq . database-audit.json
+          echo "Database metadata HTTP: $http_code"
+          cat database-audit.json
+          case "$http_code" in
+            2*) ;;
+            *) echo "Metadata inspection failed. The response above contains the reason."; exit 1 ;;
+          esac
