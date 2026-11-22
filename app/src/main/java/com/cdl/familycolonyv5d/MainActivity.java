@@ -3,13 +3,19 @@ package com.cdl.familycolonyv5d;
 import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
+import android.provider.Settings;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.PermissionRequest;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -21,7 +27,17 @@ public class MainActivity extends Activity {
     private ValueCallback<Uri[]> filePathCallback;
     private static final int FILE_CHOOSER_REQUEST = 4107;
     private static final int MICROPHONE_PERMISSION_REQUEST = 4108;
+    private static final int UNKNOWN_APP_SOURCE_REQUEST = 4109;
+    private static final int APK_INSTALL_REQUEST = 4110;
     private PermissionRequest pendingWebPermissionRequest;
+    private Uri selectedApkUri;
+
+    private final class AndroidBridge {
+        @JavascriptInterface
+        public void installSelectedApk() {
+            runOnUiThread(() -> installSelectedApkFromWeb());
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +47,9 @@ public class MainActivity extends Activity {
 
         webView = new WebView(this);
         setContentView(webView);
+        // The WebView only serves the bundled local HTML. External HTTP(S) links
+        // are opened outside the WebView, keeping this narrow bridge off websites.
+        webView.addJavascriptInterface(new AndroidBridge(), "FCAndroid");
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -100,6 +119,7 @@ public class MainActivity extends Activity {
             public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
                 if (filePathCallback != null) filePathCallback.onReceiveValue(null);
                 filePathCallback = callback;
+                selectedApkUri = null;
 
                 // Return a document URI to the WebView. Selecting an APK for upload
                 // must never launch Android Package Installer automatically.
@@ -178,10 +198,91 @@ public class MainActivity extends Activity {
                     } catch (SecurityException | IllegalArgumentException ignored) {
                         // Some document providers grant a temporary read permission only.
                     }
+                    if (selectedApkUri == null && isApkDocument(uri)) {
+                        selectedApkUri = uri;
+                    }
                 }
+            } else {
+                selectedApkUri = null;
             }
             filePathCallback.onReceiveValue(results);
             filePathCallback = null;
+            return;
+        }
+
+        if (requestCode == UNKNOWN_APP_SOURCE_REQUEST) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                    && getPackageManager().canRequestPackageInstalls()) {
+                Toast.makeText(this, "Izin pemasangan tersedia. Kembali ke APK Manager lalu tekan INSTAL APK.", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "Izin instalasi dari FAMILY COLONY belum diaktifkan.", Toast.LENGTH_LONG).show();
+            }
+            return;
+        }
+
+        if (requestCode == APK_INSTALL_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Toast.makeText(this, "Android melaporkan pemasangan selesai.", Toast.LENGTH_LONG).show();
+            } else if (resultCode == RESULT_CANCELED) {
+                Toast.makeText(this, "Pemasangan dibatalkan atau belum selesai.", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private String getDocumentDisplayName(Uri uri) {
+        if (uri == null) return "";
+        try (Cursor cursor = getContentResolver().query(
+                uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                if (index >= 0) {
+                    String name = cursor.getString(index);
+                    return name == null ? "" : name;
+                }
+            }
+        } catch (Exception ignored) {
+            // A provider may not expose display-name metadata.
+        }
+        return "";
+    }
+
+    private boolean isApkDocument(Uri uri) {
+        if (uri == null || !"content".equalsIgnoreCase(uri.getScheme())) return false;
+        String name = getDocumentDisplayName(uri).toLowerCase(java.util.Locale.ROOT);
+        String mime = getContentResolver().getType(uri);
+        return name.endsWith(".apk")
+                || "application/vnd.android.package-archive".equalsIgnoreCase(mime);
+    }
+
+    private void installSelectedApkFromWeb() {
+        Uri apkUri = selectedApkUri;
+        if (!isApkDocument(apkUri)) {
+            Toast.makeText(this, "Pilih file APK terlebih dahulu melalui APK Manager.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                && !getPackageManager().canRequestPackageInstalls()) {
+            Intent settingsIntent = new Intent(
+                    Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    Uri.parse("package:" + getPackageName()));
+            try {
+                startActivityForResult(settingsIntent, UNKNOWN_APP_SOURCE_REQUEST);
+            } catch (ActivityNotFoundException | SecurityException e) {
+                Toast.makeText(this, "Pengaturan izin instalasi tidak dapat dibuka.", Toast.LENGTH_LONG).show();
+            }
+            return;
+        }
+
+        try {
+            Intent installIntent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+            installIntent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+            installIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            installIntent.setClipData(ClipData.newRawUri("APK package", apkUri));
+            installIntent.putExtra(Intent.EXTRA_RETURN_RESULT, true);
+            startActivityForResult(installIntent, APK_INSTALL_REQUEST);
+        } catch (ActivityNotFoundException | SecurityException e) {
+            Toast.makeText(this, "Android tidak dapat membuka pemasang paket untuk file ini.", Toast.LENGTH_LONG).show();
         }
     }
 
