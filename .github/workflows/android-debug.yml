@@ -89,33 +89,6 @@ jobs:
           test -f app/src/main/AndroidManifest.xml
           test -f app/src/main/assets/index.html
 
-      - name: Inject public Supabase client configuration
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_REF: irwtnqekrwhgompulach
-        run: |
-          set -euo pipefail
-          test -n "$SUPABASE_ACCESS_TOKEN" || { echo "Missing Supabase access token"; exit 1; }
-          curl -fsS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
-            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/api-keys" \
-            -o /tmp/fc-api-keys.json
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          keys=json.loads(Path("/tmp/fc-api-keys.json").read_text())
-          anon=next((x.get("api_key") for x in keys if x.get("name") in ("anon","publishable") and x.get("api_key")),None)
-          if not anon:
-              raise SystemExit("Public anon/publishable key was not returned by Supabase Management API")
-          config={
-              "url":"https://irwtnqekrwhgompulach.supabase.co",
-              "key":anon
-          }
-          Path("app/src/main/assets/fc-config.js").write_text(
-              "window.FC_SUPABASE_URL="+json.dumps(config["url"])+";window.FC_SUPABASE_ANON_KEY="+json.dumps(config["key"])+";\\n"
-          )
-          print("Public Supabase client configuration injected; secret service-role key was not used.")
-          PY
-
       - name: Build Debug APK
         run: gradle --no-daemon assembleDebug --stacktrace
 
