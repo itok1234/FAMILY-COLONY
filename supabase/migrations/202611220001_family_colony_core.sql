@@ -78,7 +78,7 @@ begin
   if auth.uid() is null or not public.fc_is_staff() then
     raise exception 'not_authorized' using errcode = '42501';
   end if;
-  if p_member_id is null or p_amount = 0 or p_reason is null
+  if p_member_id is null or p_amount is null or p_amount = 0 or p_reason is null
      or length(trim(p_reason)) < 2 or p_idempotency_key is null then
     raise exception 'invalid_transaction';
   end if;
