@@ -986,10 +986,12 @@ async function chatStartVoice(){
   chatVoiceStopTimer=setTimeout(()=>{if(recorder.state==='recording')recorder.stop()},15000);
  }catch(e){
   if(stream)stream.getTracks().forEach(track=>track.stop());
-  const name=e&&e.name;
-  if(name==='NotAllowedError'||name==='SecurityError')toast('Izin mikrofon belum diberikan. Izinkan mikrofon untuk FAMILY COLONY di pengaturan aplikasi.');
-  else if(name==='NotFoundError'||name==='DevicesNotFoundError')toast('Mikrofon tidak ditemukan pada perangkat.');
-  else toast('Mikrofon gagal diaktifkan. Periksa izin aplikasi dan coba kembali.');
+  const name=e&&e.name?e.name:'UnknownError';
+  const detail=e&&e.message?e.message:'tanpa detail';
+  let androidPermission='BRIDGE_TIDAK_TERSEDIA';
+  try{if(window.FCAndroid&&typeof FCAndroid.getMicrophonePermissionStatus==='function')androidPermission=FCAndroid.getMicrophonePermissionStatus()}catch(_){}
+  console.error('[FAMILY_COLONY_MIC]',{name,detail,origin:location.origin,isSecureContext:window.isSecureContext,androidPermission});
+  toast('Diagnostik mikrofon: '+name+'; Android='+androidPermission+'; Web='+location.origin+'; '+detail);
  }
 }
 function chatStopVoice(){if(chatVoiceStopTimer)clearTimeout(chatVoiceStopTimer);chatVoiceStopTimer=null;if(chatRecorder&&chatRecorder.state==='recording'){chatRecorder.stop();$('chatStopVoiceBtn')&&($('chatStopVoiceBtn').style.display='none')}}
