@@ -143,7 +143,7 @@ func _build_trees() -> void:
 	for i in range(tree_count):
 		var x := _rng.randf_range(-48.0, 48.0)
 		var z := _rng.randf_range(-150.0, 20.0)
-		if absf(x) < 9.0 or (absf(x) < 18.0 and absf(z) < 15.0) or (absf(x) < 22.0 and z < -112.0):
+		if absf(x) < 9.0 or (absf(x) < 18.0 and absf(z) < 15.0) or (absf(x) < 22.0 and z < -48.0 and z > -92.0):
 			continue
 		var height := _rng.randf_range(2.8, 4.0)
 		_cylinder(trees_root, 0.22, height, Vector3(x, height * 0.5 - 0.48, z), bark, "TreeTrunk")
@@ -329,7 +329,7 @@ func _build_royal_hive_citadel() -> void:
 	# authored high-detail art can replace these meshes without changing gameplay.
 	var citadel := Node3D.new()
 	citadel.name = "RoyalHiveCitadel"
-	citadel.position = Vector3(0, 0, -132)
+	citadel.position = Vector3(0, 0, -68)
 	add_child(citadel)
 
 	var stone := _mat("citadel_stone", Color(0.72, 0.75, 0.72), 0.86)
