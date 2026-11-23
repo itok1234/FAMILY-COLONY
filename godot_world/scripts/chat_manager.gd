@@ -13,6 +13,7 @@ var _network: Node
 var _rooms: Node
 var _last_send_at: Dictionary = {}
 var _history: Array[Dictionary] = []
+var _current_room_id: String = ""
 
 
 func _ready() -> void:
@@ -20,6 +21,9 @@ func _ready() -> void:
 	_rooms = get_parent().get_node_or_null("RoomManager")
 	if _network == null or _rooms == null:
 		push_warning("FAMILY COLONY: ChatManager requires MultiplayerManager and RoomManager.")
+		return
+	if _rooms.has_signal("local_room_changed"):
+		_rooms.local_room_changed.connect(_on_local_room_changed)
 	_build_chat_hud()
 	for message in _history:
 		_append_message_to_hud(message)
@@ -76,7 +80,22 @@ func _accept_message(sender_id: int, clean_text: String) -> void:
 		_rpc_receive_message.rpc_id(peer_id, message)
 
 
+func _on_local_room_changed(room_id: String, _members: Array[int]) -> void:
+	if room_id == _current_room_id:
+		return
+	_current_room_id = room_id
+	_history.clear()
+	if is_instance_valid(_chat_log):
+		for child in _chat_log.get_children():
+			child.queue_free()
+	if is_instance_valid(_chat_empty_label):
+		_chat_empty_label.visible = true
+
+
 func _store_message(message: Dictionary) -> void:
+	var message_room_id := str(message.get("room_id", ""))
+	if _current_room_id.is_empty() or message_room_id != _current_room_id:
+		return
 	_history.append(message.duplicate(true))
 	while _history.size() > history_limit:
 		_history.pop_front()
