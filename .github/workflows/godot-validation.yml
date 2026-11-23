@@ -36,7 +36,23 @@ jobs:
         run: godot --version
 
       - name: Import and parse project resources
-        run: godot --headless --editor --path godot_world --quit
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          godot --headless --editor --path godot_world --quit 2>&1 | tee "$log_file"
+          if grep -E "SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script" "$log_file"; then
+            echo "::error::Godot reported script or resource errors during import."
+            exit 1
+          fi
 
       - name: Run world startup smoke test
-        run: godot --headless --path godot_world --quit-after 5
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          godot --headless --path godot_world --quit-after 5 2>&1 | tee "$log_file"
+          if grep -E "SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script" "$log_file"; then
+            echo "::error::Godot reported script or resource errors during startup."
+            exit 1
+          fi
