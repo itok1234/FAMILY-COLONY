@@ -1509,7 +1509,7 @@ function fc12ExportBackup(){if(session?.role!=="Developer")return toast("Akses D
 
 // Initial safe setup and small runtime checks.
 $("memberName").addEventListener("keydown",e=>{if(e.key==="Enter")requestAccess()});
-$("devGateCode").addEventListener("keydown",e=>{if(e.key==="Enter")developerLogin()});
+$("devGateCode")?.addEventListener("keydown",e=>{if(e.key==="Enter")developerLogin()});
 const developerSetupButton=$("developerSetupButton");if(developerSetupButton)developerSetupButton.addEventListener("click",()=>bootstrapDeveloperPassword());
 $("memberName").addEventListener("input",e=>{const value=e.target.value.trim().replace(/^@/,"").toLowerCase();if(value==="edrick")openPrivateDeveloperPanel();else $("developerLoginPanel")?.classList.add("hidden")});
 $("guestRecommendationCode")?.addEventListener("keydown",e=>{if(e.key==="Enter")guestRecommendationLogin()});
