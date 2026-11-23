@@ -1,6 +1,6 @@
 # FAMILY COLONY — Godot / Supabase Member Session Bridge
 
-Status: implementation contract only. No Edge Function or native token bridge is deployed by this document.
+Status: the trusted `fc-world-session` Edge Function is implemented and deployed. The Android native token handoff and Godot session adapter remain unimplemented and must pass the release gate before the 3D world is exposed to members.
 
 ## Compatibility requirements
 - Preserve the existing Email/Password and Developer login flows in the WebView application.
@@ -61,4 +61,9 @@ Failure behavior:
 - Existing WebView login, Developer login, and member-management flows pass regression tests unchanged.
 
 ## Current implementation boundary
-The existing `fc-member-auth` function contains the current login and Developer authentication workflows. This document does not edit that function or change its behavior. The Godot multiplayer, room, presence, and chat prototypes still use transport peer IDs and are not yet bound to verified Supabase members. The contract above must be implemented and tested before those prototypes are exposed as production social features.
+- `fc-member-auth` remains the existing login and Developer authentication endpoint; its login behavior was not changed for this bridge.
+- `fc-world-session` is deployed at `POST /functions/v1/fc-world-session`. It verifies the supplied Supabase access token with `auth.getUser`, resolves the canonical `fc_members` row using the verified `auth_user_id`, rejects missing/inactive/invalid-role accounts, and returns a minimal member profile plus UI permission hints.
+- The endpoint does not accept a client-selected member ID or role. It does not return email, phone, wallet balance, or other private profile fields.
+- `world_role` is always `member`, including for Developer, so Developer enters gameplay as a normal player. Developer Center visibility is a separate permission hint; protected Developer actions still require their own server-side authorization.
+- The Android native bridge that obtains the current access token and passes it to Godot is not implemented yet. The Godot client session adapter, expiry/logout handling, and protected action endpoints are also pending.
+- Multiplayer, room, presence, and chat still use ENet peer IDs and are not yet bound to verified FAMILY COLONY member identities. Do not expose these as production social features until the native bridge, server checks, and acceptance tests are complete.
