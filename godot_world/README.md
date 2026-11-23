@@ -99,3 +99,8 @@ Godot 4.x. Compatibility renderer is the initial baseline for broad Android supp
 - Added a discoverable lounge-sofa interaction target with a local rest response.
 - Furniture collision, seat reservation, synced sitting alignment and server-authoritative occupancy remain future work.
 - These changes have not yet been parsed or run in Godot Editor or tested on Android.
+
+## Furniture collision refinement
+- Added physical collision bodies to the outdoor bench seats/backs and the Community Hub sofa, coffee table and counter so the player is no longer expected to walk through these major furniture pieces.
+- Collision is kept separate from the visual meshes and interaction Areas, allowing art replacement without coupling it to the interaction targets.
+- This is still prototype-scale collision. Precise seat alignment, occupancy reservation, accessibility clearance and multiplayer authority are not implemented; Godot parsing and device behavior remain unverified.
