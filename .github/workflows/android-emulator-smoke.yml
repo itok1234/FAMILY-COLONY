@@ -19,8 +19,8 @@ permissions:
 
 jobs:
   embedded-godot-smoke:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -45,6 +45,7 @@ jobs:
           api-level: 30
           target: google_apis
           arch: x86_64
+          profile: pixel_2
           force-avd-creation: true
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
