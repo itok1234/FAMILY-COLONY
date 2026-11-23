@@ -88,3 +88,14 @@ Godot 4.x. Compatibility renderer is the initial baseline for broad Android supp
 - Added `docs/GODOT_SUPABASE_MEMBER_SESSION_BRIDGE.md` with the secure handoff sequence from the existing authenticated app to the Godot world.
 - The contract requires server-side token verification and canonical member resolution through `fc_members.auth_user_id`; client-supplied IDs and roles are never trusted.
 - This is documentation only. No login flow was modified, no new Edge Function was deployed, and Godot is not yet connected to Supabase member identity.
+
+## Avatar visual refinement milestone
+- Refined the procedural head blockout with layered eye whites and pupils, eyebrows, nose, mouth, ears and side hair locks to make facial orientation and expression landmarks clearer.
+- These are still primitive meshes and shared placeholder materials. This is not a photoreal character, production rig, facial animation system or final customizable avatar.
+- The change is intended to improve the prototype while preserving the existing player controller and appearance preview API.
+
+## Community Hub interaction refinement
+- Added a warm OmniLight3D fixture to the interior rather than relying only on an emissive-looking decorative mesh.
+- Added a discoverable lounge-sofa interaction target with a local rest response.
+- Furniture collision, seat reservation, synced sitting alignment and server-authoritative occupancy remain future work.
+- These changes have not yet been parsed or run in Godot Editor or tested on Android.
