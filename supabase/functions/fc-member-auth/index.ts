@@ -46,6 +46,53 @@ Deno.serve(async req => {
     const body = await req.json();
     const action = String(body.action || "");
 
+    if (action === "developer_pin_setup") {
+      const expected = (Deno.env.get("FC_BOOTSTRAP_SECRET") || "").trim();
+      const supplied = (req.headers.get("x-fc-bootstrap-secret") || "").trim();
+      const pin = String(body.pin || "");
+      if (!expected || supplied.length < 32 || supplied !== expected) return json({ error: "developer_pin_setup_unavailable" }, 403);
+      if (!/^\d{6}$/.test(pin)) return json({ error: "developer_pin_invalid_format" }, 400);
+      const { data: initialized, error: initError } = await admin.rpc("fc_initialize_developer_pin", { p_pin: pin });
+      if (initError) return json({ error: "developer_pin_setup_failed" }, 500);
+      if (!initialized) return json({ error: "developer_pin_already_initialized" }, 409);
+      return json({ ok: true, username: "edrick" });
+    }
+
+    if (action === "developer_pin_login") {
+      const pin = String(body.pin || "");
+      if (!/^\d{6}$/.test(pin)) return json({ error: "developer_pin_rejected" }, 401);
+      const { data: verified, error: verifyError } = await admin.rpc("fc_verify_developer_pin", { p_pin: pin });
+      if (verifyError) return json({ error: "developer_pin_verification_failed" }, 500);
+      if (!verified) return json({ error: "developer_pin_rejected" }, 401);
+      const { data: member, error: memberError } = await admin.from("fc_members")
+        .select("member_id,name,username,role,status,auth_user_id").eq("username", "edrick").maybeSingle();
+      if (memberError || !member || String(member.role || "").toLowerCase() !== "developer" ||
+          !["aktif","active"].includes(String(member.status || "").toLowerCase()) || !member.auth_user_id) {
+        return json({ error: "developer_member_not_eligible" }, 403);
+      }
+      const { data: linkedAuth, error: linkedError } = await admin.auth.admin.getUserById(member.auth_user_id);
+      if (linkedError || !linkedAuth.user || String(linkedAuth.user.email || "").toLowerCase() !== authEmail("edrick").toLowerCase()) {
+        return json({ error: "developer_auth_account_missing" }, 409);
+      }
+      const publishableKeysRaw = Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}";
+      let publishableKeys: Record<string, string> = {};
+      try { publishableKeys = JSON.parse(publishableKeysRaw); } catch { publishableKeys = {}; }
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || publishableKeys.default;
+      if (!anonKey) return json({ error: "auth_server_not_configured" }, 500);
+      const publicClient = createClient(url, anonKey, { auth: { autoRefreshToken: false, persistSession: false } });
+      const { data: generated, error: generateError } = await admin.auth.admin.generateLink({ type: "magiclink", email: authEmail("edrick") });
+      const tokenHash = generated?.properties?.hashed_token;
+      if (generateError || !tokenHash) return json({ error: "developer_session_issue_failed" }, 500);
+      const { data: signedIn, error: verifyOtpError } = await publicClient.auth.verifyOtp({ token_hash: tokenHash, type: "magiclink" });
+      if (verifyOtpError || !signedIn.user || !signedIn.session) return json({ error: "developer_session_issue_failed" }, 500);
+      return json({
+        ok: true,
+        member: { member_id: member.member_id, name: member.name, username: member.username, role: "Developer", status: "Aktif" },
+        access_token: signedIn.session.access_token, refresh_token: signedIn.session.refresh_token,
+        expires_in: signedIn.session.expires_in, anon_key: anonKey
+      });
+    }
+
     if (action === "developer_password_setup") {
       const expected = (Deno.env.get("FC_BOOTSTRAP_SECRET") || "").trim();
       const supplied = (req.headers.get("x-fc-bootstrap-secret") || "").trim();
