@@ -8,7 +8,7 @@
     <application
         android:allowBackup="false"
         android:usesCleartextTraffic="false"
-        android:label="FAMILY COLONY V5D"
+        android:label="FAMILY COLONY"
         android:theme="@style/AppTheme"
         android:supportsRtl="true">
         <activity
