@@ -104,3 +104,8 @@ Godot 4.x. Compatibility renderer is the initial baseline for broad Android supp
 - Added physical collision bodies to the outdoor bench seats/backs and the Community Hub sofa, coffee table and counter so the player is no longer expected to walk through these major furniture pieces.
 - Collision is kept separate from the visual meshes and interaction Areas, allowing art replacement without coupling it to the interaction targets.
 - This is still prototype-scale collision. Precise seat alignment, occupancy reservation, accessibility clearance and multiplayer authority are not implemented; Godot parsing and device behavior remain unverified.
+
+## Neighborhood collision refinement
+- Added static collision boundaries to generated community-building shells, in addition to the recent bench and Community Hub furniture collision.
+- This prevents the player capsule from passing directly through the major building volumes during navigation.
+- Building shells are still closed blockout volumes; doors/windows are visual placeholders, not enterable rooms. Dedicated building interiors and doorway openings must be authored before these structures become accessible.
