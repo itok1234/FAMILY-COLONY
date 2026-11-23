@@ -6,6 +6,7 @@ signal presence_snapshot_changed(snapshot: Array)
 signal peer_presence_changed(peer_id: int, state: String)
 
 var _presence: Dictionary = {}
+var _last_snapshot_request_at: Dictionary = {}
 var _network: Node
 
 
@@ -40,6 +41,7 @@ func _on_peer_roster_changed(peer_ids: Array[int]) -> void:
 	for peer_id in _presence.keys():
 		if not peer_ids.has(int(peer_id)):
 			_presence.erase(peer_id)
+			_last_snapshot_request_at.erase(int(peer_id))
 			peer_presence_changed.emit(int(peer_id), "offline")
 	_broadcast_snapshot()
 
@@ -65,6 +67,11 @@ func _rpc_request_presence_snapshot() -> void:
 	var sender := multiplayer.get_remote_sender_id()
 	if sender <= 1 or not multiplayer.get_peers().has(sender):
 		return
+	var now := Time.get_ticks_msec() / 1000.0
+	var last_request := float(_last_snapshot_request_at.get(sender, -10000.0))
+	if now - last_request < 1.0:
+		return
+	_last_snapshot_request_at[sender] = now
 	_rpc_receive_presence_snapshot.rpc_id(sender, _snapshot())
 
 
