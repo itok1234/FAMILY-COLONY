@@ -224,6 +224,29 @@ func _build_community_interior() -> void:
 	ceiling_light.radius = 0.28
 	ceiling_light.height = 0.56
 	_mesh_node(room, ceiling_light, lamp_material, Vector3(0, 4.55, 0), "WarmCeilingLight")
+	var warm_light := OmniLight3D.new()
+	warm_light.name = "HubAmbientLight"
+	warm_light.position = Vector3(0, 4.15, 0)
+	warm_light.light_color = Color(1.0, 0.78, 0.58)
+	warm_light.light_energy = 1.35
+	warm_light.omni_range = 13.0
+	room.add_child(warm_light)
+
+	var sofa_interaction := Area3D.new()
+	sofa_interaction.name = "LoungeSofaInteraction"
+	sofa_interaction.position = Vector3(-3.8, 0.85, -1.8)
+	sofa_interaction.collision_layer = 2
+	sofa_interaction.collision_mask = 0
+	sofa_interaction.set_script(INTERACTABLE_SCRIPT)
+	sofa_interaction.set("display_name", "Sofa Balai Komunitas")
+	sofa_interaction.set("action_label", "Duduk")
+	sofa_interaction.set("response_text", "Kamu beristirahat di sofa Balai Komunitas.")
+	room.add_child(sofa_interaction)
+	var sofa_shape := CollisionShape3D.new()
+	var sofa_box := BoxShape3D.new()
+	sofa_box.size = Vector3(4.5, 2.0, 2.3)
+	sofa_shape.shape = sofa_box
+	sofa_interaction.add_child(sofa_shape)
 
 	var entrance := Area3D.new()
 	entrance.name = "CommunityHubEntrance"
