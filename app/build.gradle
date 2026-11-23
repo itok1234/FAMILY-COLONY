@@ -10,8 +10,8 @@ android {
         applicationId 'com.cdl.familycolonyv5d'
         minSdk 23
         targetSdk 35
-        versionCode 6
-        versionName '4.2-developer-pin'
+        versionCode 7
+        versionName '4.3-portrait-private-dev'
     }
 
     compileOptions {
@@ -21,8 +21,8 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix '.onlinetest10' // Install alongside earlier test builds without uninstalling
-            versionNameSuffix '-developer-pin-test-10'
+            applicationIdSuffix '.onlinetest11' // Install alongside earlier test builds without uninstalling
+            versionNameSuffix '-portrait-test-11'
         }
         release {
             minifyEnabled false
