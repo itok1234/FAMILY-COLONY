@@ -10,6 +10,7 @@ var _last_snapshot_request_at: Dictionary = {}
 var _network: Node
 var _rooms: Node
 var _current_room_id: String = ""
+var _current_presence_snapshot: Array = []
 
 
 func _ready() -> void:
@@ -27,11 +28,7 @@ func _ready() -> void:
 
 
 func get_presence_snapshot() -> Array:
-	if _current_room_id.is_empty():
-		return []
-	if multiplayer.is_server():
-		return _snapshot_for_room(_current_room_id)
-	return []
+	return _current_presence_snapshot.duplicate(true)
 
 
 func _on_connection_state_changed(state: String, _detail: String) -> void:
@@ -40,14 +37,18 @@ func _on_connection_state_changed(state: String, _detail: String) -> void:
 	elif state == "offline" or state == "error":
 		_presence.clear()
 		_current_room_id = ""
+		_current_presence_snapshot.clear()
 		presence_snapshot_changed.emit([])
 
 
 func _on_local_room_changed(room_id: String, _members: Array[int]) -> void:
 	_current_room_id = room_id
 	if multiplayer.is_server():
-		presence_snapshot_changed.emit(_snapshot_for_room(room_id))
+		_current_presence_snapshot = _snapshot_for_room(room_id)
+		presence_snapshot_changed.emit(_current_presence_snapshot.duplicate(true))
 	else:
+		_current_presence_snapshot.clear()
+		presence_snapshot_changed.emit([])
 		_request_current_room_snapshot()
 
 
@@ -58,12 +59,14 @@ func _on_room_list_changed(_rooms_snapshot: Array) -> void:
 
 func _request_current_room_snapshot() -> void:
 	if _current_room_id.is_empty():
+		_current_presence_snapshot.clear()
 		presence_snapshot_changed.emit([])
 		return
 	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
 		return
 	if multiplayer.is_server():
-		presence_snapshot_changed.emit(_snapshot_for_room(_current_room_id))
+		_current_presence_snapshot = _snapshot_for_room(_current_room_id)
+		presence_snapshot_changed.emit(_current_presence_snapshot.duplicate(true))
 	else:
 		_rpc_request_presence_snapshot.rpc_id(1)
 
@@ -111,7 +114,8 @@ func _broadcast_room_snapshots() -> void:
 			var peer_id := int(peer_id_variant)
 			if peer_id == multiplayer.get_unique_id():
 				if _current_room_id == room_id:
-					presence_snapshot_changed.emit(snapshot)
+					_current_presence_snapshot = snapshot.duplicate(true)
+					presence_snapshot_changed.emit(_current_presence_snapshot.duplicate(true))
 			elif multiplayer.get_peers().has(peer_id):
 				_rpc_receive_presence_snapshot.rpc_id(peer_id, room_id, snapshot)
 
@@ -139,4 +143,5 @@ func _rpc_request_presence_snapshot() -> void:
 func _rpc_receive_presence_snapshot(room_id: String, snapshot: Array) -> void:
 	if room_id != _current_room_id:
 		return
-	presence_snapshot_changed.emit(snapshot)
+	_current_presence_snapshot = snapshot.duplicate(true)
+	presence_snapshot_changed.emit(_current_presence_snapshot.duplicate(true))
