@@ -15,6 +15,7 @@ var _request_pending: bool = false
 var _current_member: Dictionary = {}
 var _current_permissions: Dictionary = {}
 var last_error_code: String = ""
+var _refresh_timer: Timer
 
 
 func _ready() -> void:
@@ -29,6 +30,10 @@ func _ready() -> void:
 	# or privileged server key is made available to the Godot project.
 	if Engine.has_singleton("FamilyColonyBridge"):
 		var bridge: Object = Engine.get_singleton("FamilyColonyBridge")
+		if bridge.has_signal("session_credentials_refreshed"):
+			bridge.connect("session_credentials_refreshed", Callable(self, "_on_session_credentials_refreshed"))
+		if bridge.has_signal("session_refresh_failed"):
+			bridge.connect("session_refresh_failed", Callable(self, "_on_session_refresh_failed"))
 		if bridge.has_method("consumeInitialAccessToken"):
 			var initial_token := str(bridge.call("consumeInitialAccessToken"))
 			var publishable_key := str(bridge.call("consumeInitialPublishableKey"))
@@ -82,6 +87,8 @@ func verify_access_token(access_token: String, publishable_key: String) -> Error
 
 ## Called by the Android host when the member logs out or leaves the world.
 func clear_session() -> void:
+	if is_instance_valid(_refresh_timer):
+		_refresh_timer.stop()
 	if _request_pending and is_instance_valid(_http):
 		_http.cancel_request()
 	_request_pending = false
@@ -150,9 +157,44 @@ func _on_request_completed(
 	_current_member = member_data.duplicate(true)
 	_current_permissions = permission_data.duplicate(true)
 	session_verified.emit(get_member_profile(), get_permission_snapshot())
+	_start_refresh_timer()
+
+
+func _start_refresh_timer() -> void:
+	if not is_instance_valid(_refresh_timer):
+		_refresh_timer = Timer.new()
+		_refresh_timer.name = "WorldSessionRefreshTimer"
+		_refresh_timer.wait_time = 600.0
+		_refresh_timer.one_shot = false
+		_refresh_timer.timeout.connect(_request_session_refresh)
+		add_child(_refresh_timer)
+	_refresh_timer.start()
+
+
+func _request_session_refresh() -> void:
+	if not has_verified_session() or not Engine.has_singleton("FamilyColonyBridge"):
+		return
+	var bridge: Object = Engine.get_singleton("FamilyColonyBridge")
+	if bridge.has_method("requestSessionRefresh"):
+		bridge.call("requestSessionRefresh")
+
+
+func _on_session_credentials_refreshed(access_token: String, api_key: String) -> void:
+	var request_error := verify_access_token(access_token, api_key)
+	if request_error != OK:
+		_access_denied("session_refresh_request_failed")
+
+
+func _on_session_refresh_failed(invalidated: bool) -> void:
+	if invalidated:
+		_access_denied("session_refresh_invalidated")
+	else:
+		push_warning("FAMILY COLONY: Session refresh is temporarily unavailable; it will retry.")
 
 
 func _access_denied(error_code: String) -> void:
+	if is_instance_valid(_refresh_timer):
+		_refresh_timer.stop()
 	last_error_code = error_code
 	_current_member.clear()
 	_current_permissions.clear()
