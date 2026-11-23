@@ -9,6 +9,7 @@ extends Node3D
 var _android_session_required := false
 var _gate_layer: CanvasLayer
 var _gate_status: Label
+var _world_exit_layer: CanvasLayer
 
 
 func _ready() -> void:
@@ -107,6 +108,7 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 	if avatar != null and avatar.has_method("set_display_name"):
 		avatar.call("set_display_name", str(_member.get("name", "Colony Member")))
 	_set_player_enabled(true)
+	_build_world_exit_button()
 	if is_instance_valid(_gate_layer):
 		_gate_layer.queue_free()
 	_gate_layer = null
@@ -119,6 +121,31 @@ func _on_session_rejected(error_code: String) -> void:
 		+ error_code.replace("_", " ")
 		+ ". Silakan kembali ke aplikasi dan masuk lagi."
 	)
+
+
+func _build_world_exit_button() -> void:
+	if is_instance_valid(_world_exit_layer):
+		return
+	_world_exit_layer = CanvasLayer.new()
+	_world_exit_layer.name = "WorldExitHUD"
+	_world_exit_layer.layer = 30
+	add_child(_world_exit_layer)
+
+	var exit_button := Button.new()
+	exit_button.name = "ReturnToAppButton"
+	exit_button.text = "KEMBALI"
+	exit_button.anchor_left = 0.77
+	exit_button.anchor_right = 0.96
+	exit_button.anchor_top = 0.035
+	exit_button.anchor_bottom = 0.105
+	exit_button.offset_left = 0
+	exit_button.offset_right = 0
+	exit_button.offset_top = 0
+	exit_button.offset_bottom = 0
+	exit_button.custom_minimum_size = Vector2(100, 44)
+	exit_button.add_theme_font_size_override("font_size", 14)
+	exit_button.pressed.connect(_return_to_app)
+	_world_exit_layer.add_child(exit_button)
 
 
 func _set_player_enabled(enabled: bool) -> void:
