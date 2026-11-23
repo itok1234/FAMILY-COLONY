@@ -17,6 +17,9 @@ func _ready() -> void:
 func set_motion_strength(value: float) -> void:
 	_motion = clampf(value, 0.0, 1.0)
 
+func get_motion_strength() -> float:
+	return _motion
+
 func play_action(action_name: String) -> void:
 	if action_name in ["wave", "sit"]:
 		_action = action_name
