@@ -24,7 +24,10 @@ jobs:
           deno-version: v2.x
 
       - name: Type-check Godot world session function
-        run: deno check supabase/functions/fc-world-session/index.ts
+        run: deno check supabase/functions/fc-world-session/index.ts supabase/functions/_shared/world-session-policy_test.ts
+
+      - name: Test world session role policy
+        run: deno test supabase/functions/_shared/world-session-policy_test.ts
 
       - name: Apply member authentication schema
         env:
