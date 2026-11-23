@@ -1,6 +1,6 @@
 extends Node
-## Contextual interaction controller: camera ray selection + keyboard/touch action.
-## Gameplay authority and multiplayer validation must be added server-side later.
+## Contextual interaction controller with compact radial-style action menu.
+## This is local presentation/gameplay scaffolding; authoritative multiplayer checks are not implemented.
 
 @export var camera_path: NodePath = NodePath("../CameraPivot/Camera3D")
 @export var interaction_distance: float = 5.0
@@ -10,6 +10,8 @@ var _target: Node
 var _prompt: Label
 var _result: Label
 var _action_button: Button
+var _menu: Control
+var _menu_buttons: Array[Button] = []
 var _refresh_timer := 0.0
 
 func _ready() -> void:
@@ -25,10 +27,15 @@ func _process(delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact") and not event.is_echo():
-		_perform_interaction()
+		_open_action_menu()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_cancel") and _menu.visible:
+		_menu.visible = false
 		get_viewport().set_input_as_handled()
 
 func _refresh_target() -> void:
+	if _menu.visible:
+		return
 	_target = null
 	if camera == null or not is_instance_valid(camera):
 		_set_prompt("")
@@ -57,17 +64,31 @@ func _set_prompt(value: String) -> void:
 	_prompt.visible = not value.is_empty()
 	_action_button.visible = not value.is_empty()
 
-func _perform_interaction() -> void:
+func _open_action_menu() -> void:
 	if _target == null or not is_instance_valid(_target):
 		return
-	var message := "Interaksi selesai."
+	_menu.visible = true
+	_prompt.visible = false
+	_action_button.visible = false
+
+func _choose_action(action_id: String) -> void:
+	_menu.visible = false
+	if _target == null or not is_instance_valid(_target):
+		return
+	var message := "Aksi selesai."
 	if _target.has_method("interact"):
-		message = str(_target.call("interact", get_parent()))
+		message = str(_target.call("interact", get_parent(), action_id))
+	var avatar := get_parent().get_node_or_null("AvatarVisual")
+	if avatar != null and avatar.has_method("play_action"):
+		if action_id == "greet":
+			avatar.call("play_action", "wave")
+		elif action_id == "sit":
+			avatar.call("play_action", "sit")
 	_result.text = message
 	_result.visible = true
 	_target = null
 	_set_prompt("")
-	await get_tree().create_timer(2.2).timeout
+	await get_tree().create_timer(2.4).timeout
 	if is_instance_valid(_result):
 		_result.visible = false
 
@@ -85,7 +106,6 @@ func _build_hud() -> void:
 	_prompt.anchor_bottom = 0.12
 	_prompt.offset_left = -190
 	_prompt.offset_right = 190
-	_prompt.offset_top = 0
 	_prompt.offset_bottom = 42
 	_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_prompt.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -99,23 +119,63 @@ func _build_hud() -> void:
 
 	_action_button = Button.new()
 	_action_button.name = "InteractButton"
-	_action_button.text = "INTERAKSI"
+	_action_button.text = "AKSI"
 	_action_button.anchor_left = 0.78
 	_action_button.anchor_right = 0.96
 	_action_button.anchor_top = 0.76
 	_action_button.anchor_bottom = 0.88
 	_action_button.add_theme_font_size_override("font_size", 17)
-	_action_button.pressed.connect(_perform_interaction)
+	_action_button.pressed.connect(_open_action_menu)
 	_action_button.visible = false
 	layer.add_child(_action_button)
 
+	_menu = Control.new()
+	_menu.name = "RadialActionMenu"
+	_menu.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_menu.visible = false
+	layer.add_child(_menu)
+
+	var shade := ColorRect.new()
+	shade.color = Color(0.015, 0.025, 0.045, 0.72)
+	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	shade.mouse_filter = Control.MOUSE_FILTER_STOP
+	_menu.add_child(shade)
+
+	var title := Label.new()
+	title.text = "PILIH AKSI"
+	title.anchor_left = 0.5
+	title.anchor_right = 0.5
+	title.anchor_top = 0.34
+	title.anchor_bottom = 0.34
+	title.offset_left = -120
+	title.offset_right = 120
+	title.offset_bottom = 34
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 20)
+	_menu.add_child(title)
+
+	_add_menu_button("GUNAKAN", Vector2(-165, 0), "use")
+	_add_menu_button("SAPA", Vector2(0, 82), "greet")
+	_add_menu_button("DUDUK", Vector2(165, 0), "sit")
+
+	var cancel := Button.new()
+	cancel.text = "BATAL"
+	cancel.anchor_left = 0.5
+	cancel.anchor_right = 0.5
+	cancel.anchor_top = 0.68
+	cancel.anchor_bottom = 0.68
+	cancel.offset_left = -75
+	cancel.offset_right = 75
+	cancel.offset_bottom = 44
+	cancel.pressed.connect(func(): _menu.visible = false)
+	_menu.add_child(cancel)
+
 	_result = Label.new()
 	_result.name = "InteractionResult"
-	_result.anchor_left = 0.2
-	_result.anchor_right = 0.8
+	_result.anchor_left = 0.15
+	_result.anchor_right = 0.85
 	_result.anchor_top = 0.2
 	_result.anchor_bottom = 0.2
-	_result.offset_top = 0
 	_result.offset_bottom = 50
 	_result.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_result.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -123,3 +183,19 @@ func _build_hud() -> void:
 	_result.add_theme_color_override("font_color", Color(1, 0.92, 0.72))
 	_result.visible = false
 	layer.add_child(_result)
+
+func _add_menu_button(label_text: String, center_offset: Vector2, action_id: String) -> void:
+	var button := Button.new()
+	button.text = label_text
+	button.anchor_left = 0.5
+	button.anchor_right = 0.5
+	button.anchor_top = 0.52
+	button.anchor_bottom = 0.52
+	button.offset_left = center_offset.x - 72
+	button.offset_right = center_offset.x + 72
+	button.offset_top = center_offset.y - 25
+	button.offset_bottom = center_offset.y + 25
+	button.add_theme_font_size_override("font_size", 16)
+	button.pressed.connect(_choose_action.bind(action_id))
+	_menu.add_child(button)
+	_menu_buttons.append(button)
