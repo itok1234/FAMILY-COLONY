@@ -39,6 +39,16 @@ jobs:
       - name: Build emulator-compatible internal APK
         run: gradle --no-daemon assembleDebug --stacktrace
 
+      - name: Enable KVM access for Android emulator
+        run: |
+          if [ -e /dev/kvm ]; then
+            sudo chmod 666 /dev/kvm
+            ls -l /dev/kvm
+          else
+            echo "::error::KVM device is unavailable on this runner."
+            exit 1
+          fi
+
       - name: Launch embedded Godot world in Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -79,6 +89,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: FAMILY-COLONY-EMULATOR-LOGCAT
-          path: \${{ runner.temp }}/family-colony-emulator-logcat.txt
+          path: ${{ runner.temp }}/family-colony-emulator-logcat.txt
           if-no-files-found: ignore
           retention-days: 7
