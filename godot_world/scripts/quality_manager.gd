@@ -15,12 +15,43 @@ enum Quality { AUTO, PERFORMANCE, BALANCED, HIGH }
 
 var _selected_quality: Quality = Quality.AUTO
 var _quality_picker: OptionButton
+var _runtime_quality: Quality = Quality.BALANCED
+var _fps_sample_timer: float = 0.0
+var _low_fps_streak: int = 0
+var _healthy_fps_streak: int = 0
+var _startup_grace: float = 12.0
 
 
 func _ready() -> void:
 	_load_saved_quality()
 	_build_quality_picker()
 	apply_quality(_selected_quality)
+
+
+func _process(delta: float) -> void:
+	if _selected_quality != Quality.AUTO:
+		return
+	if _startup_grace > 0.0:
+		_startup_grace = maxf(0.0, _startup_grace - delta)
+		return
+	_fps_sample_timer += delta
+	if _fps_sample_timer < 4.0:
+		return
+	_fps_sample_timer = 0.0
+	var fps := Engine.get_frames_per_second()
+	if fps < 28:
+		_low_fps_streak += 1
+		_healthy_fps_streak = 0
+		if _low_fps_streak >= 2 and _runtime_quality != Quality.PERFORMANCE:
+			_apply_resolved_quality(Quality.PERFORMANCE)
+	elif fps >= 50:
+		_healthy_fps_streak += 1
+		_low_fps_streak = 0
+		if _healthy_fps_streak >= 3 and _runtime_quality == Quality.PERFORMANCE:
+			_apply_resolved_quality(Quality.BALANCED)
+	else:
+		_low_fps_streak = 0
+		_healthy_fps_streak = 0
 
 
 func _load_saved_quality() -> void:
@@ -77,6 +108,11 @@ func _resolve_auto_quality() -> Quality:
 
 func apply_quality(level: Quality) -> void:
 	var resolved: Quality = _resolve_auto_quality() if level == Quality.AUTO else level
+	_apply_resolved_quality(resolved)
+
+
+func _apply_resolved_quality(resolved: Quality) -> void:
+	_runtime_quality = resolved
 	var viewport := get_viewport()
 
 	match resolved:
