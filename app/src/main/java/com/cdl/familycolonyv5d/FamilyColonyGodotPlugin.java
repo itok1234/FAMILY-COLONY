@@ -7,6 +7,10 @@ import org.godotengine.godot.plugin.GodotPlugin;
 import org.godotengine.godot.plugin.SignalInfo;
 import org.godotengine.godot.plugin.UsedByGodot;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 /** Narrow in-process bridge between the existing app session and the embedded Godot world. */
 public final class FamilyColonyGodotPlugin extends GodotPlugin {
     private static final SignalInfo SESSION_CREDENTIALS_REFRESHED =
