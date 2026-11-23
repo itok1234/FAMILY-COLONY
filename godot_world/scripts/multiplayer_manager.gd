@@ -234,7 +234,7 @@ func _create_status_hud() -> void:
 	layer.add_child(_status_label)
 
 func broadcast_social_action(action_id: String) -> void:
-	if action_id not in ["wave", "sit"]:
+	if action_id not in ["wave", "sit", "stand"]:
 		return
 	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
 		return
@@ -247,7 +247,7 @@ func broadcast_social_action(action_id: String) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func _rpc_request_social_action(action_id: String) -> void:
-	if not multiplayer.is_server() or action_id not in ["wave", "sit"]:
+	if not multiplayer.is_server() or action_id not in ["wave", "sit", "stand"]:
 		return
 	var sender_id := multiplayer.get_remote_sender_id()
 	if sender_id <= 1 or not peer_ids.has(sender_id):
@@ -257,7 +257,7 @@ func _rpc_request_social_action(action_id: String) -> void:
 
 @rpc("authority", "call_remote", "reliable")
 func _rpc_social_action(peer_id: int, action_id: String) -> void:
-	if action_id not in ["wave", "sit"]:
+	if action_id not in ["wave", "sit", "stand"]:
 		return
 	var remote = _remote_players.get(peer_id)
 	if is_instance_valid(remote) and remote.has_method("play_network_action"):
