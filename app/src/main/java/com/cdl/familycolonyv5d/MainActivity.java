@@ -25,6 +25,7 @@ import android.widget.Toast;
 import android.util.Log;
 
 public class MainActivity extends Activity {
+    private static volatile WeakReference<MainActivity> activeInstance = new WeakReference<>(null);
     private WebView webView;
     private WebViewAssetLoader assetLoader;
     private ValueCallback<Uri[]> filePathCallback;
@@ -39,6 +40,16 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void installSelectedApk() {
             runOnUiThread(() -> installSelectedApkFromWeb());
+        }
+
+        @JavascriptInterface
+        public void onWorldSessionCredentialsReady(String accessToken, String apiKey) {
+            WorldActivity.deliverSessionCredentials(accessToken, apiKey);
+        }
+
+        @JavascriptInterface
+        public void onWorldSessionRefreshFailed(boolean invalidated) {
+            WorldActivity.deliverSessionRefreshFailure(invalidated);
         }
 
         @JavascriptInterface
@@ -84,6 +95,7 @@ public class MainActivity extends Activity {
         // The WebView only serves the bundled local HTML. External HTTP(S) links
         // are opened outside the WebView, keeping this narrow bridge off websites.
         webView.addJavascriptInterface(new AndroidBridge(), "FCAndroid");
+        activeInstance = new WeakReference<>(this);
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -336,6 +348,36 @@ public class MainActivity extends Activity {
         } catch (ActivityNotFoundException | SecurityException e) {
             Toast.makeText(this, "Android tidak dapat membuka pemasang paket untuk file ini.", Toast.LENGTH_LONG).show();
         }
+    }
+
+    public static void requestWorldSessionRefresh() {
+        MainActivity activity = activeInstance == null ? null : activeInstance.get();
+        if (activity == null || activity.webView == null) {
+            WorldActivity.deliverSessionRefreshFailure(true);
+            return;
+        }
+
+        activity.runOnUiThread(() -> {
+            if (activity.webView == null) {
+                WorldActivity.deliverSessionRefreshFailure(true);
+                return;
+            }
+            String script = "(async()=>{try{"
+                    + "const c=window.fcRequestWorldSessionCredentials?"
+                    + "await window.fcRequestWorldSessionCredentials():null;"
+                    + "if(c&&window.FCAndroid){window.FCAndroid.onWorldSessionCredentialsReady(c.accessToken,c.apiKey);}"
+                    + "else if(window.FCAndroid){window.FCAndroid.onWorldSessionRefreshFailed(!session||!session.refreshToken);}"
+                    + "}catch(e){if(window.FCAndroid){window.FCAndroid.onWorldSessionRefreshFailed(false);}}})();";
+            activity.webView.evaluateJavascript(script, null);
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (activeInstance != null && activeInstance.get() == this) {
+            activeInstance = new WeakReference<>(null);
+        }
+        super.onDestroy();
     }
 
     @Override
