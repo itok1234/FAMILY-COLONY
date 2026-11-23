@@ -37,7 +37,21 @@ func _physics_process(delta: float) -> void:
 		if touch_input.length_squared() > 0.001:
 			input_vector = touch_input
 
-	var direction := Vector3(input_vector.x, 0.0, input_vector.y).normalized()
+	# Keep movement aligned with the camera yaw so forward always means
+	# "toward the direction the player is looking" on both touch and desktop.
+	var direction := Vector3(input_vector.x, 0.0, input_vector.y)
+	var camera_pivot := get_node_or_null("CameraPivot") as Node3D
+	if camera_pivot != null:
+		var camera_basis := camera_pivot.global_transform.basis
+		var camera_forward := -camera_basis.z
+		var camera_right := camera_basis.x
+		camera_forward.y = 0.0
+		camera_right.y = 0.0
+		if camera_forward.length_squared() > 0.001 and camera_right.length_squared() > 0.001:
+			camera_forward = camera_forward.normalized()
+			camera_right = camera_right.normalized()
+			direction = camera_right * input_vector.x + camera_forward * -input_vector.y
+	direction = direction.normalized()
 	var target_velocity := direction * walk_speed
 	velocity.x = move_toward(velocity.x, target_velocity.x, acceleration * delta)
 	velocity.z = move_toward(velocity.z, target_velocity.z, acceleration * delta)
