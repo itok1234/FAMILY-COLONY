@@ -48,6 +48,11 @@ public class MainActivity extends Activity {
         }
     }
 
+    private String getMicrophonePermissionStatus() {
+        return checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+                ? "GRANTED" : "DENIED";
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
