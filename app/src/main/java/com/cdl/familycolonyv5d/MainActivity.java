@@ -52,8 +52,7 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public String getWebViewDiagnostic() {
-            android.content.pm.PackageInfo info = WebView.getCurrentWebViewPackage();
-            String pkg = info == null ? "UNKNOWN" : info.packageName + "/" + info.versionName;
+            String pkg = getWebViewPackageVersion();
             return "sdk=" + Build.VERSION.SDK_INT + ";webView=" + pkg
                     + ";androidPermission=" + MainActivity.this.getMicrophonePermissionStatus();
         }
@@ -63,6 +62,16 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return "NOT_REQUIRED";
         return checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
                 ? "GRANTED" : "DENIED";
+    }
+
+    private String getWebViewPackageVersion() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return "API_BELOW_26";
+        try {
+            android.content.pm.PackageInfo info = WebView.getCurrentWebViewPackage();
+            return info == null ? "UNKNOWN" : info.packageName + "/" + info.versionName;
+        } catch (RuntimeException e) {
+            return "ERROR:" + e.getClass().getSimpleName();
+        }
     }
 
     private boolean isTrustedAssetOrigin(Uri origin) {
@@ -233,8 +242,7 @@ public class MainActivity extends Activity {
                 if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) asksForAudio = true;
             }
         }
-        android.content.pm.PackageInfo info = WebView.getCurrentWebViewPackage();
-        String webViewVersion = info == null ? "UNKNOWN" : info.packageName + "/" + info.versionName;
+        String webViewVersion = getWebViewPackageVersion();
         Log.i(MIC_TAG, "Web permission origin=" + origin + " resources="
                 + java.util.Arrays.toString(resources) + " androidPermission="
                 + getMicrophonePermissionStatus() + " webView=" + webViewVersion);
