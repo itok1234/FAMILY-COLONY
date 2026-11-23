@@ -12,6 +12,8 @@ var connection_detail: String = "Belum terhubung"
 var peer_ids: Array[int] = []
 var _status_label: Label
 var _world_session: Node
+var _room_manager: Node
+var _last_social_action_at: Dictionary = {}
 var _remote_players: Dictionary = {}
 var _sync_accumulator: float = 0.0
 const SYNC_INTERVAL: float = 0.05
@@ -25,6 +27,7 @@ func _ready() -> void:
 	multiplayer.connection_failed.connect(_on_connection_failed)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 	_world_session = get_parent().get_node_or_null("WorldSessionClient")
+	_room_manager = get_parent().get_node_or_null("RoomManager")
 	if _world_session != null:
 		if _world_session.has_signal("session_rejected"):
 			_world_session.connect("session_rejected", Callable(self, "_on_world_session_rejected"))
@@ -281,9 +284,38 @@ func broadcast_social_action(action_id: String) -> void:
 		return
 	var local_id := multiplayer.get_unique_id()
 	if multiplayer.is_server():
-		_rpc_social_action.rpc(local_id, action_id)
+		_route_social_action(local_id, action_id)
 	else:
 		_rpc_request_social_action.rpc_id(1, action_id)
+
+
+func _route_social_action(sender_id: int, action_id: String) -> void:
+	if not multiplayer.is_server() or _room_manager == null:
+		return
+	var room_id := str(_room_manager.call("get_peer_room_id", sender_id))
+	if room_id.is_empty():
+		return
+	var now := Time.get_ticks_msec() / 1000.0
+	var last_action := float(_last_social_action_at.get(sender_id, -10000.0))
+	if now - last_action < 0.45:
+		return
+	_last_social_action_at[sender_id] = now
+	# Apply the action on the host's view, then relay only to peers in the
+	# same room. A room member must never trigger animations in another room.
+	_apply_social_action_locally(sender_id, action_id)
+	var room_peers: Array = _room_manager.call("get_room_peer_ids", room_id)
+	for peer_id in room_peers:
+		var target_id := int(peer_id)
+		if target_id != multiplayer.get_unique_id() and target_id != sender_id:
+			_rpc_social_action.rpc_id(target_id, sender_id, action_id)
+
+
+func _apply_social_action_locally(peer_id: int, action_id: String) -> void:
+	if peer_id == multiplayer.get_unique_id():
+		return
+	var remote = _remote_players.get(peer_id)
+	if is_instance_valid(remote) and remote.has_method("play_network_action"):
+		remote.play_network_action(action_id)
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -293,13 +325,11 @@ func _rpc_request_social_action(action_id: String) -> void:
 	var sender_id := multiplayer.get_remote_sender_id()
 	if sender_id <= 1 or not peer_ids.has(sender_id):
 		return
-	_rpc_social_action.rpc(sender_id, action_id)
+	_route_social_action(sender_id, action_id)
 
 
 @rpc("authority", "call_remote", "reliable")
 func _rpc_social_action(peer_id: int, action_id: String) -> void:
 	if action_id not in ["wave", "sit", "stand"]:
 		return
-	var remote = _remote_players.get(peer_id)
-	if is_instance_valid(remote) and remote.has_method("play_network_action"):
-		remote.play_network_action(action_id)
+	_apply_social_action_locally(peer_id, action_id)
