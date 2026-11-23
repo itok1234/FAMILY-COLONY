@@ -9,6 +9,7 @@ signal room_action_result(ok: bool, message: String)
 @export_range(2, 64, 1) var default_room_capacity: int = 16
 var _rooms: Dictionary = {}
 var _peer_room: Dictionary = {}
+var _last_room_create_at: Dictionary = {}
 var _network: Node
 
 
@@ -69,6 +70,7 @@ func _on_peer_roster_changed(peer_ids: Array[int]) -> void:
 	for peer_id in _peer_room.keys():
 		if not peer_ids.has(int(peer_id)):
 			_leave_room_for_peer(int(peer_id))
+			_last_room_create_at.erase(int(peer_id))
 	_broadcast_room_state()
 
 
@@ -157,8 +159,12 @@ func _send_result(peer_id: int, ok: bool, message: String) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func _rpc_request_room_snapshot() -> void:
-	if multiplayer.is_server():
-		_rpc_receive_room_snapshot.rpc_id(multiplayer.get_remote_sender_id(), _public_room_snapshot())
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender <= 1 or not multiplayer.get_peers().has(sender):
+		return
+	_rpc_receive_room_snapshot.rpc_id(sender, _public_room_snapshot())
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -171,6 +177,12 @@ func _rpc_request_create_room(room_name: String, capacity: int) -> void:
 	if room_name.length() > 32 or room_name.strip_edges().length() < 2 or room_name.strip_edges().length() > 32:
 		_send_result(sender, false, "Nama room tidak valid.")
 		return
+	var now := Time.get_ticks_msec() / 1000.0
+	var last_create := float(_last_room_create_at.get(sender, -10000.0))
+	if now - last_create < 5.0:
+		_send_result(sender, false, "Tunggu 5 detik sebelum membuat room lagi.")
+		return
+	_last_room_create_at[sender] = now
 	_create_room_for_peer(sender, room_name.strip_edges(), clampi(capacity, 2, 64))
 
 
