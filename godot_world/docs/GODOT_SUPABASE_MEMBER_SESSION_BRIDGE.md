@@ -1,6 +1,6 @@
 # FAMILY COLONY — Godot / Supabase Member Session Bridge
 
-Status: the trusted `fc-world-session` Edge Function is deployed; the existing Android app now embeds the Godot 4.4.1 engine and has a native session handoff plus a Godot verification adapter. CI compilation and headless parsing pass. Real-device session, lifecycle, and gameplay tests remain release blockers.
+Status: the trusted `fc-world-session` Edge Function is deployed; the existing Android app now embeds the Godot 4.4.1 engine and has a native session handoff plus a Godot verification adapter. CI compilation, JavaScript lint, headless parsing, and role-policy tests pass. The WebView session now refreshes before world entry and on app resume. Real-device session, lifecycle, and gameplay tests remain release blockers.
 
 ## Compatibility requirements
 - Preserve the existing Email/Password and Developer login flows in the WebView application.
@@ -69,5 +69,6 @@ Failure behavior:
 - `world_role` is always `member`, including for Developer, so Developer enters gameplay as a normal player. Developer Center visibility is a separate permission hint; protected Developer actions still require their own server-side authorization.
 - `WorldActivity` and `FamilyColonyGodotPlugin` now provide a one-time in-memory handoff for the access token and publishable key. `WorldSessionClient` calls the deployed Edge Function and the Android world controller keeps movement/interactions locked until the server confirms access. This has passed CI compilation and headless script parsing but has not yet been exercised on the Redmi Note 8 Pro or another physical Android device.
 - The existing app exposes the 3D entry only to Developer for internal validation. It is not yet enabled for ordinary members or announced as a finished feature.
-- Automatic refresh while the Godot Activity is open, session expiry UX, and protected world action endpoints remain pending.
+- The existing WebView refreshes the Supabase session before opening the world, when the app resumes, and periodically while the WebView is active. Refresh while the Godot Activity itself remains open is not yet bridged; long-running world sessions still need a native callback/refresh loop before final release.
+- Protected world action endpoints remain pending.
 - Multiplayer, room, presence, and chat still use ENet peer IDs and are not yet bound to verified FAMILY COLONY member identities. Do not expose these as production social features until the native bridge, server checks, and acceptance tests are complete.
