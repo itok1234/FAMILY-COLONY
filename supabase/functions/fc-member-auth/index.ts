@@ -46,6 +46,48 @@ Deno.serve(async req => {
     const body = await req.json();
     const action = String(body.action || "");
 
+    if (action === "get_app_status") {
+      const { data: status, error: statusError } = await admin.from("fc_app_control")
+        .select("announcement_active,maintenance_mode,title,message,starts_at,ends_at,updated_at")
+        .eq("singleton", true).maybeSingle();
+      if (statusError) return json({ error: "app_status_unavailable" }, 500);
+      return json({ ok: true, status: status || {
+        announcement_active: false, maintenance_mode: false, title: "", message: ""
+      } });
+    }
+
+    if (action === "publish_app_status") {
+      const authHeader = req.headers.get("Authorization") || "";
+      const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+      if (!bearer) return json({ error: "developer_auth_required" }, 401);
+      const { data: authData, error: authError } = await admin.auth.getUser(bearer);
+      if (authError || !authData.user) return json({ error: "developer_auth_invalid" }, 401);
+      const { data: developer, error: developerError } = await admin.from("fc_members")
+        .select("member_id,role,status").eq("auth_user_id", authData.user.id).maybeSingle();
+      if (developerError || !developer ||
+          String(developer.role || "").toLowerCase() !== "developer" ||
+          !["aktif", "active"].includes(String(developer.status || "").toLowerCase())) {
+        return json({ error: "developer_only" }, 403);
+      }
+      const announcementActive = body.announcement_active === true;
+      const maintenanceMode = body.maintenance_mode === true;
+      const title = String(body.title || "").trim().slice(0, 100);
+      const message = String(body.message || "").trim().slice(0, 2000);
+      const startsAt = body.starts_at ? new Date(body.starts_at).toISOString() : null;
+      const endsAt = body.ends_at ? new Date(body.ends_at).toISOString() : null;
+      if ((announcementActive || maintenanceMode) && (title.length < 3 || message.length < 5)) {
+        return json({ error: "maintenance_message_required" }, 400);
+      }
+      const { data: saved, error: saveError } = await admin.from("fc_app_control").upsert({
+        singleton: true, announcement_active: announcementActive,
+        maintenance_mode: maintenanceMode, title, message,
+        starts_at: startsAt, ends_at: endsAt, updated_by: developer.member_id,
+        updated_at: new Date().toISOString()
+      }, { onConflict: "singleton" }).select("announcement_active,maintenance_mode,title,message,starts_at,ends_at,updated_at").single();
+      if (saveError) return json({ error: "maintenance_publish_failed" }, 500);
+      return json({ ok: true, status: saved });
+    }
+
     if (action === "developer_pin_setup") {
       const expected = (Deno.env.get("FC_BOOTSTRAP_SECRET") || "").trim();
       const supplied = (req.headers.get("x-fc-bootstrap-secret") || "").trim();
