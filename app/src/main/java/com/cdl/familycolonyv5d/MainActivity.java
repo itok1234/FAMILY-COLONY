@@ -24,6 +24,8 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 import android.util.Log;
 
+import java.lang.ref.WeakReference;
+
 public class MainActivity extends Activity {
     private static volatile WeakReference<MainActivity> activeInstance = new WeakReference<>(null);
     private WebView webView;
