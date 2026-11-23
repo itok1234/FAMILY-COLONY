@@ -60,8 +60,12 @@ func _broadcast_snapshot() -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func _rpc_request_presence_snapshot() -> void:
-	if multiplayer.is_server():
-		_rpc_receive_presence_snapshot.rpc_id(multiplayer.get_remote_sender_id(), _snapshot())
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender <= 1 or not multiplayer.get_peers().has(sender):
+		return
+	_rpc_receive_presence_snapshot.rpc_id(sender, _snapshot())
 
 
 @rpc("authority", "call_remote", "reliable")
