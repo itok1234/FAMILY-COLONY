@@ -12,6 +12,7 @@ var _result: Label
 var _action_button: Button
 var _menu: Control
 var _menu_buttons: Array[Button] = []
+var _menu_button_by_action: Dictionary = {}
 var _refresh_timer := 0.0
 
 func _ready() -> void:
@@ -74,6 +75,17 @@ func _set_prompt(value: String) -> void:
 func _open_action_menu() -> void:
 	if _target == null or not is_instance_valid(_target):
 		return
+	var available_actions: Array = ["use", "greet"]
+	if _target.has_method("get_available_actions"):
+		var configured_actions: Variant = _target.call("get_available_actions")
+		if configured_actions is Array:
+			available_actions = configured_actions
+	for action_id in _menu_button_by_action:
+		var action_button: Button = _menu_button_by_action[action_id]
+		action_button.visible = available_actions.has(action_id)
+	if available_actions.is_empty():
+		_show_result("Tidak ada aksi yang tersedia untuk objek ini.")
+		return
 	_menu.visible = true
 	_prompt.visible = false
 	_action_button.visible = false
@@ -82,6 +94,11 @@ func _choose_action(action_id: String) -> void:
 	_menu.visible = false
 	if _target == null or not is_instance_valid(_target):
 		return
+	if _target.has_method("get_available_actions"):
+		var allowed_actions: Variant = _target.call("get_available_actions")
+		if allowed_actions is Array and not allowed_actions.has(action_id):
+			_show_result("Aksi tersebut tidak tersedia untuk objek ini.")
+			return
 	var message := "Aksi selesai."
 	if _target.has_method("interact"):
 		message = str(_target.call("interact", get_parent(), action_id))
@@ -212,6 +229,7 @@ func _add_menu_button(label_text: String, center_offset: Vector2, action_id: Str
 	button.pressed.connect(_choose_action.bind(action_id))
 	_menu.add_child(button)
 	_menu_buttons.append(button)
+	_menu_button_by_action[action_id] = button
 
 func _show_result(message: String) -> void:
 	_result.text = message
