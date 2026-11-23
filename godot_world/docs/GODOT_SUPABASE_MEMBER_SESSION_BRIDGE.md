@@ -1,6 +1,6 @@
 # FAMILY COLONY — Godot / Supabase Member Session Bridge
 
-Status: the trusted `fc-world-session` Edge Function is implemented and deployed. The Android native token handoff and Godot session adapter remain unimplemented and must pass the release gate before the 3D world is exposed to members.
+Status: the trusted `fc-world-session` Edge Function is deployed; the existing Android app now embeds the Godot 4.4.1 engine and has a native session handoff plus a Godot verification adapter. CI compilation and headless parsing pass. Real-device session, lifecycle, and gameplay tests remain release blockers.
 
 ## Compatibility requirements
 - Preserve the existing Email/Password and Developer login flows in the WebView application.
@@ -12,24 +12,26 @@ Status: the trusted `fc-world-session` Edge Function is implemented and deployed
 ## Trusted handoff sequence
 1. The existing app completes its current login flow without changing its UI or credential rules.
 2. The native Android host receives a short-lived access token through a narrowly scoped in-process bridge. The refresh token remains owned by the existing authentication layer and is not exposed to general Godot scripts.
-3. The host opens the Godot world and supplies the access token only to a dedicated session adapter.
-4. A future server-side Edge Function validates the bearer token using Supabase Auth `getUser(token)`; it must not trust a client-supplied member ID, username, role, or status.
-5. The server resolves the authenticated `auth_user_id` against `public.fc_members.auth_user_id`, verifies that the member is active, and returns the canonical member profile and a minimal permission snapshot.
-6. Godot stores the minimum session data in memory for the current world session. On logout, expiry, invalidation, or account status change, the world session is closed and sensitive in-memory values are cleared.
-7. Any protected mutation is re-authorized by the backend at the time of the action. A cached role/permission snapshot is for UI presentation only.
+3. The Android host opens `WorldActivity` and supplies the access token plus the project publishable key to the dedicated `FamilyColonyBridge` plugin. The publishable key is sent only in the `apikey` HTTP header; it is not a privileged secret.
+4. `WorldSessionClient` sends HTTPS POST to `/functions/v1/fc-world-session` with `Authorization: Bearer <access token>`, `apikey: <publishable key>`, and an empty JSON object. It does not persist the access token or receive the refresh token.
+5. The deployed Edge Function validates the bearer token using Supabase Auth `getUser(token)`; it does not trust a client-supplied member ID, username, role, or status.
+6. The server resolves the authenticated `auth_user_id` against `public.fc_members.auth_user_id`, verifies that the member is active, and returns the canonical member profile and a minimal permission snapshot.
+7. Godot stores only the minimum member profile and permission snapshot in memory. Returning to the Android app destroys the world Activity and its session adapter. Invalid or expired tokens fail closed.
+8. Any protected mutation is re-authorized by the backend at the time of the action. A cached role/permission snapshot is for UI presentation only.
 
 ## Proposed verification contract
 
 Request:
-- HTTPS POST to a future dedicated Edge Function.
-- Authorization: Bearer <short-lived Supabase access token>.
-- JSON body contains only an action/version marker; it must not accept a client-selected member ID or role.
+- HTTPS POST to `https://irwtnqekrwhgompulach.supabase.co/functions/v1/fc-world-session`.
+- `Authorization: Bearer <short-lived Supabase access token>`.
+- `apikey: <project publishable/anon key>`.
+- JSON body is `{}`; it must not accept a client-selected member ID or role.
 
 Successful response:
 - `ok`
 - canonical `member`: `member_id`, `name`, `username`, `role`, `status`
 - minimal `permissions` flags computed on the server
-- `session_expires_at` or equivalent server-derived expiry metadata
+- `verified_at` timestamp; token expiry remains governed by Supabase Auth
 
 Failure behavior:
 - 401 for missing, expired, or invalid token.
@@ -65,5 +67,7 @@ Failure behavior:
 - `fc-world-session` is deployed at `POST /functions/v1/fc-world-session`. It verifies the supplied Supabase access token with `auth.getUser`, resolves the canonical `fc_members` row using the verified `auth_user_id`, rejects missing/inactive/invalid-role accounts, and returns a minimal member profile plus UI permission hints.
 - The endpoint does not accept a client-selected member ID or role. It does not return email, phone, wallet balance, or other private profile fields.
 - `world_role` is always `member`, including for Developer, so Developer enters gameplay as a normal player. Developer Center visibility is a separate permission hint; protected Developer actions still require their own server-side authorization.
-- The Android native bridge that obtains the current access token and passes it to Godot is not implemented yet. The Godot client session adapter, expiry/logout handling, and protected action endpoints are also pending.
+- `WorldActivity` and `FamilyColonyGodotPlugin` now provide a one-time in-memory handoff for the access token and publishable key. `WorldSessionClient` calls the deployed Edge Function and the Android world controller keeps movement/interactions locked until the server confirms access. This has passed CI compilation and headless script parsing but has not yet been exercised on the Redmi Note 8 Pro or another physical Android device.
+- The existing app exposes the 3D entry only to Developer for internal validation. It is not yet enabled for ordinary members or announced as a finished feature.
+- Automatic refresh while the Godot Activity is open, session expiry UX, and protected world action endpoints remain pending.
 - Multiplayer, room, presence, and chat still use ENet peer IDs and are not yet bound to verified FAMILY COLONY member identities. Do not expose these as production social features until the native bridge, server checks, and acceptance tests are complete.
