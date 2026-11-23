@@ -20,6 +20,9 @@ jobs:
   embedded-godot-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # GitHub-hosted runners may lack KVM; explicitly permit Android Emulator TCG.
+      ANDROID_I_WANT_MY_TCG: "yes"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
