@@ -75,7 +75,7 @@ func _on_peer_roster_changed(peer_ids: Array[int]) -> void:
 		if not _presence.has(peer_id):
 			_presence[peer_id] = {"peer_id": peer_id, "state": "online"}
 			peer_presence_changed.emit(peer_id, "online")
-	for peer_id in _presence.keys():
+	for peer_id in _presence.keys().duplicate():
 		if not peer_ids.has(int(peer_id)):
 			_presence.erase(peer_id)
 			_last_snapshot_request_at.erase(int(peer_id))
