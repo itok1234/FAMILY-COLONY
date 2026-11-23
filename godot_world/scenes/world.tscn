@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/world_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/player_controller.gd" id="2"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/avatar_visual.gd" id="7"]
 [ext_resource type="Script" path="res://scripts/interaction_controller.gd" id="8"]
 [ext_resource type="Script" path="res://scripts/world_interactable.gd" id="9"]
+[ext_resource type="Script" path="res://scripts/multiplayer_manager.gd" id="10"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.12, 0.27, 0.48, 1)
@@ -119,6 +120,9 @@ shape = SubResource("InteractableShape")
 [node name="MarkerVisual" type="MeshInstance3D" parent="WelcomeMarker"]
 mesh = SubResource("InteractableMesh")
 material_override = SubResource("InteractableMaterial")
+
+[node name="MultiplayerManager" type="Node" parent="."]
+script = ExtResource("10")
 
 [node name="QualityManager" type="Node" parent="."]
 script = ExtResource("3")
