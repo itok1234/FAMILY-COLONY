@@ -120,6 +120,7 @@ var _chat_scroll: ScrollContainer
 var _chat_input: LineEdit
 var _chat_error_label: Label
 var _chat_toggle: Button
+var _chat_empty_label: Label
 
 
 func _build_chat_hud() -> void:
@@ -197,6 +198,10 @@ func _build_chat_hud() -> void:
 	_chat_log.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_chat_log.add_theme_constant_override("separation", 4)
 	_chat_scroll.add_child(_chat_log)
+	_chat_empty_label = Label.new()
+	_chat_empty_label.text = "Belum ada pesan di room ini."
+	_chat_empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_chat_log.add_child(_chat_empty_label)
 
 	_chat_error_label = Label.new()
 	_chat_error_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -242,6 +247,8 @@ func _on_chat_text_submitted(_submitted_text: String) -> void:
 
 
 func _on_message_received(message: Dictionary) -> void:
+	if is_instance_valid(_chat_error_label):
+		_chat_error_label.visible = false
 	_append_message_to_hud(message)
 
 
@@ -255,6 +262,8 @@ func _on_chat_error(message: String) -> void:
 func _append_message_to_hud(message: Dictionary) -> void:
 	if not is_instance_valid(_chat_log):
 		return
+	if is_instance_valid(_chat_empty_label):
+		_chat_empty_label.visible = false
 	var line := Label.new()
 	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
