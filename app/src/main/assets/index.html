@@ -346,7 +346,6 @@ async function requestAccess(){
  const username=$("memberName").value.trim().replace(/^@/,"").toLowerCase();
  if(username==="edrick"){openPrivateDeveloperPanel();showMemberFeedback("Panel Login Developer dibuka. Masukkan PIN 6 digit.");return}
  const password=$("memberPassword").value;
- if(username==="edrick"){showMemberFeedback("Masukkan PIN pada panel Login Developer yang muncul di bawah.");openPrivateDeveloperPanel();return}
  if(username.length<2||!password){showMemberFeedback("Isi username dan password terlebih dahulu.");return}
  if(!fcConfigReady()){showMemberFeedback("Alamat server belum dikonfigurasi pada aplikasi.");return}
  const btn=document.querySelector(".login-panel button.primary");if(btn){btn.disabled=true;btn.textContent="MEMERIKSA AKUN..."}
