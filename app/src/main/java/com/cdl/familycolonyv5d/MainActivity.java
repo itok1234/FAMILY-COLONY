@@ -14,6 +14,7 @@ import android.provider.OpenableColumns;
 import android.provider.Settings;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import androidx.webkit.WebViewAssetLoader;
 import android.webkit.PermissionRequest;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
@@ -24,6 +25,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
     private WebView webView;
+    private WebViewAssetLoader assetLoader;
     private ValueCallback<Uri[]> filePathCallback;
     private static final int FILE_CHOOSER_REQUEST = 4107;
     private static final int MICROPHONE_PERMISSION_REQUEST = 4108;
@@ -44,6 +46,10 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         getWindow().setStatusBarColor(android.graphics.Color.rgb(7, 16, 30));
         getWindow().setNavigationBarColor(android.graphics.Color.rgb(7, 16, 30));
+
+        assetLoader = new WebViewAssetLoader.Builder()
+                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
+                .build();
 
         webView = new WebView(this);
         setContentView(webView);
@@ -66,6 +72,11 @@ public class MainActivity extends Activity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
 
         webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public android.webkit.WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                return assetLoader.shouldInterceptRequest(request.getUrl());
+            }
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
@@ -90,6 +101,12 @@ public class MainActivity extends Activity {
             @Override
             public void onPermissionRequest(PermissionRequest request) {
                 runOnUiThread(() -> {
+                    Uri origin = request.getOrigin();
+                    if (origin == null || !"https".equalsIgnoreCase(origin.getScheme())
+                            || !"appassets.androidplatform.net".equalsIgnoreCase(origin.getHost())) {
+                        request.deny();
+                        return;
+                    }
                     boolean asksForAudio = false;
                     for (String resource : request.getResources()) {
                         if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) {
@@ -166,7 +183,7 @@ public class MainActivity extends Activity {
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState);
         } else {
-            webView.loadUrl("file:///android_asset/index.html");
+            webView.loadUrl("https://appassets.androidplatform.net/assets/index.html");
         }
     }
 
