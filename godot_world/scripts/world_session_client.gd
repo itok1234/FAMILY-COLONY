@@ -24,6 +24,17 @@ func _ready() -> void:
 	add_child(_http)
 	_http.request_completed.connect(_on_request_completed)
 
+	# The Android host exposes a one-time access-token handoff. No refresh token
+	# or privileged server key is made available to the Godot project.
+	if Engine.has_singleton("FamilyColonyBridge"):
+		var bridge: Object = Engine.get_singleton("FamilyColonyBridge")
+		if bridge.has_method("consumeInitialAccessToken"):
+			var initial_token := str(bridge.call("consumeInitialAccessToken"))
+			if not initial_token.is_empty():
+				var request_error := verify_access_token(initial_token)
+				if request_error != OK:
+					push_warning("FAMILY COLONY: Could not start member session verification.")
+
 
 ## Called by the future Android native bridge after the existing app login succeeds.
 ## Do not pass refresh tokens, service-role keys, member IDs, or role values here.
@@ -66,6 +77,10 @@ func clear_session() -> void:
 	_current_member.clear()
 	_current_permissions.clear()
 	session_cleared.emit()
+
+
+func has_native_bridge() -> bool:
+	return Engine.has_singleton("FamilyColonyBridge")
 
 
 func has_verified_session() -> bool:
