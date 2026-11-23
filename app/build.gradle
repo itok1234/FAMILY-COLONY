@@ -59,8 +59,12 @@ android {
 
     buildTypes {
         debug {
-            // Include x86_64 only in normal internal emulator-test builds.
-            if (!project.hasProperty('fcSplitReleaseApks')) {
+            // Phone-only test builds can include ARM64 only to reduce APK size.
+            if (project.hasProperty('fcTestArm64Only')) {
+                ndk {
+                    abiFilters 'arm64-v8a'
+                }
+            } else if (!project.hasProperty('fcSplitReleaseApks')) {
                 ndk {
                     abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
                 }
