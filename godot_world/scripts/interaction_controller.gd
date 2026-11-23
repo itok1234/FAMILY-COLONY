@@ -14,6 +14,7 @@ var _menu: Control
 var _menu_buttons: Array[Button] = []
 var _menu_button_by_action: Dictionary = {}
 var _refresh_timer := 0.0
+var _result_generation := 0
 
 func _ready() -> void:
 	_build_hud()
@@ -73,7 +74,9 @@ func _set_prompt(value: String) -> void:
 	_action_button.visible = not value.is_empty()
 
 func _open_action_menu() -> void:
-	if _target == null or not is_instance_valid(_target):
+	if not _is_target_interactable_and_in_range():
+		_target = null
+		_set_prompt("")
 		return
 	var available_actions: Array = ["use", "greet"]
 	if _target.has_method("get_available_actions"):
@@ -92,7 +95,9 @@ func _open_action_menu() -> void:
 
 func _choose_action(action_id: String) -> void:
 	_menu.visible = false
-	if _target == null or not is_instance_valid(_target):
+	if not _is_target_interactable_and_in_range():
+		_target = null
+		_show_result("Objek sudah terlalu jauh untuk dijangkau.")
 		return
 	if _target.has_method("get_available_actions"):
 		var allowed_actions: Variant = _target.call("get_available_actions")
@@ -114,13 +119,9 @@ func _choose_action(action_id: String) -> void:
 			else:
 				avatar.call("play_action", "sit")
 			_broadcast_social_action("sit")
-	_result.text = message
-	_result.visible = true
+	_show_result(message)
 	_target = null
 	_set_prompt("")
-	await get_tree().create_timer(2.4).timeout
-	if is_instance_valid(_result):
-		_result.visible = false
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
@@ -232,11 +233,23 @@ func _add_menu_button(label_text: String, center_offset: Vector2, action_id: Str
 	_menu_button_by_action[action_id] = button
 
 func _show_result(message: String) -> void:
+	_result_generation += 1
+	var current_generation := _result_generation
 	_result.text = message
 	_result.visible = true
 	await get_tree().create_timer(2.4).timeout
-	if is_instance_valid(_result):
+	if is_instance_valid(_result) and current_generation == _result_generation:
 		_result.visible = false
+
+func _is_target_interactable_and_in_range() -> bool:
+	if _target == null or not is_instance_valid(_target):
+		return false
+	if not _target.is_in_group("world_interactable") or not (_target is Node3D):
+		return false
+	var player := get_parent()
+	if not (player is Node3D):
+		return false
+	return player.global_position.distance_squared_to((_target as Node3D).global_position) <= pow(interaction_distance + 0.75, 2.0)
 
 func _broadcast_social_action(action_id: String) -> void:
 	var world := get_parent().get_parent()
