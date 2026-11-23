@@ -22,6 +22,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
+import android.util.Log;
 
 public class MainActivity extends Activity {
     private WebView webView;
@@ -38,6 +39,12 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void installSelectedApk() {
             runOnUiThread(() -> installSelectedApkFromWeb());
+        }
+
+        @JavascriptInterface
+        public String getMicrophonePermissionStatus() {
+            return checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+                    ? "GRANTED" : "DENIED";
         }
     }
 
@@ -102,31 +109,36 @@ public class MainActivity extends Activity {
             public void onPermissionRequest(PermissionRequest request) {
                 runOnUiThread(() -> {
                     Uri origin = request.getOrigin();
+                    String[] resources = request.getResources();
+                    Log.i("FAMILY_COLONY_MIC", "Web permission origin=" + origin
+                            + " resources=" + java.util.Arrays.toString(resources)
+                            + " androidPermission=" + getMicrophonePermissionStatus());
                     if (origin == null || !"https".equalsIgnoreCase(origin.getScheme())
                             || !"appassets.androidplatform.net".equalsIgnoreCase(origin.getHost())) {
+                        Log.w("FAMILY_COLONY_MIC", "Denied untrusted WebView origin");
                         request.deny();
                         return;
                     }
                     boolean asksForAudio = false;
-                    for (String resource : request.getResources()) {
+                    for (String resource : resources) {
                         if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) {
                             asksForAudio = true;
-                        } else {
-                            // Deny resources the current HTML application does not need.
-                            request.deny();
-                            return;
                         }
                     }
                     if (!asksForAudio) {
+                        Log.w("FAMILY_COLONY_MIC", "Denied request without audio capture");
                         request.deny();
                         return;
                     }
                     if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                        Log.i("FAMILY_COLONY_MIC", "Granted audio capture to trusted app asset");
                         request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
                     } else if (pendingWebPermissionRequest == null) {
                         pendingWebPermissionRequest = request;
+                        Log.i("FAMILY_COLONY_MIC", "Requesting Android runtime microphone permission");
                         requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MICROPHONE_PERMISSION_REQUEST);
                     } else {
+                        Log.w("FAMILY_COLONY_MIC", "Denied duplicate pending microphone request");
                         request.deny();
                     }
                 });
@@ -193,9 +205,11 @@ public class MainActivity extends Activity {
         if (requestCode == MICROPHONE_PERMISSION_REQUEST && pendingWebPermissionRequest != null) {
             PermissionRequest request = pendingWebPermissionRequest;
             pendingWebPermissionRequest = null;
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                Log.i("FAMILY_COLONY_MIC", "Android runtime microphone permission granted");
                 request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
             } else {
+                Log.w("FAMILY_COLONY_MIC", "Android runtime microphone permission denied");
                 request.deny();
                 Toast.makeText(this, "Izin mikrofon diperlukan untuk merekam pesan suara.", Toast.LENGTH_SHORT).show();
             }
