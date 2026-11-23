@@ -6,6 +6,10 @@ on:
       - feature/guest-premium-access
     paths:
       - "godot_world/**"
+      - "app/build.gradle"
+      - "build.gradle"
+      - "settings.gradle"
+      - "gradle.properties"
       - ".github/workflows/godot-validation.yml"
       - ".github/workflows/android-release.yml"
       - ".github/workflows/android-debug.yml"
