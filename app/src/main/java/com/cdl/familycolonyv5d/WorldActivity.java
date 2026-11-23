@@ -1,6 +1,7 @@
 package com.cdl.familycolonyv5d;
 
 import android.os.Bundle;
+import java.lang.ref.WeakReference;
 
 import org.godotengine.godot.Godot;
 import org.godotengine.godot.GodotActivity;
@@ -21,6 +22,8 @@ public final class WorldActivity extends GodotActivity {
 
     private String pendingAccessToken = "";
     private String pendingApiKey = "";
+    private FamilyColonyGodotPlugin activePlugin;
+    private static volatile WeakReference<FamilyColonyGodotPlugin> activeBridge = new WeakReference<>(null);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,11 +52,33 @@ public final class WorldActivity extends GodotActivity {
             return Collections.emptySet();
         }
 
-        FamilyColonyGodotPlugin bridge =
-                new FamilyColonyGodotPlugin(godot, this, pendingAccessToken, pendingApiKey);
+        activePlugin = new FamilyColonyGodotPlugin(godot, this, pendingAccessToken, pendingApiKey);
+        activeBridge = new WeakReference<>(activePlugin);
         pendingAccessToken = "";
         pendingApiKey = "";
-        return Collections.singleton(bridge);
+        return Collections.singleton(activePlugin);
+    }
+
+    public static void deliverSessionCredentials(String accessToken, String apiKey) {
+        FamilyColonyGodotPlugin bridge = activeBridge == null ? null : activeBridge.get();
+        if (bridge != null) {
+            bridge.onSessionCredentialsRefreshed(accessToken, apiKey);
+        }
+    }
+
+    public static void deliverSessionRefreshFailure(boolean invalidated) {
+        FamilyColonyGodotPlugin bridge = activeBridge == null ? null : activeBridge.get();
+        if (bridge != null) {
+            bridge.onSessionRefreshFailed(invalidated);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (activeBridge != null && activeBridge.get() == activePlugin) {
+            activeBridge = new WeakReference<>(null);
+        }
+        super.onDestroy();
     }
 
     @Override
