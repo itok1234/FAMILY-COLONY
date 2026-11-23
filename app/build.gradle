@@ -8,11 +8,15 @@ android {
     compileSdk 35
 
     defaultConfig {
-        // Normal builds declare ARM support directly. Release split builds take ABI filters
-        // exclusively from splits.abi to avoid Android Gradle Plugin filter conflicts.
+        // A test build for the target Redmi Note 8 Pro packages ARM64 only.
+        // Other builds retain the project's normal ARM ABI support.
         if (!project.hasProperty('fcSplitReleaseApks')) {
             ndk {
-                abiFilters 'arm64-v8a', 'armeabi-v7a'
+                if (project.hasProperty('fcTestArm64Only')) {
+                    abiFilters 'arm64-v8a'
+                } else {
+                    abiFilters 'arm64-v8a', 'armeabi-v7a'
+                }
             }
         }
         aaptOptions {
@@ -26,10 +30,8 @@ android {
     }
 
     // Publish separate APKs so each phone downloads only its own native Godot engine.
-    // This substantially reduces the download and storage footprint versus a universal APK.
     splits {
         abi {
-            // Split only the production release; keep debug as a universal emulator-test APK.
             enable project.hasProperty('fcSplitReleaseApks')
             reset()
             include 'arm64-v8a', 'armeabi-v7a'
@@ -59,18 +61,9 @@ android {
 
     buildTypes {
         debug {
-            // Phone-only test builds can include ARM64 only to reduce APK size.
-            if (project.hasProperty('fcTestArm64Only')) {
-                ndk {
-                    abiFilters 'arm64-v8a'
-                }
-            } else if (!project.hasProperty('fcSplitReleaseApks')) {
-                ndk {
-                    abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
-                }
-            }
-            applicationIdSuffix '.onlinetest13' // Unique package id to avoid signature/package conflicts
-            versionNameSuffix '-world-maintenance-test-13'
+            // Keep test package separate from the production app and previous test build.
+            applicationIdSuffix '.onlinetest14'
+            versionNameSuffix '-world-maintenance-test-14'
         }
         release {
             if (!project.hasProperty('fcSplitReleaseApks')) {
