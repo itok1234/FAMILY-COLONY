@@ -1,5 +1,5 @@
 extends Area3D
-## Contract for objects and characters that can receive a contextual interaction.
+## Reusable local interaction target. Backend authorization is required for protected actions.
 
 @export var display_name: String = "Objek"
 @export_multiline var response_text: String = "Interaksi berhasil."
@@ -11,5 +11,11 @@ func _ready() -> void:
 func get_interaction_label() -> String:
 	return action_label + " • " + display_name
 
-func interact(_actor: Node) -> String:
-	return response_text
+func interact(_actor: Node, action_id: String = "use") -> String:
+	match action_id:
+		"greet":
+			return "Kamu menyapa " + display_name + "."
+		"sit":
+			return "Kamu mengambil posisi duduk di dekat " + display_name + "."
+		_:
+			return response_text
