@@ -40,7 +40,7 @@ func _gui_input(event: InputEvent) -> void:
 func _update_stick(position: Vector2) -> void:
 	var delta := position - _origin
 	_knob = delta.limit_length(knob_limit)
-	_output = Vector2(_knob.x, -_knob.y) / knob_limit
+	_output = _knob / knob_limit
 	if _output.length() < deadzone:
 		_output = Vector2.ZERO
 	queue_redraw()
