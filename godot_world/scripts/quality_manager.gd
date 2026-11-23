@@ -102,7 +102,10 @@ func _on_quality_selected(index: int) -> void:
 
 
 func _resolve_auto_quality() -> Quality:
-	if OS.get_name() == "Android" and OS.get_processor_count() <= 6:
+	# Start Android on the low-cost profile to protect older phones and
+	# devices with limited thermal headroom. The AUTO monitor can promote
+	# to BALANCED only after sustained healthy frame rates.
+	if OS.get_name() == "Android":
 		return Quality.PERFORMANCE
 	return Quality.BALANCED
 
