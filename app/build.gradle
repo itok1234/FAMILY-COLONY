@@ -62,8 +62,8 @@ android {
     buildTypes {
         debug {
             // Keep test package separate from the production app and previous test build.
-            applicationIdSuffix '.onlinetest14'
-            versionNameSuffix '-world-maintenance-test-14'
+            applicationIdSuffix '.onlinetest15'
+            versionNameSuffix '-world-maintenance-test-15'
         }
         release {
             if (!project.hasProperty('fcSplitReleaseApks')) {
