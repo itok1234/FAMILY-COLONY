@@ -99,7 +99,7 @@ func _set_gate_status(message: String) -> void:
 		_gate_status.text = message
 
 
-func _on_session_verified(member: Dictionary, permissions: Dictionary) -> void:
+func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 	if not bool(permissions.get("can_enter_world", false)):
 		_on_session_rejected("world_access_denied")
 		return
@@ -107,7 +107,6 @@ func _on_session_verified(member: Dictionary, permissions: Dictionary) -> void:
 	if is_instance_valid(_gate_layer):
 		_gate_layer.queue_free()
 	_gate_layer = null
-	print("FAMILY COLONY: verified world session for member ", str(member.get("member_id", "")))
 
 
 func _on_session_rejected(error_code: String) -> void:
