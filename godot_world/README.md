@@ -11,16 +11,19 @@ An isolated Godot 4 project for the future FAMILY COLONY World engine.
 - Godot 4 project using the Compatibility renderer as an Android-first baseline.
 - 3D scene with procedural sky, ambient environment lighting, directional sunlight and ground collision.
 - Third-person camera with right-side touch drag on Android and right-mouse orbit in editor.
-- Temporary capsule avatar and movement controller.
+- Modular procedural avatar blockout with separate torso, neck, head, hair, eye details, arms, legs and shoes.
+- Animation-ready limb pivots with procedural idle bob and walk-cycle swing driven by player movement.
+- CharacterBody3D collision remains separate from the visual avatar so the art can be replaced without changing movement physics.
+- Hybrid keyboard + touch movement controller.
 - Keyboard movement plus on-screen touch joystick scaffold.
 - Procedural neighborhood blockout: central paved plaza, road layout, community-building shells, trees, street lamps and benches.
 - Basic runtime graphics quality manager.
 
 ## Current art status
-The neighborhood objects are procedural blockout meshes. They establish scale, navigation and composition only; they are not final photorealistic assets. The capsule is not a final avatar.
+The neighborhood objects are procedural blockout meshes. They establish scale, navigation and composition only; they are not final photorealistic assets. The current avatar is a procedural proportion/material blockout with simple generated geometry and a basic walk cycle. It is not a final ultra-realistic character model, and has not yet been validated in the Godot editor or on a device.
 
 ## Not yet implemented
-- Production avatar models, skeletons, facial expressions, hair/clothing simulation and animation sets.
+- Production-quality authored avatar models, a full skeletal rig, facial expressions, hair/clothing simulation, customization and complete animation sets.
 - Authored PBR material/texture library, detailed building facades, interior room sets, vegetation and water.
 - Camera smoothing, polished touch HUD, settings menu and accessibility.
 - Object interaction system and animation state machine.
