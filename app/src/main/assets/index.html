@@ -952,7 +952,12 @@ function chatOpenGift(){const members=db.members.filter(m=>m.status==='approved'
 let chatVoiceStopTimer=null;
 async function chatStartVoice(){
  if(chatRecorder&&chatRecorder.state==='recording')return toast('Perekaman suara sedang berlangsung.');
- if(!navigator.mediaDevices||typeof navigator.mediaDevices.getUserMedia!=='function'||typeof MediaRecorder==='undefined')return toast('Mikrofon tidak tersedia pada WebView ini. Perbarui Android System WebView/Chrome lalu coba lagi.');
+ const micDiag={origin:location.origin,isSecureContext:window.isSecureContext,mediaDevices:!!navigator.mediaDevices,getUserMedia:!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia),mediaRecorder:typeof MediaRecorder};
+ try{if(window.FCAndroid&&typeof FCAndroid.getWebViewDiagnostic==='function')micDiag.android=FCAndroid.getWebViewDiagnostic();else if(window.FCAndroid&&typeof FCAndroid.getMicrophonePermissionStatus==='function')micDiag.androidPermission=FCAndroid.getMicrophonePermissionStatus();else micDiag.android='BRIDGE_TIDAK_TERSEDIA'}catch(e){micDiag.androidBridgeError=e&&e.message?e.message:String(e)}
+ if(!micDiag.isSecureContext||!micDiag.getUserMedia||micDiag.mediaRecorder==='undefined'){
+  console.error('[FAMILY_COLONY_MIC] API tidak tersedia',micDiag);
+  return toast('Mikrofon tidak didukung: secure='+micDiag.isSecureContext+'; getUserMedia='+micDiag.getUserMedia+'; MediaRecorder='+micDiag.mediaRecorder+'; '+(micDiag.android||''));
+ }
  let stream=null;
  try{
   stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
@@ -988,10 +993,15 @@ async function chatStartVoice(){
   if(stream)stream.getTracks().forEach(track=>track.stop());
   const name=e&&e.name?e.name:'UnknownError';
   const detail=e&&e.message?e.message:'tanpa detail';
-  let androidPermission='BRIDGE_TIDAK_TERSEDIA';
-  try{if(window.FCAndroid&&typeof FCAndroid.getMicrophonePermissionStatus==='function')androidPermission=FCAndroid.getMicrophonePermissionStatus()}catch(_){}
-  console.error('[FAMILY_COLONY_MIC]',{name,detail,origin:location.origin,isSecureContext:window.isSecureContext,androidPermission});
-  toast('Diagnostik mikrofon: '+name+'; Android='+androidPermission+'; Web='+location.origin+'; '+detail);
+  let hint='Periksa izin Android dan WebView.';
+  if(name==='NotAllowedError'||name==='PermissionDeniedError')hint='Izin ditolak oleh Android atau izin capture WebView.';
+  else if(name==='NotFoundError'||name==='DevicesNotFoundError')hint='Perangkat input mikrofon tidak ditemukan.';
+  else if(name==='NotReadableError'||name==='TrackStartError')hint='Mikrofon sedang dipakai aplikasi lain atau gagal dibuka sistem.';
+  else if(name==='OverconstrainedError'||name==='ConstraintNotSatisfiedError')hint='Pengaturan audio tidak didukung perangkat.';
+  else if(name==='SecurityError')hint='Origin atau konteks keamanan tidak mengizinkan akses mikrofon.';
+  else if(name==='AbortError')hint='Akses mikrofon dihentikan oleh sistem.';
+  console.error('[FAMILY_COLONY_MIC]',{name,detail,hint,diagnostic:micDiag});
+  toast('Mikrofon '+name+': '+hint+' '+detail+' | '+JSON.stringify(micDiag));
  }
 }
 function chatStopVoice(){if(chatVoiceStopTimer)clearTimeout(chatVoiceStopTimer);chatVoiceStopTimer=null;if(chatRecorder&&chatRecorder.state==='recording'){chatRecorder.stop();$('chatStopVoiceBtn')&&($('chatStopVoiceBtn').style.display='none')}}
