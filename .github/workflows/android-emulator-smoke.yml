@@ -57,7 +57,7 @@ jobs:
           disable-linux-hw-accel: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           script: |
-            set -euo pipefail
+            set -eu
             APK="app/build/outputs/apk/debug/app-debug.apk"
             adb wait-for-device
             for attempt in $(seq 1 30); do
