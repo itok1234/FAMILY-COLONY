@@ -10,7 +10,7 @@ on:
       - '.github/workflows/android-release.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   release-apk:
@@ -79,9 +79,51 @@ jobs:
           "$AAPT" dump badging "$APK" | grep -E "^package:|^sdkVersion:|^targetSdkVersion:"
           sha256sum "$APK"
 
-      - name: Upload signed Release APK
+      - name: Upload signed Release APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: FAMILY-COLONY-5.0-RELEASE-APK
           path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish direct-download GitHub Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'app/build/outputs/apk/release/app-release.apk';
+            const tag = 'v5.0.0-beta.1';
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              target_commitish: context.sha,
+              name: 'FAMILY COLONY 5.0.0 — Android APK',
+              body: [
+                'FAMILY COLONY Android package for direct installation.',
+                '',
+                '- Package: com.cdl.familycolonyv5d',
+                '- Distribution: direct APK download; Google Play Store is not required.',
+                '- Status: beta / device testing. Some planned systems remain under development.',
+                '- Install only on Android devices; enable permission to install unknown apps when prompted.',
+                '',
+                'Microphone functionality is not included in this verification and remains pending.'
+              ].join('\\n'),
+              draft: false,
+              prerelease: true,
+              make_latest: 'false'
+            });
+            const data = fs.readFileSync(path);
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: release.data.id,
+              name: 'FAMILY-COLONY-5.0.0-beta.1.apk',
+              data,
+              headers: {
+                'content-type': 'application/vnd.android.package-archive',
+                'content-length': data.length
+              }
+            });
+            core.info('Published APK: ' + release.data.html_url);
