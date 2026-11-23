@@ -59,6 +59,7 @@ jobs:
           python - <<'PY'
           from html.parser import HTMLParser
           from pathlib import Path
+          import os
           source = Path("app/src/main/assets/index.html").read_text(encoding="utf-8")
           class ScriptExtractor(HTMLParser):
               def __init__(self):
@@ -79,7 +80,7 @@ jobs:
                       self.active = False
           parser = ScriptExtractor()
           parser.feed(source)
-          out = Path("$RUNNER_TEMP")
+          out = Path(os.environ["RUNNER_TEMP"])
           for index, script in enumerate(parser.parts):
               (out / f"fc-inline-{index}.js").write_text(script, encoding="utf-8")
           if not parser.parts:
