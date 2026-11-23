@@ -52,6 +52,44 @@ jobs:
           test -f app/src/main/assets/index.html
           test -f godot_world/project.godot
 
+      - name: Validate bundled WebView JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          source = Path("app/src/main/assets/index.html").read_text(encoding="utf-8")
+          class ScriptExtractor(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.active = False
+                  self.parts = []
+                  self.current = []
+              def handle_starttag(self, tag, attrs):
+                  if tag.lower() == "script":
+                      self.active = True
+                      self.current = []
+              def handle_data(self, data):
+                  if self.active:
+                      self.current.append(data)
+              def handle_endtag(self, tag):
+                  if tag.lower() == "script" and self.active:
+                      self.parts.append("".join(self.current))
+                      self.active = False
+          parser = ScriptExtractor()
+          parser.feed(source)
+          out = Path("$RUNNER_TEMP")
+          for index, script in enumerate(parser.parts):
+              (out / f"fc-inline-{index}.js").write_text(script, encoding="utf-8")
+          if not parser.parts:
+              raise SystemExit("No inline JavaScript blocks found.")
+          print(f"Extracted {len(parser.parts)} inline JavaScript blocks.")
+          PY
+          for script in "$RUNNER_TEMP"/fc-inline-*.js; do
+            node --check "$script"
+          done
+
       - name: Build Debug APK
         run: gradle --no-daemon assembleDebug --stacktrace
 
