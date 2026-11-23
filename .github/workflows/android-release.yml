@@ -81,6 +81,12 @@ jobs:
           AAPT="$(find "$SDK_ROOT/build-tools" -type f -name aapt | sort -V | tail -n 1)"
           "$APKSIGNER" verify --verbose "$APK"
           "$AAPT" dump badging "$APK" | grep -E "^package:|^sdkVersion:|^targetSdkVersion:"
+          "$AAPT" dump xmltree "$APK" AndroidManifest.xml | grep -F "com.cdl.familycolonyv5d.WorldActivity"
+          unzip -l "$APK" | grep -F "assets/godot_world.zip"
+          unzip -p "$APK" "assets/godot_world.zip" > "$RUNNER_TEMP/godot_world.zip"
+          unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "project.godot"
+          unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "scenes/world.tscn"
+          unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "scripts/world_session_client.gd"
           sha256sum "$APK"
 
       - name: Upload signed Release APK artifact
