@@ -29,5 +29,5 @@ func _process(delta: float) -> void:
 	rotation.y = lerp_angle(rotation.y, target_rotation, minf(delta * 12.0, 1.0))
 
 func play_network_action(action_id: String) -> void:
-	if action_id in ["wave", "sit"] and is_instance_valid(_avatar) and _avatar.has_method("play_action"):
+	if action_id in ["wave", "sit", "stand"] and is_instance_valid(_avatar) and _avatar.has_method("play_action"):
 		_avatar.play_action(action_id)
