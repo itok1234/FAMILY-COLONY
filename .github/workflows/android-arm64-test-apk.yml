@@ -50,13 +50,16 @@ jobs:
           AAPT="$(find "$SDK_ROOT/build-tools" -type f -name aapt | sort -V | tail -n 1)"
           "$APKSIGNER" verify --verbose "$APK"
           "$AAPT" dump badging "$APK" | grep -E "^package:|^sdkVersion:|^targetSdkVersion:"
+          ABIS="$(unzip -Z1 "$APK" | awk -F/ '$1 == "lib" {print $2}' | sort -u | paste -sd, -)"
+          echo "APK_ABIS=$ABIS"
+          test "$ABIS" = "arm64-v8a"
           sha256sum "$APK"
           stat -c "APK_SIZE_BYTES=%s" "$APK"
 
       - name: Upload ARM64 test APK
         uses: actions/upload-artifact@v4
         with:
-          name: FAMILY-COLONY-ARM64-TEST-APK
+          name: FAMILY-COLONY-ARM64-TEST-APK-V14
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7
