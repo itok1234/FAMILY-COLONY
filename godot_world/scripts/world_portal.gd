@@ -23,3 +23,7 @@ func interact(actor: Node, action_id: String = "use") -> String:
 			actor.velocity = Vector3.ZERO
 		return status_message
 	return "Karakter tidak dapat dipindahkan."
+
+
+func get_available_actions() -> Array[String]:
+	return ["use"]
