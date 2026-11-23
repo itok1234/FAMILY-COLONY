@@ -13,7 +13,9 @@ func _ready() -> void:
 func get_interaction_label() -> String:
 	return "Masuk • " + name
 
-func interact(actor: Node, _action_id: String = "use") -> String:
+func interact(actor: Node, action_id: String = "use") -> String:
+	if action_id != "use":
+		return "Pilih aksi GUNAKAN untuk berpindah lokasi."
 	if actor is Node3D:
 		actor.global_position = destination
 		actor.global_rotation.y = deg_to_rad(destination_yaw_degrees)
