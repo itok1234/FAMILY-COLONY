@@ -81,6 +81,37 @@ jobs:
             exit 1
           fi
 
+      - name: Apply secure Developer PIN schema
+        env:
+          SUPABASE_ACCESS_TOKEN: \${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: irwtnqekrwhgompulach
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          sql = Path("supabase/migrations/202611230002_developer_pin_login.sql").read_text()
+          Path("/tmp/fc-pin-query.json").write_text(json.dumps({"query": sql}))
+          PY
+          code=$(curl -sS -w "%{http_code}" -o /tmp/fc-pin-result.json -X POST \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data-binary @/tmp/fc-pin-query.json \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")
+          echo "Developer PIN schema HTTP status: $code"
+          if [[ "$code" != 2* ]]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+            d=json.loads(Path("/tmp/fc-pin-result.json").read_text())
+            print(d.get("message") or d.get("error") or "Developer PIN schema deployment failed")
+          except Exception:
+            print("Developer PIN schema deployment failed; response omitted.")
+          PY
+            exit 1
+          fi
+
       - name: Deploy member authentication Edge Function
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
