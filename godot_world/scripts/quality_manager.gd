@@ -25,7 +25,8 @@ var _startup_grace: float = 12.0
 func _ready() -> void:
 	_load_saved_quality()
 	_build_quality_picker()
-	apply_quality(_selected_quality)
+	# Apply after sibling nodes finish _ready(), so EnvironmentBuilder cannot overwrite the selected density.
+	call_deferred("apply_quality", _selected_quality)
 
 
 func _process(delta: float) -> void:
