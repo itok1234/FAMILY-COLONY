@@ -145,7 +145,7 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
 </head>
 <body>
 <header class="topbar"><div class="shell topbar-inner">
-  <div class="brand"><div class="bee-mark" aria-hidden="true">♛</div><div><strong>FAMILY COLONY</strong><small>BEE KINGDOM • DIGITAL REALM</small></div></div>
+  <div class="brand"><div class="bee-mark" aria-hidden="true" role="button" tabindex="0" title="FAMILY COLONY" onclick="developerLogoTap()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();developerLogoTap()}">♛</div><div><strong>FAMILY COLONY</strong><small>BEE KINGDOM • DIGITAL REALM</small></div></div>
   <div class="top-actions"><span id="topUser" class="tiny"></span><button id="devTestMemberBtn" class="btn small hidden" onclick="startDeveloperPreview(\'member\')">Uji Member</button><button id="devTestGuestBtn" class="btn small hidden" onclick="startDeveloperPreview(\'guest\')">Uji Tamu</button><button id="devTestReturnBtn" class="btn small hidden" onclick="returnDeveloperPreview()">Kembali Developer</button><button id="guestInviteBtn" class="btn small hidden" onclick="createGuestRecommendation()">Kode Rekomendasi Tamu</button><button id="homeBtn" class="btn ghost small hidden" onclick="goHome()">Beranda</button><button id="logoutBtn" class="btn small hidden" onclick="logout()">Keluar</button></div>
 </div></header>
 <main class="shell">
@@ -497,6 +497,8 @@ async function bootstrapDeveloperPassword(){
  }catch(err){const code=String(err.message||"").split(":")[0];const detail=code==="network_error"?"Koneksi ke Supabase gagal. Periksa internet dan coba lagi.":code==="server_invalid_response"?"Server mengirim respons yang tidak dapat dibaca.":code.startsWith("http_")?"Server menolak permintaan ("+code.replace("http_","HTTP ")+").":fcFriendlyError(code);showResult("Gagal menyiapkan login Developer: "+detail+" ["+code+"]")}
  finally{if(button){button.disabled=false;button.textContent="SIAPKAN LOGIN DEVELOPER"}}
 }
+let developerLogoTapCount=0,developerLogoTapStart=0;
+function developerLogoTap(){const now=Date.now();if(now-developerLogoTapStart>2500)developerLogoTapCount=0;developerLogoTapStart=now;developerLogoTapCount++;if(developerLogoTapCount>=5){developerLogoTapCount=0;const panel=$("developerLoginPanel");if(panel){panel.classList.remove("hidden");panel.style.display="block";panel.scrollIntoView({behavior:"smooth",block:"center"});$("developerPinInput")?.focus();}else{toast("Panel Developer belum tersedia di halaman ini.");}}}
 function developerLogin(){closeDeveloperGate();$("developerPinInput")?.focus();toast("Gunakan PIN 6 digit pada panel Login Developer.")}
 function closeDeveloperGate(){$("developerGate")?.classList.add("hidden");if($("devGateCode"))$("devGateCode").value="";if($("bootstrapSecret"))$("bootstrapSecret").value=""}
 function openPrivateDeveloperPanel(){
