@@ -17,7 +17,7 @@ An isolated Godot 4 project for the future FAMILY COLONY World engine.
 - Hybrid keyboard + touch movement controller.
 - Keyboard movement plus on-screen touch joystick scaffold.
 - Procedural neighborhood blockout: central paved plaza, road layout, community-building shells, trees, street lamps and benches.
-- Basic runtime graphics quality manager.
+- Basic runtime graphics quality manager with saved user preference, an Android-first low-cost AUTO startup profile, and gradual promotion to Balanced only after sustained healthy frame rates.
 - Reusable world-interactable contract with configurable display name, action label and response.
 - Contextual interaction controller using a camera raycast that can detect Area3D targets, keyboard E action, and an on-screen Android interaction button.
 - Radial-style action selection with Use, Greet and Sit actions plus Cancel.
