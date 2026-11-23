@@ -1,0 +1,42 @@
+name: Validate FAMILY COLONY 3D World
+
+on:
+  push:
+    branches:
+      - feature/guest-premium-access
+    paths:
+      - "godot_world/**"
+      - ".github/workflows/godot-validation.yml"
+  pull_request:
+    paths:
+      - "godot_world/**"
+      - ".github/workflows/godot-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-godot:
+    name: Godot project parse and startup smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout FAMILY COLONY
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.4.1
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+          cache: true
+
+      - name: Show engine version
+        run: godot --version
+
+      - name: Import and parse project resources
+        run: godot --headless --editor --path godot_world --quit
+
+      - name: Run world startup smoke test
+        run: godot --headless --path godot_world --quit-after 5
