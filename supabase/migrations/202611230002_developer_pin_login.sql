@@ -1,5 +1,5 @@
 -- Secure Developer PIN authentication for FAMILY COLONY.
-create extension if not exists pgcrypto;
+create extension if not exists pgcrypto with schema extensions;
 create table if not exists public.fc_developer_credentials (
   singleton boolean primary key default true check (singleton),
   pin_hash text,
@@ -17,7 +17,7 @@ declare v_changed integer;
 begin
   if p_pin !~ '^[0-9]{6}$' then return false; end if;
   update public.fc_developer_credentials
-    set pin_hash = public.crypt(p_pin, public.gen_salt('bf', 10)),
+    set pin_hash = extensions.crypt(p_pin, extensions.gen_salt('bf', 10)),
         failed_attempts = 0, locked_until = null, updated_at = now()
     where singleton = true and pin_hash is null;
   get diagnostics v_changed = row_count;
