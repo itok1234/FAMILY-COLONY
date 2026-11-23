@@ -2,17 +2,6 @@ name: FAMILY COLONY Embedded Godot Android Smoke Test
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/guest-premium-access
-    paths:
-      - "app/build.gradle"
-      - "app/src/main/AndroidManifest.xml"
-      - "app/src/main/java/**"
-      - "app/src/main/assets/**"
-      - "godot_world/**"
-      - ".github/workflows/android-emulator-smoke.yml"
-      - ".github/workflows/android-release.yml"
 
 permissions:
   contents: read
