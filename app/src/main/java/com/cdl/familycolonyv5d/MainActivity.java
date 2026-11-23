@@ -42,15 +42,17 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public void openGodotWorld(String accessToken) {
+        public void openGodotWorld(String accessToken, String apiKey) {
             final String token = accessToken == null ? "" : accessToken.trim();
+            final String publishableKey = apiKey == null ? "" : apiKey.trim();
             runOnUiThread(() -> {
-                if (token.isEmpty()) {
+                if (token.isEmpty() || publishableKey.isEmpty()) {
                     Toast.makeText(MainActivity.this, "Sesi login tidak tersedia. Silakan masuk kembali.", Toast.LENGTH_LONG).show();
                     return;
                 }
                 Intent worldIntent = new Intent(MainActivity.this, WorldActivity.class);
                 worldIntent.putExtra(WorldActivity.EXTRA_ACCESS_TOKEN, token);
+                worldIntent.putExtra(WorldActivity.EXTRA_API_KEY, publishableKey);
                 startActivity(worldIntent);
             });
         }
