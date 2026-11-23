@@ -4,17 +4,10 @@ import android.app.Activity;
 
 import org.godotengine.godot.Godot;
 import org.godotengine.godot.plugin.GodotPlugin;
-import org.godotengine.godot.plugin.SignalInfo;
 import org.godotengine.godot.plugin.UsedByGodot;
-
-import java.util.Collections;
-import java.util.Set;
 
 /** Narrow in-process bridge between the existing app session and the embedded Godot world. */
 public final class FamilyColonyGodotPlugin extends GodotPlugin {
-    private static final SignalInfo ACCESS_TOKEN_RECEIVED =
-            new SignalInfo("access_token_received", String.class);
-
     private final Activity hostActivity;
     private String pendingAccessToken;
 
@@ -33,19 +26,12 @@ public final class FamilyColonyGodotPlugin extends GodotPlugin {
         return "FamilyColonyBridge";
     }
 
-    @Override
-    public Set<SignalInfo> getPluginSignals() {
-        return Collections.singleton(ACCESS_TOKEN_RECEIVED);
-    }
-
-    @Override
-    public void onGodotMainLoopStarted() {
-        super.onGodotMainLoopStarted();
+    /** GDScript consumes the one-time token after the engine has registered this plugin. */
+    @UsedByGodot
+    public String consumeInitialAccessToken() {
         String token = pendingAccessToken;
         pendingAccessToken = "";
-        if (!token.isEmpty()) {
-            emitSignal(ACCESS_TOKEN_RECEIVED.getName(), token);
-        }
+        return token;
     }
 
     /** Called by GDScript after logout, rejected session, or the member choosing Exit. */
