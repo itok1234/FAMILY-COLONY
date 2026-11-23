@@ -229,7 +229,7 @@ jobs:
           SUPABASE_PROJECT_REF: irwtnqekrwhgompulach
         run: |
           set -euo pipefail
-          supabase functions deploy fc-world-session --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt
+          supabase functions deploy fc-world-session --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt --yes
           echo "Verified Godot world session Edge Function deployed with its shared policy module."
           
       - name: Deployment summary
