@@ -1315,7 +1315,7 @@ async function fcPollAppStatus(){
  try{const r=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"get_app_status"})});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||"status_unavailable");window.fcRemoteAppStatus=d.status||{};fcRenderRemoteAppStatus()}catch(e){/* retain last known state on temporary network loss */}
 }
 function fcRenderRemoteAppStatus(){
- const st=window.fcRemoteAppStatus||{},active=st.announcement_active===true,maintenance=st.maintenance_mode===true,banner=$("fcLiveAnnouncement"),overlay=$("fcMaintenanceOverlay");
+ const st=window.fcRemoteAppStatus||{},now=Date.now(),starts=st.starts_at?new Date(st.starts_at).getTime():0,ends=st.ends_at?new Date(st.ends_at).getTime():Infinity,inWindow=now>=starts&&now<=ends,active=st.announcement_active===true&&inWindow,maintenance=st.maintenance_mode===true&&inWindow,banner=$("fcLiveAnnouncement"),overlay=$("fcMaintenanceOverlay");
  if(banner){banner.style.display=active&&!maintenance?"block":"none";banner.innerHTML=active&&!maintenance?"<b>"+escapeHTML(st.title||"Pengumuman FAMILY COLONY")+"</b><div style='margin-top:5px;line-height:1.5'>"+escapeHTML(st.message||"")+"</div>":""}
  const block=maintenance&&!!session&&session.role!=="Developer"&&!session.testPreview;
  if(overlay){overlay.style.display=block?"flex":"none";$("fcMaintenanceTitle").textContent=st.title||"FAMILY COLONY sedang maintenance";$("fcMaintenanceMessage").textContent=st.message||"Kami sedang melakukan pemeliharaan sistem.";$("fcMaintenanceSchedule").textContent=st.ends_at?"Perkiraan selesai: "+new Date(st.ends_at).toLocaleString("id-ID"):""}
