@@ -11,7 +11,6 @@ var _right_arm: Node3D
 var _left_leg: Node3D
 var _right_leg: Node3D
 var _appearance_materials: Dictionary = {}
-var _face_materials: Dictionary = {}
 
 func _ready() -> void:
 	_build_avatar()
