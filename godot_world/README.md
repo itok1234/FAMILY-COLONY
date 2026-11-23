@@ -109,3 +109,9 @@ Godot 4.x. Compatibility renderer is the initial baseline for broad Android supp
 - Added static collision boundaries to generated community-building shells, in addition to the recent bench and Community Hub furniture collision.
 - This prevents the player capsule from passing directly through the major building volumes during navigation.
 - Building shells are still closed blockout volumes; doors/windows are visual placeholders, not enterable rooms. Dedicated building interiors and doorway openings must be authored before these structures become accessible.
+
+
+## Persistent seating interaction milestone
+- The local player controller now supports a seated movement lock and a deliberate stand-up action using the existing interaction input.
+- The avatar sit pose remains active until the player stands; the gesture relay allowlist includes the matching stand event so connected LAN clients can return the remote avatar to its idle pose.
+- This remains a prototype: seat snapping/alignment, occupancy reservation, collision-aware seat claims, room permissions and server-authoritative validation are not implemented. No Godot parser or runtime test was available for this commit.
