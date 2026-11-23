@@ -95,7 +95,7 @@ jobs:
           FC_KEYSTORE_PASSWORD: ${{ secrets.FC_KEYSTORE_PASSWORD }}
           FC_KEY_ALIAS: ${{ secrets.FC_KEY_ALIAS }}
           FC_KEY_PASSWORD: ${{ secrets.FC_KEY_PASSWORD }}
-        run: gradle --no-daemon assembleRelease --stacktrace
+        run: gradle --no-daemon -PfcSplitReleaseApks assembleRelease --stacktrace
 
       - name: Verify both signed APK variants
         shell: bash
