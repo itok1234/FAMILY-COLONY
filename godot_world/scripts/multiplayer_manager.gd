@@ -259,7 +259,7 @@ func _remove_remote_player(peer_id: int) -> void:
 
 
 func _clear_remote_players() -> void:
-	for peer_id in _remote_players.keys():
+	for peer_id in _remote_players.keys().duplicate():
 		_remove_remote_player(int(peer_id))
 
 
