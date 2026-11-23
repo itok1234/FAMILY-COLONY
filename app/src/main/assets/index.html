@@ -207,7 +207,8 @@ const modules=[
  ["notifications","♧","Notification Center","Pemberitahuan akun."],
  ["management","⚑","Pengurus Colony","Alat pengelolaan pengurus."],
  ["developer","⌘","Developer Control Center","Kontrol teknis website."],
- ["cloudIntegration","☁","Cloud Integration","Firebase connection & migration readiness."]
+ ["cloudIntegration","☁","Cloud Integration","Firebase connection & migration readiness."],
+[ "finance", "▤", "Financial Center", "Keuangan operasional dan laporan WPS." ],
 ];
 let db=loadDB(), session=null, currentPage="overview", audio=new Audio(), tracks=[], trackIndex=0, activeVideo="";
 if(!Array.isArray(db.gameQuestions))db.gameQuestions=[];
@@ -379,7 +380,7 @@ async function requestLandscape(){
 // Pengurus operasional: Kepsuk, Deputi, dan Admin. Developer hanya memantau teknis.
 function isStaff(){return ["Kepsuk","Deputi","Admin"].includes(session?.role)}
 function canManage(){return ["Kepsuk","Deputi","Admin"].includes(session?.role)}
-function visibleModules(){let arr=modules.filter(m=>m[0]!=="developer"&&m[0]!=="management");if(isStaff())arr.push(modules.find(m=>m[0]==="management"));if(session.role==="Developer"){arr.push(modules.find(m=>m[0]==="developer"));arr.push(modules.find(m=>m[0]==="cloudIntegration"))}return arr}
+function visibleModules(){let arr=modules.filter(m=>m[0]!=="developer"&&m[0]!=="management");if(isStaff())arr.push(modules.find(m=>m[0]==="management"));if(session.role==="Developer"){arr.push(modules.find(m=>m[0]==="developer"));arr.push(modules.find(m=>m[0]==="cloudIntegration"));arr.push(modules.find(m=>m[0]==="finance"))}return arr}
 function buildNav(){const nav=$("sideNav");nav.innerHTML=visibleModules().map(m=>`<button class="navbtn ${m[0]===currentPage?"active":""}" onclick="navigate('${m[0]}')"><span class="ico">${m[1]}</span>${m[2]}</button>`).join("")}
 function navigate(page){if(!session||!authorizedMissionPage(page)){toast("Akses tidak diizinkan.");return}if(currentPage==="games"&&page!=="games"&&typeof rbStopOnNavigation==="function")rbStopOnNavigation();if(currentPage==="games"&&page!=="games"&&typeof rmClearTalk==="function"){rmClearTalk();rmGame=null;}currentPage=page;if(page==="games")recordMissionEvent("game_visit","Mengunjungi Royal Game Center");buildNav();renderPage();window.scrollTo({top:0,behavior:"smooth"})}
 function pageHead(kicker,title,desc,actions=""){return `<div class="pagehead"><div><div class="eyebrow">${kicker}</div><h1>${title}</h1><div class="muted">${desc}</div></div><div class="toolbar">${actions}</div></div>`}
@@ -842,6 +843,7 @@ case "information":html=pageHead("MEMBER GUIDE","Member Information","Informasi 
 case "notifications":html=pageHead("COLONY MESSAGES","Notification Center","Pemberitahuan dan aktivitas lokal.")+`<div class="panel">${db.activity.filter(a=>a.who===session.name||session.role==="Developer"||isStaff()).slice(0,15).map(a=>`<div class="track"><span>${escapeHTML(a.action)} <span class="muted">· ${escapeHTML(a.who)}</span></span><span class="tiny">${escapeHTML(a.at)}</span></div>`).join("")||'<div class="empty">Belum ada notifikasi.</div>'}</div>`;break;
 case "management":html=managementPage();break;
 case "developer":html=developerPage();break;
+case "finance":html=financePage();break;
 case "cloudIntegration":html=cloudIntegrationPage();break;
 default:html=pageHead("MODULE","Not available","Modul tidak ditemukan.");
 }p.innerHTML=html}
@@ -1047,6 +1049,69 @@ function addColonyMember(){if(!canManage())return toast("Akses hanya untuk Kepsu
 function editColonyMember(index){if(!canManage())return toast("Akses hanya untuk Kepsuk, Deputi, dan Admin.");const m=db.members[index];if(!m)return toast("Anggota tidak ditemukan.");if(m.name===session.name)return toast("Akun yang sedang digunakan tidak dapat diedit dari menu ini.");const name=prompt("Ubah nama anggota:",m.name);if(name===null)return;const clean=name.trim();if(clean.length<2)return toast("Nama minimal 2 karakter.");if(db.members.some((x,i)=>i!==index&&String(x.name).toLowerCase()===clean.toLowerCase()))return toast("Nama tersebut sudah digunakan.");const role=(prompt("Jabatan: Kepsuk / Deputi / Admin / Member / Pengunjung/Tamu",m.role||"Member")||m.role||"Member").trim();if(!["Kepsuk","Deputi","Admin","Member","Pengunjung/Tamu"].includes(role))return toast("Jabatan tidak valid.");const st=(prompt("Status: Aktif atau Nonaktif",m.status==="approved"?"Aktif":"Nonaktif")||"").trim().toLowerCase();if(!["aktif","nonaktif"].includes(st))return toast("Status tidak valid.");const before={name:m.name,role:m.role,status:m.status};m.name=clean;m.role=role;m.status=st==="aktif"?"approved":"inactive";if(m.username&&clean!==before.name)m.username=m.username;saveDB();log("Mengedit anggota "+before.name+" menjadi "+clean,session.name);renderPage();toast("Data anggota diperbarui.")}
 function deleteColonyMember(index){if(!canManage())return toast("Akses hanya untuk Kepsuk, Deputi, dan Admin.");const m=db.members[index];if(!m)return toast("Anggota tidak ditemukan.");if(m.name===session.name)return toast("Akun yang sedang digunakan tidak dapat dihapus.");if(!confirm("Hapus akun "+m.name+" dari daftar anggota? Riwayat transaksi dan misi akan tetap tersimpan."))return;db.members.splice(index,1);saveDB();log("Menghapus anggota "+m.name,session.name);renderPage();toast("Anggota dihapus dari daftar.")}
 function manageRequest(i,approve){if(!canManage())return;const r=db.requests[i];if(!r||r.status!=="pending")return;r.status=approve?"approved":"rejected";if(approve)db.members.push({name:r.name,role:"Member",status:"approved",joined:new Date().toLocaleDateString("id-ID"),coins:0,xp:0,level:1});saveDB();log(approve?"Menyetujui anggota":"Menolak pengajuan",session.name);toast(approve?"Anggota disetujui.":"Pengajuan ditolak.");renderPage()}
+let financeReportCache={accounts:[],transactions:[],loadedAt:null};
+function financeHeaders(){return {"apikey":session?.anonKey||window.FC_SUPABASE_ANON_KEY||"","Authorization":"Bearer "+(session?.accessToken||""),"Content-Type":"application/json"}}
+function financePage(){
+ if(session?.role!=="Developer")return pageHead("FINANCIAL CENTER","Akses ditolak","Modul ini hanya untuk Developer.");
+ return pageHead("DEVELOPER FINANCE","Financial Center","Pembukuan operasional IDR terpisah dari Coins dan Honey. Data dibaca dari backend FAMILY COLONY.")+
+ `<div class="stats"><div class="stat"><span>Saldo operasional</span><strong id="financeBalance">Belum dimuat</strong></div><div class="stat"><span>Total pemasukan</span><strong id="financeIncome">—</strong></div><div class="stat"><span>Total pengeluaran</span><strong id="financeExpense">—</strong></div><div class="stat"><span>Transaksi termuat</span><strong id="financeCount">0</strong></div></div>
+ <section class="panel"><div class="rowline"><h2>Catat transaksi operasional</h2><span class="status">IDR</span></div>
+ <div class="two-col"><div class="field"><label for="financeType">Jenis transaksi</label><select id="financeType"><option value="income">Pemasukan</option><option value="expense">Pengeluaran</option></select></div><div class="field"><label for="financeAmount">Nominal (Rupiah)</label><input id="financeAmount" type="number" min="1" step="1" placeholder="Contoh 150000"></div></div>
+ <div class="two-col"><div class="field"><label for="financeCategory">Kategori</label><input id="financeCategory" maxlength="80" placeholder="Operasional / donasi / layanan"></div><div class="field"><label for="financeReference">Kode referensi (opsional)</label><input id="financeReference" maxlength="100" placeholder="Nomor bukti"></div></div>
+ <div class="field"><label for="financeDescription">Keterangan</label><textarea id="financeDescription" maxlength="500" rows="2" placeholder="Penjelasan transaksi"></textarea></div>
+ <div class="toolbar"><button class="btn primary" onclick="financeSubmit()">SIMPAN TRANSAKSI</button><button class="btn" onclick="financeLoad()">MUAT ULANG DATA</button><button class="btn" onclick="financeExportCsv()">EKSPOR UNTUK WPS</button></div>
+ <div id="financeFeedback" class="notice">Data transaksi hanya disimpan setelah server menyetujui. Setiap transaksi memiliki ID unik dan catatan audit.</div></section>
+ <section class="panel section"><div class="rowline"><h2>Riwayat transaksi operasional</h2><span id="financeUpdated" class="tiny">Belum disinkronkan</span></div><div id="financeTable" class="empty">Tekan MUAT ULANG DATA untuk mengambil data dari server.</div></section>
+ <div class="notice">Laporan ini khusus keuangan operasional dalam Rupiah. Coins dan Honey tetap berada di buku besar ekonomi game yang terpisah. Ekspor saat ini berupa CSV UTF-8 yang dapat dibuka di WPS Office; belum merupakan file .xlsx.</div>`;
+}
+function financeMessage(message,isError=false){const el=$("financeFeedback");if(el){el.textContent=message;el.className=isError?"notice error":"notice"}}
+async function financeLoad(){
+ if(session?.role!=="Developer"||!session?.accessToken||!window.FC_SUPABASE_URL)return financeMessage("Sesi Developer atau konfigurasi server tidak tersedia.",true);
+ const table=$("financeTable");if(table)table.textContent="Mengambil laporan dari server...";
+ try{
+  const base=window.FC_SUPABASE_URL+"/rest/v1/";
+  const headers=financeHeaders();
+  const [ar,tr]=await Promise.all([
+   fetch(base+"fc_finance_accounts?select=id,account_code,account_name,currency_code,opening_balance",{headers}),
+   fetch(base+"fc_finance_transactions?select=id,account_id,transaction_type,amount,category,description,reference_code,created_at&order=created_at.desc&limit=1000",{headers})
+  ]);
+  const [accounts,transactions]=await Promise.all([ar.json(),tr.json()]);
+  if(!ar.ok)throw new Error(accounts.message||accounts.code||"finance_accounts_read_failed");
+  if(!tr.ok)throw new Error(transactions.message||transactions.code||"finance_transactions_read_failed");
+  financeReportCache={accounts:Array.isArray(accounts)?accounts:[],transactions:Array.isArray(transactions)?transactions:[],loadedAt:new Date().toISOString()};
+  const income=financeReportCache.transactions.filter(x=>x.transaction_type==="income").reduce((s,x)=>s+Number(x.amount||0),0);
+  const expense=financeReportCache.transactions.filter(x=>x.transaction_type==="expense").reduce((s,x)=>s+Number(x.amount||0),0);
+  const opening=financeReportCache.accounts.reduce((s,x)=>s+Number(x.opening_balance||0),0);
+  const money=n=>"Rp "+Number(n||0).toLocaleString("id-ID");
+  if($("financeBalance"))$("financeBalance").textContent=money(opening+income-expense);
+  if($("financeIncome"))$("financeIncome").textContent=money(income);
+  if($("financeExpense"))$("financeExpense").textContent=money(expense);
+  if($("financeCount"))$("financeCount").textContent=String(financeReportCache.transactions.length);
+  if($("financeUpdated"))$("financeUpdated").textContent="Diperbarui "+new Date().toLocaleString("id-ID");
+  if(table)table.innerHTML=financeReportCache.transactions.length?'<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Jenis</th><th>Kategori</th><th>Keterangan</th><th>Nominal</th></tr></thead><tbody>'+financeReportCache.transactions.map(x=>'<tr><td>'+escapeHTML(new Date(x.created_at).toLocaleString("id-ID"))+'</td><td>'+escapeHTML(x.transaction_type==="income"?"Pemasukan":"Pengeluaran")+'</td><td>'+escapeHTML(x.category)+'</td><td>'+escapeHTML(x.description)+'</td><td>'+money(x.amount)+'</td></tr>').join("")+'</tbody></table></div>':'<div class="empty">Belum ada transaksi operasional.</div>';
+  financeMessage("Laporan berhasil disinkronkan dari database online. Data transaksi ditampilkan maksimal 1.000 baris terbaru.");
+ }catch(e){financeMessage("Gagal memuat laporan: "+String(e.message||e),true);if(table)table.textContent="Data tidak dapat dimuat. Periksa koneksi dan hak akses Developer."}
+}
+async function financeSubmit(){
+ if(session?.role!=="Developer")return financeMessage("Akses ditolak.",true);
+ const type=$("financeType")?.value,amount=Number($("financeAmount")?.value),category=$("financeCategory")?.value.trim(),description=$("financeDescription")?.value.trim(),reference=$("financeReference")?.value.trim();
+ if(!["income","expense"].includes(type)||!Number.isSafeInteger(amount)||amount<=0||category.length<2||description.length<2)return financeMessage("Lengkapi jenis, nominal Rupiah, kategori, dan keterangan yang valid.",true);
+ if(!confirm("Simpan transaksi "+(type==="income"?"pemasukan":"pengeluaran")+" sebesar Rp "+amount.toLocaleString("id-ID")+"?"))return;
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/rest/v1/rpc/fc_record_finance_transaction",{method:"POST",headers:financeHeaders(),body:JSON.stringify({p_type:type,p_amount:amount,p_category:category,p_description:description,p_reference_code:reference,p_idempotency_key:crypto.randomUUID()})});
+  const result=await response.json();if(!response.ok)throw new Error(result.message||result.code||"finance_write_failed");
+  $("financeAmount").value="";$("financeCategory").value="";$("financeDescription").value="";$("financeReference").value="";
+  financeMessage("Transaksi berhasil dicatat dan masuk audit server.");await financeLoad();
+ }catch(e){financeMessage("Transaksi gagal disimpan: "+String(e.message||e),true)}
+}
+function financeExportCsv(){
+ if(!financeReportCache.loadedAt)return financeMessage("Muat laporan dari server sebelum ekspor.",true);
+ const rows=[["Tanggal","Jenis","Kategori","Keterangan","Referensi","Nominal IDR"],...financeReportCache.transactions.map(x=>[x.created_at,x.transaction_type==="income"?"Pemasukan":"Pengeluaran",x.category,x.description,x.reference_code||"",x.amount])];
+ const csv="\uFEFF"+rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="FAMILY-COLONY-Financial-Report-"+new Date().toISOString().slice(0,10)+".csv";a.click();URL.revokeObjectURL(url);
+ financeMessage("File CSV berhasil disiapkan. Buka file tersebut menggunakan WPS Office.");
+}
 function developerPage(){return pageHead("DEVELOPER • ROOT ACCESS","Developer Control Center","Panel teknis khusus developer. Akses backend ditampilkan secara jujur.")+`<div class="stats"><div class="stat"><span>Website</span><strong style="font-size:1rem">RUNNING</strong></div><div class="stat"><span>Database</span><strong style="font-size:1rem;color:var(--red)">NOT CONNECTED</strong></div><div class="stat"><span>Local members</span><strong>${db.members.length}</strong></div><div class="stat"><span>Pending requests</span><strong>${db.requests.filter(r=>r.status==="pending").length}</strong></div></div><div class="cards">${card("◉","Overview","Ringkasan runtime lokal.","developerAction('overview')")}${card("♙","User Management","Daftar dan status akun.","developerAction('users')")}${card("⚿","Role & Permission","Atur role akun demo.","developerAction('roles')")}${card("▦","Module Management","Status modul website.","developerAction('modules')")}${card("▤","Database Connection","Koneksi database eksternal.","developerAction('database')")}${card("⌁","System Monitoring","Status browser dan penyimpanan.","developerAction('monitor')")}${card("♫","Music Hall Management","Buka pengaturan Music Hall.","navigate('music')")}${card("⚙","Website Configuration","Nama website dan konfigurasi.","developerAction('config')")}${card("⌘","Developer Tools","Utilitas demo.","developerAction('tools')")}${card("◐","Maintenance Mode","Aktif/nonaktifkan banner maintenance.","toggleMaintenance()")}${card("☷","Activity Log","Riwayat aktivitas lokal.","developerAction('logs')")}${card("🏅","Mission Control","Kelola misi, izin, dan audit Tahap 11.","developerMissionControl()")}${card("☁","Cloud Integration","Firebase setup, connection test, dan migrasi aman Tahap 12.","navigate('cloudIntegration')")}${card("📦","APK Manager","Pilih dan instal APK secara manual dari perangkat ini.","developerApkManager()")}</div><div id="devDetail" class="section"></div><div class="notice">Semua status dan data di panel ini berasal dari browser lokal. Tidak ada server, database online, pemantauan jarak jauh, atau keamanan produksi yang aktif.</div>`}
 function developerApkManager(){
  if(session?.role!=="Developer")return toast("APK Manager hanya untuk Developer.");
@@ -1156,7 +1221,7 @@ function missionDefs(type){return type==="daily"?[
 {id:"weekly-daily",name:"Penyelesai Misi Harian",desc:"Klaim 3 misi harian minggu ini.",event:"dailyClaims",target:3,coin:40,xp:60,icon:"🏆"}]:[]}
 function recordMissionEvent(type,detail){if(!session||!memberRecord(session.name))return false;const day=missionPeriod("daily"),week=missionPeriod("weekly"),key=type+"|"+session.name+"|"+day;if(db.missionEvents.some(e=>e.uniqueKey===key))return false;db.missionEvents.push({id:"ME-"+Date.now(),uniqueKey:key,memberId:session.name,type,detail,period:day,week,at:new Date().toISOString()});db.missionEvents=db.missionEvents.slice(-5000);saveDB();evaluateAchievements(session.name);return true}
 function missionProgress(member,def,type,period){if(def.event==="loginDays")return new Set(db.missionEvents.filter(e=>e.memberId===member&&e.type==="login"&&e.week===period).map(e=>e.period)).size;if(def.event==="dailyClaims")return db.missionClaims.filter(c=>c.memberId===member&&c.missionType==="daily"&&c.week===period).length;return db.missionEvents.filter(e=>e.memberId===member&&e.type===def.event&&(type==="weekly"?e.week===period:e.period===period)).length}
-function authorizedMissionPage(p){if(p==="cloudIntegration")return session?.role==="Developer";if(["dailyMission","weeklyMission","specialMission","achievementCenter","missionHistory","honeyChallenge"].includes(p))return !!session&&(session.role==="Developer"||!!memberRecord(session.name));if(p==="developer")return session?.role==="Developer";if(p==="management")return canManage();return true}
+function authorizedMissionPage(p){if(p==="finance")return session?.role==="Developer";if(p==="cloudIntegration")return session?.role==="Developer";if(["dailyMission","weeklyMission","specialMission","achievementCenter","missionHistory","honeyChallenge"].includes(p))return !!session&&(session.role==="Developer"||!!memberRecord(session.name));if(p==="developer")return session?.role==="Developer";if(p==="management")return canManage();return true}
 function canManageSpecial(p){return session?.role==="Developer"||!!db.missionPermissions?.[session?.role]?.[p]}
 function canSeeSpecial(m){return !m.participants.length||m.participants.includes(session?.name)}
 function missionPage(type){
