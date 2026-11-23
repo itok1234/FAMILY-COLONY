@@ -558,6 +558,11 @@ async function refreshMemberSessionIfNeeded(force=false){
  try{return await fcSessionRefreshPromise}finally{fcSessionRefreshPromise=null}
 }
 window.fcRefreshMemberSessionIfNeeded=refreshMemberSessionIfNeeded;
+window.fcRequestWorldSessionCredentials=async function(){
+ const ok=await refreshMemberSessionIfNeeded(true);
+ if(!ok||!session||!session.accessToken||!session.anonKey)return null;
+ return {accessToken:session.accessToken,apiKey:session.anonKey};
+};
 document.addEventListener("visibilitychange",()=>{
  if(!document.hidden&&session?.accessToken)refreshMemberSessionIfNeeded();
 });
