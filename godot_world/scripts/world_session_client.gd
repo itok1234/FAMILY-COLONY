@@ -149,7 +149,7 @@ func _on_request_completed(
 
 	var member_data: Dictionary = member_value
 	var permission_data: Dictionary = permission_value
-	if str(member_data.get("member_id", "")).is_empty() or not bool(permission_data.get("can_enter_world", false)):
+	if not _is_valid_verified_identity(member_data, permission_data):
 		_access_denied("session_world_access_denied")
 		return
 
@@ -199,3 +199,26 @@ func _access_denied(error_code: String) -> void:
 	_current_member.clear()
 	_current_permissions.clear()
 	session_rejected.emit(error_code)
+
+
+## Validate the canonical server response before unlocking the world.
+## This is a client-side consistency check; protected actions must still be
+## authorized by the backend at the time they are performed.
+func _is_valid_verified_identity(member_data: Dictionary, permission_data: Dictionary) -> bool:
+	var member_id := str(member_data.get("member_id", "")).strip_edges()
+	var display_name := str(member_data.get("name", "")).strip_edges()
+	var username := str(member_data.get("username", "")).strip_edges()
+	var role := str(member_data.get("role", "")).strip_edges().to_lower()
+	var status := str(member_data.get("status", "")).strip_edges().to_lower()
+	var allowed_roles := ["kepsuk", "deputi", "admin", "member", "developer"]
+	var active_statuses := ["aktif", "active"]
+
+	if member_id.is_empty() or display_name.is_empty() or username.is_empty():
+		return false
+	if not allowed_roles.has(role) or not active_statuses.has(status):
+		return false
+	if permission_data.get("can_enter_world") != true:
+		return false
+	if str(permission_data.get("world_role", "")) != "member":
+		return false
+	return true
