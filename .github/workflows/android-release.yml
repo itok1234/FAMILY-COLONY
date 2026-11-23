@@ -101,7 +101,7 @@ jobs:
             const fs = require('fs');
             const path = 'app/build/outputs/apk/release/app-release.apk';
             const tag = process.env.RELEASE_TAG.trim();
-            if (!/^v[0-9]+\\.[0-9]+\\.[0-9]+([.-][A-Za-z0-9.-]+)?$/.test(tag)) {
+            if (!/^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$/.test(tag)) {
               throw new Error('Release tag format is invalid.');
             }
             const prerelease = process.env.PRERELEASE === 'true';
@@ -118,7 +118,7 @@ jobs:
                 '- Distribution: direct APK download; Google Play Store is not required.',
                 '- Status: ' + (prerelease ? 'prerelease / testing' : 'final release'),
                 '- Install only on Android devices; enable permission to install unknown apps when prompted.'
-              ].join('\\n'),
+              ].join('\n'),
               draft: false,
               prerelease,
               make_latest: prerelease ? 'false' : 'true'
