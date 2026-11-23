@@ -166,7 +166,9 @@ func _rpc_request_create_room(room_name: String, capacity: int) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender := multiplayer.get_remote_sender_id()
-	if room_name.strip_edges().length() < 2 or room_name.strip_edges().length() > 32:
+	if sender <= 1 or not multiplayer.get_peers().has(sender):
+		return
+	if room_name.length() > 32 or room_name.strip_edges().length() < 2 or room_name.strip_edges().length() > 32:
 		_send_result(sender, false, "Nama room tidak valid.")
 		return
 	_create_room_for_peer(sender, room_name.strip_edges(), clampi(capacity, 2, 64))
@@ -178,7 +180,9 @@ func _rpc_request_join_room(room_id: String) -> void:
 		return
 	var sender := multiplayer.get_remote_sender_id()
 	var clean_id := room_id.strip_edges()
-	if sender <= 1 or clean_id.length() < 3 or clean_id.length() > 64:
+	if sender <= 1 or not multiplayer.get_peers().has(sender):
+		return
+	if room_id.length() > 64 or clean_id.length() < 3 or clean_id.length() > 64:
 		_send_result(sender, false, "ID room tidak valid.")
 		return
 	_join_room_for_peer(sender, clean_id)
@@ -188,6 +192,8 @@ func _rpc_request_join_room(room_id: String) -> void:
 func _rpc_request_leave_room() -> void:
 	if multiplayer.is_server():
 		var sender := multiplayer.get_remote_sender_id()
+		if sender <= 1 or not multiplayer.get_peers().has(sender):
+			return
 		_leave_room_for_peer(sender)
 		_join_or_create_lobby(sender)
 		_broadcast_room_state()
