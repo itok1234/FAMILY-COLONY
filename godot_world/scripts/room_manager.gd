@@ -203,3 +203,19 @@ func _rpc_receive_local_room(room_id: String, members: Array) -> void:
 @rpc("authority", "call_remote", "reliable")
 func _rpc_room_result(ok: bool, message: String) -> void:
 	room_action_result.emit(ok, message)
+
+
+## Server-side membership queries for trusted room-scoped systems.
+func get_peer_room_id(peer_id: int) -> String:
+	if not multiplayer.is_server():
+		return ""
+	return String(_peer_room.get(peer_id, ""))
+
+
+func get_room_peer_ids(room_id: String) -> Array[int]:
+	var result: Array[int] = []
+	if not multiplayer.is_server() or not _rooms.has(room_id):
+		return result
+	for peer_id in _rooms[room_id]["members"]:
+		result.append(int(peer_id))
+	return result
