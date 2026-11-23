@@ -10,8 +10,8 @@ android {
         applicationId 'com.cdl.familycolonyv5d'
         minSdk 23
         targetSdk 35
-        versionCode 5
-        versionName '4.1-online-auth'
+        versionCode 6
+        versionName '4.2-developer-pin'
     }
 
     compileOptions {
@@ -21,8 +21,8 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix '.onlinetest9' // Install alongside earlier test builds without uninstalling
-            versionNameSuffix '-online-test-9'
+            applicationIdSuffix '.onlinetest10' // Install alongside earlier test builds without uninstalling
+            versionNameSuffix '-developer-pin-test-10'
         }
         release {
             minifyEnabled false
