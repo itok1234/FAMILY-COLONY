@@ -60,25 +60,13 @@ jobs:
             set -eu
             APK="app/build/outputs/apk/debug/app-debug.apk"
             adb wait-for-device
-            for attempt in $(seq 1 30); do
-              if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; then
-                break
-              fi
-              sleep 2
-            done
-            test "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1"
             adb install "$APK"
-            adb shell am start -n "com.cdl.familycolonyv5d.onlinetest15/com.cdl.familycolonyv5d.WorldActivity" \
-              --es "com.cdl.familycolonyv5d.extra.WORLD_ACCESS_TOKEN" "invalid.world.session.token" \
-              --es "com.cdl.familycolonyv5d.extra.WORLD_API_KEY" "invalid-publishable-key"
+            adb shell am start -n "com.cdl.familycolonyv5d.onlinetest15/com.cdl.familycolonyv5d.WorldActivity" --es "com.cdl.familycolonyv5d.extra.WORLD_ACCESS_TOKEN" "invalid.world.session.token" --es "com.cdl.familycolonyv5d.extra.WORLD_API_KEY" "invalid-publishable-key"
             sleep 25
-            adb shell pidof com.cdl.familycolonyv5d.onlinetest13
+            adb shell pidof com.cdl.familycolonyv5d.onlinetest15
             adb shell dumpsys activity activities | grep -F "com.cdl.familycolonyv5d.WorldActivity"
             adb logcat -d > "$RUNNER_TEMP/family-colony-emulator-logcat.txt"
-            if grep -E "FATAL EXCEPTION|SCRIPT ERROR:|Parse Error:|Failed to load main pack|Failed to load scene" "$RUNNER_TEMP/family-colony-emulator-logcat.txt"; then
-              echo "::error::Embedded Godot world reported a startup failure."
-              exit 1
-            fi
+            if grep -E "FATAL EXCEPTION|SCRIPT ERROR:|Parse Error:|Failed to load main pack|Failed to load scene" "$RUNNER_TEMP/family-colony-emulator-logcat.txt"; then echo "::error::Embedded Godot world reported a startup failure."; exit 1; fi
 
       - name: Upload emulator logcat
         if: always()
