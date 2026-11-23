@@ -11,6 +11,7 @@ var _right_arm: Node3D
 var _left_leg: Node3D
 var _right_leg: Node3D
 var _appearance_materials: Dictionary = {}
+var _face_materials: Dictionary = {}
 
 func _ready() -> void:
 	_build_avatar()
@@ -80,6 +81,8 @@ func _build_avatar() -> void:
 	var trousers := _material(Color(0.12, 0.15, 0.19), 0.92)
 	var shoes := _material(Color(0.055, 0.06, 0.07), 0.88)
 	var eyes := _material(Color(0.035, 0.025, 0.02), 0.5)
+	var eye_white := _material(Color(0.94, 0.91, 0.84), 0.42)
+	var lip := _material(Color(0.43, 0.20, 0.17), 0.72)
 	_appearance_materials = {
 		"skin": skin,
 		"hair": hair,
@@ -96,8 +99,18 @@ func _build_avatar() -> void:
 	_add_sphere(_head, "Face", Vector3.ZERO, Vector3(0.225, 0.265, 0.215), skin)
 	_add_sphere(_head, "HairCap", Vector3(0, 0.145, 0.025), Vector3(0.232, 0.145, 0.222), hair)
 	_add_sphere(_head, "FrontHair", Vector3(0, 0.105, -0.16), Vector3(0.19, 0.105, 0.075), hair)
-	_add_sphere(_head, "LeftEye", Vector3(-0.078, 0.025, -0.198), Vector3(0.022, 0.027, 0.012), eyes)
-	_add_sphere(_head, "RightEye", Vector3(0.078, 0.025, -0.198), Vector3(0.022, 0.027, 0.012), eyes)
+	_add_sphere(_head, "LeftHairLock", Vector3(-0.19, -0.005, -0.005), Vector3(0.055, 0.19, 0.085), hair)
+	_add_sphere(_head, "RightHairLock", Vector3(0.19, -0.005, -0.005), Vector3(0.055, 0.19, 0.085), hair)
+	_add_sphere(_head, "LeftEar", Vector3(-0.222, -0.005, -0.005), Vector3(0.045, 0.075, 0.055), skin)
+	_add_sphere(_head, "RightEar", Vector3(0.222, -0.005, -0.005), Vector3(0.045, 0.075, 0.055), skin)
+	_add_sphere(_head, "LeftEyeWhite", Vector3(-0.078, 0.025, -0.195), Vector3(0.035, 0.03, 0.018), eye_white)
+	_add_sphere(_head, "RightEyeWhite", Vector3(0.078, 0.025, -0.195), Vector3(0.035, 0.03, 0.018), eye_white)
+	_add_sphere(_head, "LeftEye", Vector3(-0.078, 0.025, -0.213), Vector3(0.014, 0.021, 0.009), eyes)
+	_add_sphere(_head, "RightEye", Vector3(0.078, 0.025, -0.213), Vector3(0.014, 0.021, 0.009), eyes)
+	_add_sphere(_head, "LeftBrow", Vector3(-0.078, 0.079, -0.195), Vector3(0.047, 0.012, 0.014), hair)
+	_add_sphere(_head, "RightBrow", Vector3(0.078, 0.079, -0.195), Vector3(0.047, 0.012, 0.014), hair)
+	_add_sphere(_head, "Nose", Vector3(0, -0.018, -0.224), Vector3(0.032, 0.045, 0.035), skin)
+	_add_sphere(_head, "Mouth", Vector3(0, -0.105, -0.207), Vector3(0.045, 0.012, 0.012), lip)
 	_left_arm = _make_limb("LeftArm", Vector3(-0.34, 1.42, 0), skin, 0.115, 0.72)
 	_right_arm = _make_limb("RightArm", Vector3(0.34, 1.42, 0), skin, 0.115, 0.72)
 	_left_arm.rotation.z = -0.12
