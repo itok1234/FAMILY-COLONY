@@ -46,3 +46,10 @@ This project is separate from the existing Android WebView app. The existing log
 
 ## Engine target
 Godot 4.x. Compatibility renderer is the initial baseline for broad Android support. Higher-end rendering options should only be enabled after real-device GPU, frame-rate and thermal profiling.
+
+
+## Room-scoped chat foundation milestone
+- Added a LAN chat transport that routes messages only to peers registered in the same host-managed room.
+- The host validates room membership, trims and rejects empty/oversized messages, applies a per-peer send interval, and keeps a bounded in-memory recent-message buffer.
+- Messages are currently labeled with transport peer IDs (for example, "Anggota #2"), not account names. No private/global messaging, friend list, moderation workflow, report/block system, message persistence, attachment support or Supabase identity binding is implemented.
+- The current chat layer exposes signals and methods for a future chat UI; it is not yet a finished chat screen and has not been runtime-tested.
