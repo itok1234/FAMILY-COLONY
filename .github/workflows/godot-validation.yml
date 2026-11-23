@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/guest-premium-access
+      - feature/direct-3d-entry
     paths:
       - "godot_world/**"
       - "app/build.gradle"
