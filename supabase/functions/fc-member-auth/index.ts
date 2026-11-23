@@ -168,12 +168,31 @@ Deno.serve(async req => {
       const publicClient = createClient(url, anonKey, {
         auth: { autoRefreshToken: false, persistSession: false },
       });
+      // Verify the reserved Developer account link before password sign-in.
+      // This distinguishes a broken/missing account from a genuinely rejected password.
+      if (username === "edrick") {
+        const { data: developer, error: developerError } = await admin.from("fc_members")
+          .select("member_id,username,role,status,auth_user_id")
+          .eq("username", "edrick").maybeSingle();
+        if (developerError) return json({ error: "developer_member_lookup_failed" }, 500);
+        if (!developer || String(developer.role || "").trim().toLowerCase() !== "developer" ||
+            !["aktif", "active"].includes(String(developer.status || "").trim().toLowerCase())) {
+          return json({ error: "developer_member_not_eligible" }, 403);
+        }
+        if (!developer.auth_user_id) return json({ error: "developer_auth_account_missing" }, 409);
+        const { data: linkedAuth, error: linkedAuthError } = await admin.auth.admin.getUserById(developer.auth_user_id);
+        if (linkedAuthError || !linkedAuth.user) return json({ error: "developer_auth_account_missing" }, 409);
+        if (String(linkedAuth.user.email || "").toLowerCase() !== authEmail("edrick").toLowerCase()) {
+          return json({ error: "developer_auth_link_mismatch" }, 409);
+        }
+      }
+
       const { data: signedIn, error: signInError } = await publicClient.auth.signInWithPassword({
         email: authEmail(username),
         password,
       });
       if (signInError || !signedIn.user || !signedIn.session) {
-        return json({ error: "invalid_credentials" }, 401);
+        return json({ error: username === "edrick" ? "developer_password_rejected" : "invalid_credentials" }, 401);
       }
       const { data: member, error: memberError } = await admin.from("fc_members")
         .select("member_id,name,username,role,status")
