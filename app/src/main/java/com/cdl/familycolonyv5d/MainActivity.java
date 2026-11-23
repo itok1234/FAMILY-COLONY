@@ -375,14 +375,6 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onDestroy() {
-        if (activeInstance != null && activeInstance.get() == this) {
-            activeInstance = new WeakReference<>(null);
-        }
-        super.onDestroy();
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         if (webView != null) {
@@ -422,6 +414,9 @@ public class MainActivity extends Activity {
             webView.stopLoading();
             webView.destroy();
             webView = null;
+        }
+        if (activeInstance != null && activeInstance.get() == this) {
+            activeInstance = new WeakReference<>(null);
         }
         super.onDestroy();
     }
