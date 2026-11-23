@@ -56,6 +56,19 @@ func _cylinder(parent: Node3D, radius: float, height: float, at: Vector3, materi
 	mesh.radial_segments = 12
 	return _mesh_node(parent, mesh, material, at, label)
 
+
+func _add_static_collision_box(parent: Node3D, size: Vector3, at: Vector3, label: String) -> StaticBody3D:
+	var body := StaticBody3D.new()
+	body.name = label + "Collision"
+	body.position = at
+	parent.add_child(body)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	collision.shape = shape
+	body.add_child(collision)
+	return body
+
 func _build_central_plaza() -> void:
 	var stone := _mat("plaza_stone", Color(0.63, 0.65, 0.62))
 	var inset := _mat("plaza_inset", Color(0.43, 0.51, 0.53))
@@ -140,6 +153,8 @@ func _build_benches() -> void:
 		_box(self, Vector3(2.2, 0.72, 0.14), Vector3(x, 0.55, z - 0.24), wood, "BenchBack")
 		_box(self, Vector3(0.12, 0.48, 0.75), Vector3(x - 0.8, -0.05, z), metal, "BenchLeg")
 		_box(self, Vector3(0.12, 0.48, 0.75), Vector3(x + 0.8, -0.05, z), metal, "BenchLeg")
+		_add_static_collision_box(self, Vector3(2.2, 0.2, 0.8), Vector3(x, 0.15, z), "BenchSeat")
+		_add_static_collision_box(self, Vector3(2.2, 0.8, 0.25), Vector3(x, 0.55, z - 0.24), "BenchBack")
 		_add_bench_interactable(Vector3(x, 0.8, z))
 
 	
@@ -219,6 +234,9 @@ func _build_community_interior() -> void:
 	_box(room, Vector3(0.18, 0.35, 0.18), Vector3(-0.65, 0.05, -1.7), trim_material, "TableLeg")
 	_box(room, Vector3(0.18, 0.35, 0.18), Vector3(1.45, 0.05, -1.7), trim_material, "TableLeg")
 	_box(room, Vector3(3.2, 0.65, 0.7), Vector3(3.9, 0.32, 2.4), table_material, "CommunityCounter")
+	_add_static_collision_box(room, Vector3(4.3, 0.7, 1.8), Vector3(-3.8, 0.1, -1.8), "LoungeSofa")
+	_add_static_collision_box(room, Vector3(2.8, 0.3, 1.7), Vector3(0.4, 0.35, -1.7), "CoffeeTable")
+	_add_static_collision_box(room, Vector3(3.3, 0.8, 0.8), Vector3(3.9, 0.32, 2.4), "CommunityCounter")
 	_box(room, Vector3(3.5, 0.12, 0.12), Vector3(0, 3.7, 0), trim_material, "CeilingBeam")
 	var ceiling_light := SphereMesh.new()
 	ceiling_light.radius = 0.28
