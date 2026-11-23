@@ -198,6 +198,21 @@ func _build_community_interior() -> void:
 	floor_collision.position = Vector3(0, -0.5, 0)
 	floor_body.add_child(floor_collision)
 
+	var wall_specs: Array[Dictionary] = [
+		{"size": Vector3(14, 5.5, 0.25), "position": Vector3(0, 2.25, -6)},
+		{"size": Vector3(0.25, 5.5, 12), "position": Vector3(-7, 2.25, 0)},
+		{"size": Vector3(0.25, 5.5, 12), "position": Vector3(7, 2.25, 0)},
+		{"size": Vector3(4.5, 5.5, 0.25), "position": Vector3(-4.75, 2.25, 6)},
+		{"size": Vector3(4.5, 5.5, 0.25), "position": Vector3(4.75, 2.25, 6)}
+	]
+	for wall_spec in wall_specs:
+		var wall_collision := CollisionShape3D.new()
+		var wall_shape := BoxShape3D.new()
+		wall_shape.size = wall_spec["size"]
+		wall_collision.shape = wall_shape
+		wall_collision.position = wall_spec["position"]
+		floor_body.add_child(wall_collision)
+
 	_box(room, Vector3(4.2, 0.55, 1.65), Vector3(-3.8, 0.1, -1.8), sofa_material, "LoungeSofa")
 	_box(room, Vector3(4.2, 1.15, 0.35), Vector3(-3.8, 0.75, -2.45), sofa_material, "SofaBack")
 	_box(room, Vector3(2.6, 0.18, 1.5), Vector3(0.4, 0.35, -1.7), table_material, "CoffeeTable")
