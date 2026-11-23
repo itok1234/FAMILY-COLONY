@@ -174,8 +174,14 @@ func _rpc_request_create_room(room_name: String, capacity: int) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func _rpc_request_join_room(room_id: String) -> void:
-	if multiplayer.is_server():
-		_join_room_for_peer(multiplayer.get_remote_sender_id(), room_id)
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	var clean_id := room_id.strip_edges()
+	if sender <= 1 or clean_id.length() < 3 or clean_id.length() > 64:
+		_send_result(sender, false, "ID room tidak valid.")
+		return
+	_join_room_for_peer(sender, clean_id)
 
 
 @rpc("any_peer", "call_remote", "reliable")
