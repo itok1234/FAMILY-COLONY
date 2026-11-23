@@ -44,6 +44,7 @@ func _refresh_target() -> void:
 	var endpoint := origin + (-camera.global_basis.z * interaction_distance)
 	var query := PhysicsRayQueryParameters3D.create(origin, endpoint)
 	query.collision_mask = 2
+	query.collide_with_areas = true
 	var player := get_parent()
 	if player is CollisionObject3D:
 		query.exclude = [player.get_rid()]
