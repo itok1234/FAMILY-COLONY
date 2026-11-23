@@ -67,7 +67,7 @@ func _on_peer_roster_changed(peer_ids: Array[int]) -> void:
 	for peer_id in peer_ids:
 		if not _peer_room.has(peer_id):
 			_join_or_create_lobby(peer_id)
-	for peer_id in _peer_room.keys():
+	for peer_id in _peer_room.keys().duplicate():
 		if not peer_ids.has(int(peer_id)):
 			_leave_room_for_peer(int(peer_id))
 			_last_room_create_at.erase(int(peer_id))
