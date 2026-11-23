@@ -207,5 +207,31 @@ jobs:
           fi
           echo "Member authentication Edge Function deployed."
 
+      - name: Deploy verified Godot world session Edge Function
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: irwtnqekrwhgompulach
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -w "%{http_code}" -o /tmp/fc-world-session-result.json -X POST \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -F 'metadata={"name":"fc-world-session","entrypoint_path":"index.ts","verify_jwt":false}' \
+            -F 'file=@supabase/functions/fc-world-session/index.ts;type=application/typescript' \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/functions/deploy?slug=fc-world-session")
+          echo "World session Edge Function deployment HTTP status: $code"
+          if [[ "$code" != 2* ]]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+            d=json.loads(Path("/tmp/fc-world-session-result.json").read_text())
+            print(d.get("message") or d.get("error") or "World session deployment rejected")
+          except Exception:
+            print("World session deployment rejected; response omitted.")
+          PY
+            exit 1
+          fi
+          echo "Verified Godot world session Edge Function deployed."
+
       - name: Deployment summary
         run: echo "Member activation backend deployed. No member passwords or service-role keys were exposed."
