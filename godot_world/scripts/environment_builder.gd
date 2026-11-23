@@ -14,7 +14,6 @@ const PORTAL_SCRIPT: Script = preload("res://scripts/world_portal.gd")
 
 func _ready() -> void:
 	_rng.seed = random_seed
-	_create_materials()
 	_build_central_plaza()
 	_build_road_network()
 	_build_buildings()
