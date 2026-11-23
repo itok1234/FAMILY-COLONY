@@ -118,6 +118,18 @@ jobs:
           "$APKSIGNER" verify --verbose "$APK"
           sha256sum "$APK"
 
+      - name: Report internal APK size
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          APK_BYTES="$(stat -c%s "$APK")"
+          APK_MIB="$((APK_BYTES / 1024 / 1024))"
+          echo "Internal debug APK: ${APK_BYTES} bytes (${APK_MIB} MiB)"
+          if [ "$APK_BYTES" -gt $((250 * 1024 * 1024)) ]; then
+            echo "::warning::APK exceeds the 250 MiB optimization target; review ABI and asset packaging."
+          fi
+
       - name: Upload internal validation artifact
         uses: actions/upload-artifact@v4
         with:
