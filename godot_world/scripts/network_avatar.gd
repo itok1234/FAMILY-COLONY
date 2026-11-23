@@ -27,3 +27,7 @@ func apply_network_state(new_position: Vector3, new_rotation: float, new_motion:
 func _process(delta: float) -> void:
 	global_position = global_position.lerp(target_position, minf(delta * 12.0, 1.0))
 	rotation.y = lerp_angle(rotation.y, target_rotation, minf(delta * 12.0, 1.0))
+
+func play_network_action(action_id: String) -> void:
+	if action_id in ["wave", "sit"] and is_instance_valid(_avatar) and _avatar.has_method("play_action"):
+		_avatar.play_action(action_id)
