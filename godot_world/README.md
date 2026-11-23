@@ -115,3 +115,10 @@ Godot 4.x. Compatibility renderer is the initial baseline for broad Android supp
 - The local player controller now supports a seated movement lock and a deliberate stand-up action using the existing interaction input.
 - The avatar sit pose remains active until the player stands; the gesture relay allowlist includes the matching stand event so connected LAN clients can return the remote avatar to its idle pose.
 - This remains a prototype: seat snapping/alignment, occupancy reservation, collision-aware seat claims, room permissions and server-authoritative validation are not implemented. No Godot parser or runtime test was available for this commit.
+
+
+## Target-specific interaction actions
+- Interactable objects now expose an explicit allowlist of actions, and the action menu only displays actions supported by the selected target.
+- Outdoor benches and the Community Hub sofa expose Sit and Greet; the welcome marker exposes Use and Greet; location portals expose Use only.
+- The controller checks the allowlist again when an action is selected, preventing stale or hidden menu choices from being executed.
+- This is local interaction UX validation only. It does not add server-authoritative permissions, synchronized seat occupancy, or production multiplayer security.
