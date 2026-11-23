@@ -21,8 +21,6 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.webkit.ConsoleMessage;
-import android.webkit.WebResourceError;
 import android.widget.Toast;
 import android.util.Log;
 
@@ -36,8 +34,6 @@ public class MainActivity extends Activity {
     private static final int APK_INSTALL_REQUEST = 4110;
     private PermissionRequest pendingWebPermissionRequest;
     private Uri selectedApkUri;
-    private static final String APP_ASSET_HOST = "appassets.androidplatform.net";
-    private static final String MIC_TAG = "FAMILY_COLONY_MIC";
 
     private final class AndroidBridge {
         @JavascriptInterface
@@ -47,46 +43,14 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public String getMicrophonePermissionStatus() {
-            return MainActivity.this.getMicrophonePermissionStatus();
-        }
-
-        @JavascriptInterface
-        public String getWebViewDiagnostic() {
-            String pkg = getWebViewPackageVersion();
-            return "sdk=" + Build.VERSION.SDK_INT + ";webView=" + pkg
-                    + ";androidPermission=" + MainActivity.this.getMicrophonePermissionStatus();
+            return checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+                    ? "GRANTED" : "DENIED";
         }
     }
 
     private String getMicrophonePermissionStatus() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return "NOT_REQUIRED";
         return checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
                 ? "GRANTED" : "DENIED";
-    }
-
-    private String getWebViewPackageVersion() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return "API_BELOW_26";
-        try {
-            android.content.pm.PackageInfo info = WebView.getCurrentWebViewPackage();
-            return info == null ? "UNKNOWN" : info.packageName + "/" + info.versionName;
-        } catch (RuntimeException e) {
-            return "ERROR:" + e.getClass().getSimpleName();
-        }
-    }
-
-    private boolean isTrustedAssetOrigin(Uri origin) {
-        return origin != null && "https".equalsIgnoreCase(origin.getScheme())
-                && APP_ASSET_HOST.equalsIgnoreCase(origin.getHost())
-                && (origin.getPort() == -1 || origin.getPort() == 443);
-    }
-
-    private void denyPendingWebPermission(String reason) {
-        PermissionRequest request = pendingWebPermissionRequest;
-        pendingWebPermissionRequest = null;
-        if (request != null) {
-            try { request.deny(); } catch (IllegalStateException ignored) { }
-        }
-        Log.w(MIC_TAG, "Pending WebView request denied: " + reason);
     }
 
     @Override
@@ -148,23 +112,41 @@ public class MainActivity extends Activity {
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onPermissionRequest(PermissionRequest request) {
-                runOnUiThread(() -> handleWebPermissionRequest(request));
-            }
-
-            @Override
-            public void onPermissionRequestCanceled(PermissionRequest request) {
-                if (pendingWebPermissionRequest == request) pendingWebPermissionRequest = null;
-                Log.w(MIC_TAG, "WebView permission request canceled by WebView");
-            }
-
-            @Override
-            public boolean onConsoleMessage(ConsoleMessage message) {
-                String text = message.message();
-                if (text != null && (text.contains("FAMILY_COLONY_MIC") || text.toLowerCase().contains("media"))) {
-                    Log.i(MIC_TAG, "JS console " + message.messageLevel() + " "
-                            + message.sourceId() + ":" + message.lineNumber() + " " + text);
-                }
-                return super.onConsoleMessage(message);
+                runOnUiThread(() -> {
+                    Uri origin = request.getOrigin();
+                    String[] resources = request.getResources();
+                    Log.i("FAMILY_COLONY_MIC", "Web permission origin=" + origin
+                            + " resources=" + java.util.Arrays.toString(resources)
+                            + " androidPermission=" + getMicrophonePermissionStatus());
+                    if (origin == null || !"https".equalsIgnoreCase(origin.getScheme())
+                            || !"appassets.androidplatform.net".equalsIgnoreCase(origin.getHost())) {
+                        Log.w("FAMILY_COLONY_MIC", "Denied untrusted WebView origin");
+                        request.deny();
+                        return;
+                    }
+                    boolean asksForAudio = false;
+                    for (String resource : resources) {
+                        if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) {
+                            asksForAudio = true;
+                        }
+                    }
+                    if (!asksForAudio) {
+                        Log.w("FAMILY_COLONY_MIC", "Denied request without audio capture");
+                        request.deny();
+                        return;
+                    }
+                    if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                        Log.i("FAMILY_COLONY_MIC", "Granted audio capture to trusted app asset");
+                        request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
+                    } else if (pendingWebPermissionRequest == null) {
+                        pendingWebPermissionRequest = request;
+                        Log.i("FAMILY_COLONY_MIC", "Requesting Android runtime microphone permission");
+                        requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MICROPHONE_PERMISSION_REQUEST);
+                    } else {
+                        Log.w("FAMILY_COLONY_MIC", "Denied duplicate pending microphone request");
+                        request.deny();
+                    }
+                });
             }
 
             @Override
@@ -213,86 +195,27 @@ public class MainActivity extends Activity {
                 }
                 return true;
             }
-            }
-
-            @Override
-            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                super.onReceivedError(view, request, error);
-                if (request != null && request.isForMainFrame() && error != null) {
-                    Log.e(MIC_TAG, "Main-frame load error code=" + error.getErrorCode()
-                            + " description=" + error.getDescription());
-                }
-            }
         });
 
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState);
         } else {
-            webView.loadUrl("https://" + APP_ASSET_HOST + "/assets/index.html");
-        }
-    }
-
-    private void handleWebPermissionRequest(PermissionRequest request) {
-        if (request == null) return;
-        Uri origin = request.getOrigin();
-        String[] resources = request.getResources();
-        boolean asksForAudio = false;
-        if (resources != null) {
-            for (String resource : resources) {
-                if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) asksForAudio = true;
-            }
-        }
-        String webViewVersion = getWebViewPackageVersion();
-        Log.i(MIC_TAG, "Web permission origin=" + origin + " resources="
-                + java.util.Arrays.toString(resources) + " androidPermission="
-                + getMicrophonePermissionStatus() + " webView=" + webViewVersion);
-        if (!isTrustedAssetOrigin(origin) || !asksForAudio) {
-            Log.w(MIC_TAG, "Denied WebView request: untrusted origin or missing audio capture resource");
-            request.deny();
-            return;
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            if (pendingWebPermissionRequest != null) {
-                Log.w(MIC_TAG, "Denied second audio request while Android permission dialog is pending");
-                request.deny();
-                return;
-            }
-            pendingWebPermissionRequest = request;
-            Log.i(MIC_TAG, "Requesting Android runtime RECORD_AUDIO permission");
-            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MICROPHONE_PERMISSION_REQUEST);
-            return;
-        }
-        try {
-            request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
-            Log.i(MIC_TAG, "Granted RESOURCE_AUDIO_CAPTURE to trusted app origin");
-        } catch (IllegalStateException e) {
-            Log.e(MIC_TAG, "WebView permission request became invalid before grant", e);
+            webView.loadUrl("https://appassets.androidplatform.net/assets/index.html");
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == MICROPHONE_PERMISSION_REQUEST) {
+        if (requestCode == MICROPHONE_PERMISSION_REQUEST && pendingWebPermissionRequest != null) {
             PermissionRequest request = pendingWebPermissionRequest;
             pendingWebPermissionRequest = null;
-            String status = getMicrophonePermissionStatus();
-            Log.i(MIC_TAG, "Android runtime permission result=" + status);
-            if (request == null) {
-                Log.w(MIC_TAG, "No pending WebView request remains after Android permission result");
-                return;
-            }
-            if (status.equals("GRANTED")) {
-                try {
-                    request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
-                    Log.i(MIC_TAG, "Granted pending WebView RESOURCE_AUDIO_CAPTURE");
-                } catch (IllegalStateException e) {
-                    Log.e(MIC_TAG, "Pending WebView request expired before grant", e);
-                }
+            if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                Log.i("FAMILY_COLONY_MIC", "Android runtime microphone permission granted");
+                request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
             } else {
-                try { request.deny(); } catch (IllegalStateException ignored) { }
-                Log.w(MIC_TAG, "Denied pending WebView audio request; Android permission=" + status);
+                Log.w("FAMILY_COLONY_MIC", "Android runtime microphone permission denied");
+                request.deny();
                 Toast.makeText(this, "Izin mikrofon diperlukan untuk merekam pesan suara.", Toast.LENGTH_SHORT).show();
             }
         }
@@ -420,7 +343,10 @@ public class MainActivity extends Activity {
             filePathCallback.onReceiveValue(null);
             filePathCallback = null;
         }
-        denyPendingWebPermission("activity destroyed");
+        if (pendingWebPermissionRequest != null) {
+            pendingWebPermissionRequest.deny();
+            pendingWebPermissionRequest = null;
+        }
         if (webView != null) {
             webView.stopLoading();
             webView.destroy();
