@@ -83,8 +83,10 @@ func _choose_action(action_id: String) -> void:
 	if avatar != null and avatar.has_method("play_action"):
 		if action_id == "greet":
 			avatar.call("play_action", "wave")
+			_broadcast_social_action("wave")
 		elif action_id == "sit":
 			avatar.call("play_action", "sit")
+			_broadcast_social_action("sit")
 	_result.text = message
 	_result.visible = true
 	_target = null
@@ -200,3 +202,11 @@ func _add_menu_button(label_text: String, center_offset: Vector2, action_id: Str
 	button.pressed.connect(_choose_action.bind(action_id))
 	_menu.add_child(button)
 	_menu_buttons.append(button)
+
+func _broadcast_social_action(action_id: String) -> void:
+	var world := get_parent().get_parent()
+	if world == null:
+		return
+	var manager := world.get_node_or_null("MultiplayerManager")
+	if manager != null and manager.has_method("broadcast_social_action"):
+		manager.call("broadcast_social_action", action_id)
