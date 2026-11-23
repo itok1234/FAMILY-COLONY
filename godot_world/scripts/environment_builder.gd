@@ -106,6 +106,7 @@ func _build_buildings() -> void:
 		add_child(group)
 		var wall_material: Material = walls[i % walls.size()]
 		_box(group, Vector3(width, height, depth), Vector3(0, height * 0.5, 0), wall_material, "BuildingShell")
+		_add_static_collision_box(group, Vector3(width, height, depth), Vector3(0, height * 0.5, 0), "BuildingShell")
 		_box(group, Vector3(width + 0.8, 0.45, depth + 0.8), Vector3(0, height + 0.22, 0), roof, "FlatRoof")
 		for floor_index in range(2):
 			var y := 2.0 + float(floor_index) * 3.2
