@@ -138,6 +138,8 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
 .room-music-panel audio{max-width:100%;}
 .room-music-queue{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;max-height:110px;overflow:auto;}
 .room-music-queue .btn{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+.guest-shell{max-width:1100px;margin:22px auto 40px}.guest-hero{display:grid;grid-template-columns:1fr 180px;align-items:center;gap:20px;padding:28px!important}.guest-hero h1{font-size:clamp(1.8rem,5vw,3rem);margin:10px 0}.guest-hero p{line-height:1.65}.guest-emblem{width:155px;height:155px;border-radius:50%;display:grid;place-items:center;font-size:76px;background:radial-gradient(circle,#f4d98c,#9a682b 35%,#14263d 68%);box-shadow:0 0 55px #e8bd6240}.guest-nav{margin:16px 0;gap:8px}.guest-content{min-height:330px}.guest-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}.guest-tile{padding:17px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(145deg,#1b3048,#102036);min-height:145px}.guest-tile .big{font-size:29px}.guest-tile h3{margin:8px 0 5px}.guest-tile p{font-size:.83rem;color:var(--muted);line-height:1.55;margin:0}.guest-lock{opacity:.7}.guest-preview{padding:18px;border-radius:15px;border:1px solid var(--line);background:radial-gradient(circle at 50% 0,#e8bd6224,transparent 65%),#0b192b;text-align:center;min-height:185px;display:grid;place-items:center}.guest-preview .scene{font-size:62px}.guest-quiz{display:grid;gap:10px;max-width:650px}.guest-quiz button{text-align:left}.guest-feedback{padding:11px;border-radius:10px;background:#7ed5a11a;border:1px solid #7ed5a155;color:#b9f1cc}.guest-form{max-width:650px}.guest-form .field{margin:12px 0}@media(max-width:700px){.guest-hero{grid-template-columns:1fr;padding:20px!important}.guest-emblem{display:none}.guest-card-grid{grid-template-columns:1fr 1fr}.guest-nav .btn{flex:1 1 42%}}@media(max-width:420px){.guest-card-grid{grid-template-columns:1fr}}
 </style>
 <script>window.FC_SUPABASE_URL="https://irwtnqekrwhgompulach.supabase.co";</script>
 </head>
@@ -185,12 +187,15 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
   </div>
 </section>
 <section id="guestWorkspace" class="hidden">
-  <div class="panel" style="max-width:760px;margin:28px auto">
-    <div class="eyebrow">FAMILY COLONY • GUEST SESSION</div><h1>Selamat Datang di Koloni</h1>
-    <p id="guestWelcome" class="muted"></p>
-    <div class="notice">Kamu masuk sebagai <b>Tamu</b>. Akses ini hanya untuk melihat halaman sambutan. Fitur anggota, chat, dompet, hadiah, dan panel pengelola tidak tersedia untuk akun tamu.</div>
-    <button class="btn primary" onclick="logout()">KELUAR DARI AKSES TAMU</button>
+ <div class="guest-shell">
+  <div class="guest-hero panel"><div><div class="eyebrow">FAMILY COLONY • GUEST PREMIUM</div><h1>Jelajahi Dunia <span class="gold">Family Colony</span></h1><p id="guestWelcome" class="muted"></p><div class="toolbar"><span class="status ok">GUEST PREMIUM</span><span id="guestExpiry" class="status">Sesi 12 jam</span></div></div><div class="guest-emblem">🐝</div></div>
+  <div class="guest-nav toolbar" role="navigation" aria-label="Menu Guest Premium">
+   <button class="btn small primary" onclick="guestOpen('overview')">🏰 Beranda</button><button class="btn small" onclick="guestOpen('announcements')">📢 Pengumuman</button><button class="btn small" onclick="guestOpen('world')">🌍 Dunia Virtual</button><button class="btn small" onclick="guestOpen('room')">🏡 Demo Room</button><button class="btn small" onclick="guestOpen('games')">🎮 Mini Games</button><button class="btn small" onclick="guestOpen('music')">🎵 Music Hall</button><button class="btn small" onclick="guestOpen('apply')">📝 Gabung Koloni</button>
   </div>
+  <div id="guestPremiumContent" class="panel guest-content"></div>
+  <div class="notice">Mode tamu: area demo dan informasi publik saja. Chat pribadi, room anggota, dompet, koin, hadiah, data finansial, serta panel Admin/Developer tetap terkunci.</div>
+  <div class="rowline"><span class="tiny">Direkomendasikan oleh: <b id="guestReferrer">Member FAMILY COLONY</b></span><button class="btn danger small" onclick="logout()">KELUAR DARI AKSES TAMU</button></div>
+ </div>
 </section>
 <section id="workspace" class="hidden">
   <div class="app-layout">
@@ -333,14 +338,52 @@ async function guestRecommendationLogin(){
  try{
   const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"guest_recommendation_login",guest_name:name,recommendation_code:code})});
   const result=await response.json();if(!response.ok||!result.ok||!result.guest)throw new Error(result.error||"guest_recommendation_rejected");
-  session={name:result.guest.name,role:"Guest",guest:true,referrer:result.guest.recommended_by,expiresAt:Date.parse(result.guest.expires_at)};
+  session={name:result.guest.name,role:"Guest",guest:true,guestToken:result.guest.guest_session_token,referrer:result.guest.recommended_by,expiresAt:Date.parse(result.guest.expires_at)};
   try{sessionStorage.setItem("fc_session",JSON.stringify(session))}catch(e){}
   $("guestRecommendationCode").value="";$("guestFeedback").classList.add("hidden");
   $("landing").classList.add("hidden");$("workspace").classList.add("hidden");$("guestWorkspace").classList.remove("hidden");
-  $("guestWelcome").textContent="Halo, "+session.name+". Rekomendasi diberikan oleh "+(session.referrer||"member Family Colony")+". Sesi tamu berlaku sampai "+new Date(session.expiresAt).toLocaleString("id-ID")+".";
+  $("guestWelcome").textContent="Halo, "+session.name+". Selamat menjelajahi fitur publik dan area demo FAMILY COLONY.";
+  $("guestReferrer").textContent=session.referrer||"Member Family Colony";$("guestExpiry").textContent="Sesi sampai "+new Date(session.expiresAt).toLocaleString("id-ID");
   $("logoutBtn").classList.remove("hidden");$("homeBtn").classList.add("hidden");$("guestInviteBtn").classList.add("hidden");$("topUser").textContent=session.name+" · TAMU";
+  guestOpen("overview");
  }catch(err){showGuestFeedback("Akses ditolak: "+String(err.message||"").split(":")[0]+". Pastikan kode berasal dari member aktif, belum dipakai, dan belum kedaluwarsa.")}
  finally{if(submit){submit.disabled=false;submit.textContent="MASUK SEBAGAI TAMU"}}
+}
+function guestOpen(page){
+ if(!session?.guest||session.expiresAt<=Date.now())return logout();
+ const root=$("guestPremiumContent");if(!root)return;
+ const tiles=[
+  ["📢","Pengumuman Publik","Informasi umum koloni dan panduan pengunjung.","announcements"],
+  ["🌍","Virtual World Preview","Kenali plaza dan lingkungan demo FAMILY COLONY.","world"],
+  ["🏡","Demo Room","Lihat contoh ruangan dan fasilitas yang disiapkan untuk demo.","room"],
+  ["🎮","Mini Games Demo","Coba kuis ringan pengenalan koloni tanpa hadiah koin.","games"],
+  ["🎵","Music Hall Demo","Lihat pengalaman panggung dan tata ruang Music Hall.","music"],
+  ["📝","Pengajuan Anggota","Ajukan keanggotaan dan pantau tindak lanjut pengajuan.","apply"]
+ ];
+ const tileGrid=()=>'<div class="guest-card-grid">'+tiles.map(t=>'<button class="guest-tile" onclick="guestOpen(\''+t[3]+'\')"><div class="big">'+t[0]+'</div><h3>'+t[1]+'</h3><p>'+t[2]+'</p></button>').join("")+'</div>';
+ const pages={
+ overview:'<div class="eyebrow">WELCOME CENTER</div><h2>Selamat datang, '+escapeGuestText(session.name)+'</h2><p class="muted">Ini adalah pintu masuk Guest Premium. Jelajahi informasi publik, lihat pratinjau dunia virtual, dan coba aktivitas demo sebelum mengajukan keanggotaan.</p>'+tileGrid()+'<div class="notice">Semua aktivitas demo bersifat percobaan. Progres demo tidak menghasilkan koin, item, atau hak anggota.</div>',
+ announcements:'<div class="eyebrow">PUBLIC INFORMATION</div><h2>Pengumuman & Informasi</h2><div class="guest-card-grid"><article class="guest-tile"><div class="big">📜</div><h3>Selamat Datang</h3><p>Gunakan akses tamu untuk mengenal FAMILY COLONY dan memahami tata tertib komunitas.</p></article><article class="guest-tile"><div class="big">🤝</div><h3>Etika Koloni</h3><p>Hormati sesama pengunjung dan anggota. Jangan membagikan kode rekomendasi milik orang lain.</p></article><article class="guest-tile"><div class="big">🔔</div><h3>Agenda Publik</h3><p>Informasi jadwal kegiatan akan ditampilkan setelah pengelola menerbitkan agenda publik.</p></article></div><p class="tiny">Konten contoh pengenalan; bukan pengumuman event terjadwal.</p>',
+ world:'<div class="eyebrow">WORLD PREVIEW</div><h2>Virtual World Preview</h2><div class="guest-preview"><div><div class="scene">🏰 🌳 🐝</div><h3>Colony Plaza</h3><p class="muted">Area pratinjau lingkungan koloni</p></div></div><p class="muted">Jelajahi gambaran awal plaza, taman, dan titik kumpul. Area dunia penuh dan interaksi avatar anggota tetap terkunci dari akun tamu.</p>',
+ room:'<div class="eyebrow">DEMO ENVIRONMENT</div><h2>Demo Room</h2><div class="guest-preview"><div><div class="scene">🛋️ 🪴 🪟</div><h3>Welcome Lounge</h3><p class="muted">Ruang contoh khusus pengunjung</p></div></div><p class="muted">Pratinjau ruangan ini tidak terhubung ke room privat atau daftar anggota.</p>',
+ games:'<div class="eyebrow">MINI GAMES • DEMO</div><h2>Kuis Pengenalan Koloni</h2><p class="muted">Jawab pertanyaan ringan. Ini hanya demo lokal dan tidak memberikan hadiah.</p><div class="guest-quiz"><b>FAMILY COLONY adalah komunitas digital untuk…</b><button class="btn" onclick="guestQuizAnswer(false)">A. Transaksi keuangan</button><button class="btn" onclick="guestQuizAnswer(true)">B. Kebersamaan, hiburan, dan aktivitas komunitas</button><button class="btn" onclick="guestQuizAnswer(false)">C. Penyimpanan file pribadi</button><div id="guestQuizFeedback" aria-live="polite"></div></div>',
+ music:'<div class="eyebrow">MUSIC HALL • PREVIEW</div><h2>Music Hall Demo</h2><div class="guest-preview"><div><div class="scene">🎼 🎤 ✨</div><h3>Royal Music Hall</h3><p class="muted">Panggung dan area pertunjukan demo</p></div></div><p class="muted">Ini pratinjau tata ruang. Pemutaran musik, acara live, dan ruang khusus anggota tidak dibuka pada mode tamu.</p>',
+ apply:'<div class="eyebrow">MEMBERSHIP APPLICATION</div><h2>Pengajuan Keanggotaan</h2><p class="muted">Isi permohonan. Pengajuan akan tercatat untuk ditinjau pengelola; pengiriman formulir tidak otomatis menjadikanmu anggota.</p><form class="guest-form" onsubmit="submitGuestApplication(event)"><div class="field"><label for="guestApplyName">Nama lengkap / nama panggilan</label><input id="guestApplyName" maxlength="60" required value="'+escapeGuestAttr(session.name)+'"></div><div class="field"><label for="guestApplyContact">Kontak yang bisa dihubungi (opsional)</label><input id="guestApplyContact" maxlength="100" placeholder="Email atau username kontak"></div><div class="field"><label for="guestApplyReason">Alasan ingin bergabung</label><textarea id="guestApplyReason" maxlength="500" required placeholder="Ceritakan secara singkat…"></textarea></div><button class="btn primary" type="submit">KIRIM PENGAJUAN</button><div id="guestApplyFeedback" class="tiny" aria-live="polite"></div></form>'
+ };
+ root.innerHTML=pages[page]||pages.overview;
+}
+function escapeGuestText(value){return String(value||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function escapeGuestAttr(value){return escapeGuestText(value);}
+function guestQuizAnswer(correct){const el=$("guestQuizFeedback");if(el)el.innerHTML=correct?'<div class="guest-feedback">Benar! Ini demo saja—tidak ada koin atau hadiah yang diberikan.</div>':'<div class="notice">Belum tepat. Coba pilih jawaban lainnya.</div>';}
+async function submitGuestApplication(event){
+ event.preventDefault();if(!session?.guest||!session.guestToken||session.expiresAt<=Date.now())return logout();
+ const button=event.target.querySelector('button[type="submit"]'),feedback=$("guestApplyFeedback");
+ const payload={action:"guest_membership_apply",guest_session_token:session.guestToken,applicant_name:$("guestApplyName").value.trim(),contact:$("guestApplyContact").value.trim(),reason:$("guestApplyReason").value.trim()};
+ if(payload.applicant_name.length<2||payload.reason.length<10){if(feedback)feedback.textContent="Nama minimal 2 karakter dan alasan minimal 10 karakter.";return;}
+ if(button){button.disabled=true;button.textContent="MENGIRIM...";}
+ try{const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"application_failed");if(feedback)feedback.innerHTML='<span class="guest-feedback">Pengajuan berhasil dicatat. Nomor referensi: '+escapeGuestText(result.application_id||"tercatat")+'. Pengelola akan meninjau permohonanmu.</span>';event.target.reset();$("guestApplyName").value=session.name;}
+ catch(error){if(feedback)feedback.textContent="Pengajuan belum berhasil: "+String(error.message||"").split(":")[0]+". Coba kembali selama sesi tamu masih aktif.";}
+ finally{if(button){button.disabled=false;button.textContent="KIRIM PENGAJUAN";}}
 }
 async function requestAccess(){
  const username=$("memberName").value.trim().replace(/^@/,"").toLowerCase();
@@ -1515,6 +1558,6 @@ $("memberName").addEventListener("input",e=>{const value=e.target.value.trim().r
 $("guestRecommendationCode")?.addEventListener("keydown",e=>{if(e.key==="Enter")guestRecommendationLogin()});
 /* Panel Developer tetap tersembunyi sampai username khusus Developer dimasukkan. */
 $("developerGate").addEventListener("click",e=>{if(e.target.id==="developerGate")closeDeveloperGate()});
-if(!Array.isArray(db.members))db.members=[];if(!Array.isArray(db.requests))db.requests=[];if(!Array.isArray(db.announcements))db.announcements=[];if(!Array.isArray(db.activity))db.activity=[];ensureEconomyData();ensureMissionData();ensureHoneyChallengeData();ensureGuessWhoData();saveDB();try{const saved=JSON.parse(sessionStorage.getItem("fc_session")||"null");if(saved&&saved.expiresAt>Date.now()+30000){session=saved;if(saved.guest){$("landing").classList.add("hidden");$("workspace").classList.add("hidden");$("guestWorkspace").classList.remove("hidden");$("guestWelcome").textContent="Halo, "+saved.name+". Akses tamu terbatas."; $("logoutBtn").classList.remove("hidden");$("topUser").textContent=saved.name+" · TAMU"}else if(saved.accessToken){enterApp()}}}catch(e){}
+if(!Array.isArray(db.members))db.members=[];if(!Array.isArray(db.requests))db.requests=[];if(!Array.isArray(db.announcements))db.announcements=[];if(!Array.isArray(db.activity))db.activity=[];ensureEconomyData();ensureMissionData();ensureHoneyChallengeData();ensureGuessWhoData();saveDB();try{const saved=JSON.parse(sessionStorage.getItem("fc_session")||"null");if(saved&&saved.expiresAt>Date.now()+30000){session=saved;if(saved.guest&&saved.guestToken){$("landing").classList.add("hidden");$("workspace").classList.add("hidden");$("guestWorkspace").classList.remove("hidden");$("guestWelcome").textContent="Halo, "+saved.name+". Selamat menjelajahi fitur publik dan area demo FAMILY COLONY.";$("guestReferrer").textContent=saved.referrer||"Member Family Colony";$("guestExpiry").textContent="Sesi sampai "+new Date(saved.expiresAt).toLocaleString("id-ID");$("logoutBtn").classList.remove("hidden");$("topUser").textContent=saved.name+" · TAMU";guestOpen("overview")}else if(saved.accessToken){enterApp()}}}catch(e){}
 </script>
 </body></html>
