@@ -18,6 +18,7 @@ func _ready() -> void:
 		push_warning("FAMILY COLONY: MultiplayerManager is missing.")
 		return
 	_network.peer_roster_changed.connect(_on_peer_roster_changed)
+	_network.connection_state_changed.connect(_on_connection_state_changed)
 
 
 func create_room(room_name: String, capacity: int = -1) -> void:
@@ -52,6 +53,11 @@ func leave_room() -> void:
 
 func get_room_snapshot() -> Array:
 	return _public_room_snapshot()
+
+
+func _on_connection_state_changed(state: String, _detail: String) -> void:
+	if state == "connected":
+		_rpc_request_room_snapshot.rpc_id(1)
 
 
 func _on_peer_roster_changed(peer_ids: Array[int]) -> void:
@@ -147,6 +153,12 @@ func _send_result(peer_id: int, ok: bool, message: String) -> void:
 		room_action_result.emit(ok, message)
 	else:
 		_rpc_room_result.rpc_id(peer_id, ok, message)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _rpc_request_room_snapshot() -> void:
+	if multiplayer.is_server():
+		_rpc_receive_room_snapshot.rpc_id(multiplayer.get_remote_sender_id(), _public_room_snapshot())
 
 
 @rpc("any_peer", "call_remote", "reliable")
