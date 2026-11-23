@@ -18,7 +18,7 @@ Status: the existing Android application compiles with the Godot 4.4.1 Android e
 - The deployed `fc-world-session` Edge Function verifies the bearer token with Supabase Auth, resolves the canonical active member row, and returns a minimal profile/permission snapshot.
 - `WorldSessionClient` sends the access token and publishable key to the Edge Function. Android gameplay remains locked until the server confirms access.
 - The existing app's 3D entry is restricted to Developer during internal validation; ordinary members continue using the rest of the app.
-- The WebView app refreshes Supabase sessions before entering the world, on returning to the app, and while the WebView is active. Refresh during a long-running Godot session remains a release blocker.
+- The WebView app refreshes Supabase sessions before entering the world, on returning to the app, and while the WebView is active. A native callback also requests a WebView refresh every 10 minutes while Godot is open; only the renewed access token and publishable key are handed back to Godot. The refresh token stays in the existing WebView authentication layer. Physical-device and network interruption tests remain release blockers.
 
 ## Remaining integration and release sequence
 1. Install the internal build on the Redmi Note 8 Pro and verify launch/return, orientation, pause/resume, network loss, invalid/expired session, and memory cleanup.
