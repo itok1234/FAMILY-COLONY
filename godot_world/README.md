@@ -27,12 +27,12 @@ An isolated Godot 4 project for the future FAMILY COLONY World engine.
 ## Current art status
 The neighborhood objects are procedural blockout meshes. They establish scale, navigation and composition only; they are not final photorealistic assets. The current avatar is a procedural proportion/material blockout with simple generated geometry and a basic walk cycle. It is not a final ultra-realistic character model, and has not yet been validated in the Godot editor or on a device.
 
-## Not yet implemented
+## Multiplayer foundation milestone\n- Added a LAN transport/session manager using Godot ENet with host, join and leave methods.\n- Added connection-state signals, a peer-ID roster and a small on-screen connection status label.\n- Default LAN port is 24560; the manager exposes `host_game(port)`, `join_game(address, port)`, `leave_game()` and `get_peer_roster()`.\n- This is transport scaffolding only: it does not yet synchronize avatar transforms, movement, animation, room state, chat, member identity or permissions. The roster is a basic connection-event roster, not a production presence service.\n- No public server address, account credentials or secrets are embedded. Host/join must be invoked by a future UI or trusted application bridge.\n\n## Not yet implemented
 - Production-quality authored avatar models, a full skeletal rig, facial expressions, hair/clothing simulation, customization and complete animation sets.
 - Authored PBR material/texture library, detailed building facades, interior room sets, vegetation and water.
 - Camera smoothing, polished touch HUD, settings menu and accessibility.
 - Production radial-wheel polish, object-specific animation clips, interaction permissions and server-authoritative multiplayer validation.
-- Multiplayer authority, member presence, room instances, chat and Supabase session bridge.
+- Production multiplayer authority, complete peer-roster bootstrap, member presence, room instances, chat and Supabase session bridge.\n- Server-authoritative avatar transform/movement replication and anti-cheat validation.
 - Android export/integration into the existing application.
 - Godot editor/headless validation, device profiling, thermal testing and release validation.
 
