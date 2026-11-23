@@ -95,9 +95,14 @@ func _rpc_submit_message(raw_text: String) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender_id := multiplayer.get_remote_sender_id()
+	if sender_id <= 1 or not multiplayer.get_peers().has(sender_id):
+		return
+	if raw_text.length() > max_message_characters:
+		_reject_sender(sender_id, "Pesan melebihi batas karakter.")
+		return
 	var clean_text := raw_text.strip_edges()
-	if clean_text.is_empty() or clean_text.length() > max_message_characters:
-		_reject_sender(sender_id, "Pesan kosong atau melebihi batas karakter.")
+	if clean_text.is_empty():
+		_reject_sender(sender_id, "Pesan tidak boleh kosong.")
 		return
 	_accept_message(sender_id, clean_text)
 
