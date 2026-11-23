@@ -42,6 +42,20 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void openGodotWorld(String accessToken) {
+            final String token = accessToken == null ? "" : accessToken.trim();
+            runOnUiThread(() -> {
+                if (token.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Sesi login tidak tersedia. Silakan masuk kembali.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Intent worldIntent = new Intent(MainActivity.this, WorldActivity.class);
+                worldIntent.putExtra(WorldActivity.EXTRA_ACCESS_TOKEN, token);
+                startActivity(worldIntent);
+            });
+        }
+
+        @JavascriptInterface
         public String getMicrophonePermissionStatus() {
             return checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
                     ? "GRANTED" : "DENIED";
