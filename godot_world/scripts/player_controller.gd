@@ -1,5 +1,5 @@
 extends CharacterBody3D
-## Desktop/editor movement test. Touch controls will be added for Android.
+## Hybrid desktop + Android touch movement controller.
 
 @export var walk_speed: float = 4.5
 @export var acceleration: float = 14.0
@@ -8,9 +8,14 @@ extends CharacterBody3D
 
 func _physics_process(delta: float) -> void:
 	var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var joystick := get_tree().get_first_node_in_group("mobile_joystick")
+	if joystick != null and joystick.has_method("get_output"):
+		var touch_input: Vector2 = joystick.get_output()
+		if touch_input.length_squared() > 0.001:
+			input_vector = touch_input
+
 	var direction := Vector3(input_vector.x, 0.0, input_vector.y).normalized()
 	var target_velocity := direction * walk_speed
-
 	velocity.x = move_toward(velocity.x, target_velocity.x, acceleration * delta)
 	velocity.z = move_toward(velocity.z, target_velocity.z, acceleration * delta)
 
