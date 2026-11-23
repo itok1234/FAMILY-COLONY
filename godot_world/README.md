@@ -70,3 +70,10 @@ Godot 4.x. Compatibility renderer is the initial baseline for broad Android supp
 ## Android integration and release gate
 - Added `docs/ANDROID_INTEGRATION_RELEASE_GATE.md` to preserve the existing application and define the required Godot bridge, session verification, regression tests, device profiling and store-release gates.
 - No APK/AAB export, Android integration, signing, installation or device test was performed in this milestone.
+
+## First enterable interior milestone
+- Added a local portal interaction script and an enterable Community Hub interior connected to the outdoor neighborhood.
+- The prototype interior includes a floor, perimeter walls, lounge seating, coffee table, community counter and warm ceiling fixture.
+- Players can use the existing world interaction menu to enter the hub and return outside; the same player and camera remain active.
+- This is still a single-client/local prototype. Room access permissions, synchronized interior instances, persistent furniture, detailed PBR assets, full collision coverage and multiplayer portal transitions are not implemented.
+- The interior and portal scripts have not yet been parsed or tested in the Godot editor or on Android hardware.
