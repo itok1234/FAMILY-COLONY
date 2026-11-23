@@ -12,7 +12,9 @@ android {
         // Other builds retain the project's normal ARM ABI support.
         if (!project.hasProperty('fcSplitReleaseApks')) {
             ndk {
-                if (project.hasProperty('fcTestArm64Only')) {
+                if (project.hasProperty('fcEmulatorX86_64')) {
+                    abiFilters 'x86_64'
+                } else if (project.hasProperty('fcTestArm64Only')) {
                     abiFilters 'arm64-v8a'
                 } else {
                     abiFilters 'arm64-v8a', 'armeabi-v7a'
