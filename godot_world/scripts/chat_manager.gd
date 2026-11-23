@@ -24,6 +24,8 @@ func _ready() -> void:
 		return
 	if _rooms.has_signal("local_room_changed"):
 		_rooms.local_room_changed.connect(_on_local_room_changed)
+	if _network.has_signal("peer_roster_changed"):
+		_network.peer_roster_changed.connect(_on_peer_roster_changed)
 	_build_chat_hud()
 	for message in _history:
 		_append_message_to_hud(message)
@@ -55,6 +57,8 @@ func send_message(raw_text: String) -> void:
 func _accept_message(sender_id: int, clean_text: String) -> void:
 	if not multiplayer.is_server() or _rooms == null:
 		return
+	if sender_id != multiplayer.get_unique_id() and not multiplayer.get_peers().has(sender_id):
+		return
 	var room_id: String = str(_rooms.call("get_peer_room_id", sender_id))
 	if room_id.is_empty():
 		_reject_sender(sender_id, "Kamu belum berada di room.")
@@ -78,6 +82,14 @@ func _accept_message(sender_id: int, clean_text: String) -> void:
 		if peer_id == multiplayer.get_unique_id():
 			continue
 		_rpc_receive_message.rpc_id(peer_id, message)
+
+
+func _on_peer_roster_changed(peer_ids: Array[int]) -> void:
+	# Drop per-peer throttling state after disconnect so stale peer IDs do not
+	# accumulate and a later connection cannot inherit an old cooldown.
+	for peer_id in _last_send_at.keys():
+		if int(peer_id) != multiplayer.get_unique_id() and not peer_ids.has(int(peer_id)):
+			_last_send_at.erase(peer_id)
 
 
 func _on_local_room_changed(room_id: String, _members: Array[int]) -> void:
@@ -128,7 +140,11 @@ func _rpc_submit_message(raw_text: String) -> void:
 
 @rpc("authority", "call_remote", "reliable")
 func _rpc_receive_message(message: Dictionary) -> void:
-	if String(message.get("text", "")).is_empty():
+	var text_value := str(message.get("text", ""))
+	var message_room_id := str(message.get("room_id", ""))
+	if text_value.strip_edges().is_empty() or text_value.length() > max_message_characters:
+		return
+	if message_room_id.is_empty() or message_room_id != _current_room_id:
 		return
 	_store_message(message)
 
