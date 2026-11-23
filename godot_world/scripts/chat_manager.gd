@@ -26,6 +26,8 @@ func _ready() -> void:
 		_rooms.local_room_changed.connect(_on_local_room_changed)
 	if _network.has_signal("peer_roster_changed"):
 		_network.peer_roster_changed.connect(_on_peer_roster_changed)
+	if _network.has_signal("connection_state_changed"):
+		_network.connection_state_changed.connect(_on_connection_state_changed)
 	_build_chat_hud()
 	for message in _history:
 		_append_message_to_hud(message)
@@ -90,18 +92,37 @@ func _on_peer_roster_changed(peer_ids: Array[int]) -> void:
 	for peer_id in _last_send_at.keys().duplicate():
 		if int(peer_id) != multiplayer.get_unique_id() and not peer_ids.has(int(peer_id)):
 			_last_send_at.erase(peer_id)
+	if not multiplayer.is_server() and peer_ids.is_empty():
+		_clear_local_chat_state()
+
+
+func _on_connection_state_changed(state: String, _detail: String) -> void:
+	if state == "offline" or state == "error":
+		_clear_local_chat_state()
 
 
 func _on_local_room_changed(room_id: String, _members: Array[int]) -> void:
 	if room_id == _current_room_id:
 		return
 	_current_room_id = room_id
+	_clear_local_chat_history()
+
+
+func _clear_local_chat_state() -> void:
+	_current_room_id = ""
+	_clear_local_chat_history()
+
+
+func _clear_local_chat_history() -> void:
 	_history.clear()
 	if is_instance_valid(_chat_log):
 		for child in _chat_log.get_children():
 			child.queue_free()
 	if is_instance_valid(_chat_empty_label):
 		_chat_empty_label.visible = true
+	if is_instance_valid(_chat_error_label):
+		_chat_error_label.text = ""
+		_chat_error_label.visible = false
 
 
 func _store_message(message: Dictionary) -> void:
