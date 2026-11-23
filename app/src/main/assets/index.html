@@ -143,7 +143,7 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
 </head>
 <body>
 <header class="topbar"><div class="shell topbar-inner">
-  <div class="brand"><div class="bee-mark" id="secretGate" title="Family Colony">♛</div><div><strong>FAMILY COLONY</strong><small>BEE KINGDOM • DIGITAL REALM</small></div></div>
+  <div class="brand"><div class="bee-mark" id="secretGate" title="Akses Developer" role="button" tabindex="0" onclick="openPrivateDeveloperPanel()">♛</div><div><strong>FAMILY COLONY</strong><small>BEE KINGDOM • DIGITAL REALM</small></div></div>
   <div class="top-actions"><span id="topUser" class="tiny"></span><button id="homeBtn" class="btn ghost small hidden" onclick="goHome()">Beranda</button><button id="logoutBtn" class="btn small hidden" onclick="logout()">Keluar</button></div>
 </div></header>
 <main class="shell">
@@ -407,11 +407,14 @@ async function bootstrapDeveloperPassword(){
 }
 function developerLogin(){closeDeveloperGate();$("developerPinInput")?.focus();toast("Gunakan PIN 6 digit pada panel Login Developer.")}
 function closeDeveloperGate(){$("developerGate")?.classList.add("hidden");if($("devGateCode"))$("devGateCode").value="";if($("bootstrapSecret"))$("bootstrapSecret").value=""}
-let secretTapCount=0,secretTapTimer=null;
-function openPrivateDeveloperPanel(){const panel=$("developerLoginPanel");if(!panel)return;panel.classList.remove("hidden");panel.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>$("developerPinInput")?.focus(),250);toast("Akses privat Developer dibuka.");}
-function secretGateTap(){secretTapCount++;clearTimeout(secretTapTimer);secretTapTimer=setTimeout(()=>{secretTapCount=0},5000);if(secretTapCount>=5){secretTapCount=0;openPrivateDeveloperPanel();}}
-let secretHoldTimer=null;
-function bindPrivateDeveloperAccess(){const logo=$("secretGate");if(!logo)return;logo.style.touchAction="manipulation";logo.addEventListener("click",secretGateTap);logo.addEventListener("contextmenu",e=>e.preventDefault());logo.addEventListener("pointerdown",()=>{clearTimeout(secretHoldTimer);secretHoldTimer=setTimeout(openPrivateDeveloperPanel,1600)});["pointerup","pointercancel","pointerleave"].forEach(ev=>logo.addEventListener(ev,()=>clearTimeout(secretHoldTimer)));}
+function openPrivateDeveloperPanel(){
+ const panel=$("developerLoginPanel");
+ if(!panel)return;
+ panel.classList.remove("hidden");
+ panel.scrollIntoView({behavior:"smooth",block:"center"});
+ $("developerPinInput")?.focus();
+}
+function bindPrivateDeveloperAccess(){/* Akses dibuka melalui satu ketukan logo mahkota. */}
 function logout(){if(session?.accessToken&&fcConfigReady())fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":session.anonKey||window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.accessToken}}).catch(()=>{});if(session)log("Logout",session.name);session=null;try{sessionStorage.removeItem("fc_session")}catch(e){}audio.pause();$("workspace").classList.add("hidden");$("landing").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("homeBtn").classList.add("hidden");$("topUser").textContent="";if($("devGateCode"))$("devGateCode").value=""}
 function goHome(){currentPage="overview";renderPage()}
 function enterApp(){$("landing").classList.add("hidden");$("workspace").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("homeBtn").classList.remove("hidden");$("topUser").textContent=session.name+" · "+session.role;currentPage="overview";$("sideName").textContent=session.name;$("sideRole").textContent=session.role.toUpperCase();buildNav();recordMissionEvent("login","Login ke kerajaan");renderPage();requestPortrait()}
@@ -1462,7 +1465,7 @@ function fc12ExportBackup(){if(session?.role!=="Developer")return toast("Akses D
 $("memberName").addEventListener("keydown",e=>{if(e.key==="Enter")requestAccess()});
 $("devGateCode").addEventListener("keydown",e=>{if(e.key==="Enter")developerLogin()});
 const developerSetupButton=$("developerSetupButton");if(developerSetupButton)developerSetupButton.addEventListener("click",()=>bootstrapDeveloperPassword());
-bindPrivateDeveloperAccess();
+/* Panel Developer tetap tersembunyi sampai logo mahkota diketuk. */
 $("developerGate").addEventListener("click",e=>{if(e.target.id==="developerGate")closeDeveloperGate()});
 if(!Array.isArray(db.members))db.members=[];if(!Array.isArray(db.requests))db.requests=[];if(!Array.isArray(db.announcements))db.announcements=[];if(!Array.isArray(db.activity))db.activity=[];ensureEconomyData();ensureMissionData();ensureHoneyChallengeData();ensureGuessWhoData();saveDB();try{const saved=JSON.parse(sessionStorage.getItem("fc_session")||"null");if(saved&&saved.accessToken&&saved.expiresAt>Date.now()+30000){session=saved;enterApp()}}catch(e){}
 </script>
