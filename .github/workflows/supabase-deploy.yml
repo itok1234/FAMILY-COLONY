@@ -112,6 +112,52 @@ jobs:
             exit 1
           fi
 
+      - name: Apply guest recommendation access schema
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: irwtnqekrwhgompulach
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          sql = Path("supabase/migrations/202611230003_guest_recommendation_access.sql").read_text()
+          Path("/tmp/fc-guest-query.json").write_text(json.dumps({"query": sql}))
+          PY
+          code=$(curl -sS -w "%{http_code}" -o /tmp/fc-guest-result.json -X POST \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data-binary @/tmp/fc-guest-query.json \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")
+          echo "Guest access schema HTTP status: $code"
+          if [[ "$code" != 2* ]]; then
+            cat /tmp/fc-guest-result.json
+            exit 1
+          fi
+
+      - name: Apply Guest Premium applications schema
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: irwtnqekrwhgompulach
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          sql = Path("supabase/migrations/202611230004_guest_premium_applications.sql").read_text()
+          Path("/tmp/fc-guest-premium-query.json").write_text(json.dumps({"query": sql}))
+          PY
+          code=$(curl -sS -w "%{http_code}" -o /tmp/fc-guest-premium-result.json -X POST \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data-binary @/tmp/fc-guest-premium-query.json \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")
+          echo "Guest Premium schema HTTP status: $code"
+          if [[ "$code" != 2* ]]; then
+            cat /tmp/fc-guest-premium-result.json
+            exit 1
+          fi
+
       - name: Deploy member authentication Edge Function
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
