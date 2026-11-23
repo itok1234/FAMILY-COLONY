@@ -48,6 +48,7 @@ jobs:
           profile: pixel_2
           force-avd-creation: true
           disable-animations: true
+          disable-linux-hardware-acceleration: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           script: |
             set -euo pipefail
