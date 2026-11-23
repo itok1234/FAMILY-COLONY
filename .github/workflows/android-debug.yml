@@ -12,6 +12,7 @@ on:
       - 'settings.gradle'
       - 'gradle.properties'
       - '.github/workflows/android-debug.yml'
+      - '.github/workflows/android-release.yml'
 
 permissions:
   contents: read
