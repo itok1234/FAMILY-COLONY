@@ -147,7 +147,7 @@ jobs:
               { path: path + 'app-armeabi-v7a-release.apk', name: 'FAMILY-COLONY-' + process.env.RELEASE_TAG + '-armeabi-v7a.apk' }
             ];
             const tag = process.env.RELEASE_TAG.trim();
-            if (!/^v[0-9]+\\.[0-9]+\\.[0-9]+([.-][A-Za-z0-9.-]+)?$/.test(tag)) {
+            if (!/^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$/.test(tag)) {
               throw new Error('Release tag format is invalid.');
             }
             const prerelease = process.env.PRERELEASE === 'true';
@@ -166,7 +166,7 @@ jobs:
                 '- Distribution: direct APK download; Google Play Store is not required.',
                 '- Status: ' + (prerelease ? 'prerelease / testing' : 'final release'),
                 '- Install only the APK matching the phone architecture.'
-              ].join('\\n'),
+              ].join('\n'),
               draft: false,
               prerelease,
               make_latest: prerelease ? 'false' : 'true'
