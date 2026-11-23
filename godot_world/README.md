@@ -122,3 +122,10 @@ Godot 4.x. Compatibility renderer is the initial baseline for broad Android supp
 - Outdoor benches and the Community Hub sofa expose Sit and Greet; the welcome marker exposes Use and Greet; location portals expose Use only.
 - The controller checks the allowlist again when an action is selected, preventing stale or hidden menu choices from being executed.
 - This is local interaction UX validation only. It does not add server-authoritative permissions, synchronized seat occupancy, or production multiplayer security.
+
+
+## Room chat user-interface milestone
+- Added a compact in-world chat panel with message history, a text composer, send action, and visible transport errors.
+- The panel uses the existing room-scoped LAN chat manager; the host still checks room membership, message length and send interval before relaying messages.
+- The interface explicitly labels sender names as temporary connection peer IDs, not verified FAMILY COLONY account identities.
+- Messages remain in-memory only. This does not add private messaging, moderation/report/block tools, account identity binding, persistent history, or production server infrastructure.
