@@ -28,3 +28,8 @@ func _physics_process(delta: float) -> void:
 		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), minf(turn_speed * delta, 1.0))
 
 	move_and_slide()
+
+	var avatar := get_node_or_null("AvatarVisual")
+	if avatar != null and avatar.has_method("set_motion_strength"):
+		var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+		avatar.set_motion_strength(clampf(horizontal_speed / maxf(walk_speed, 0.01), 0.0, 1.0))
