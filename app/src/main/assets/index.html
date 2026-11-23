@@ -153,7 +153,7 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
   <div class="hero"><div><div class="eyebrow">A DIGITAL KINGDOM • EST. BY COMMUNITY</div><h1>One Colony.<br><span>One Kingdom.</span></h1><p>Selamat datang di dunia Family Colony — Bee Kingdom. Ruang digital untuk mengenal anggota, membangun kebersamaan, menikmati hiburan, dan menjaga kehidupan koloni.</p><div class="toolbar"><span class="status ok">● ANDROID APP • SERVER AUTH</span><span class="status">♢ Premium Royal Experience</span></div></div><div class="hero-art"><div class="hive"><span>🐝</span></div></div></div>
   <div class="login-grid">
     <section class="panel login-panel"><div class="eyebrow">COLONY ACCESS</div><h2>Member Login</h2><p class="muted tiny">Masuk menggunakan username Family Colony dan password akunmu. Email pribadi tidak diperlukan.</p>
-      <div class="field"><label for="memberName">Username</label><input id="memberName" maxlength="32" autocomplete="username" placeholder="Contoh: dhita atau @dhita"></div>
+      <div class="field"><label for="memberName">Username</label><input id="memberName" maxlength="32" autocomplete="username" placeholder="Contoh: dhita atau @dhita" oninput="syncDeveloperLoginPanel()"></div>
       <div class="field"><label for="memberPassword">Password</label><input id="memberPassword" type="password" maxlength="128" autocomplete="current-password" placeholder="Masukkan password"></div>
       <button class="btn primary" style="width:100%" onclick="requestAccess()">MASUK KE FAMILY COLONY</button>
       <p class="tiny" style="margin-top:14px">Login langsung dengan username dan password akun Family Colony. Tidak ada kode aktivasi.</p>
@@ -503,7 +503,15 @@ function openPrivateDeveloperPanel(){
  panel.classList.remove("hidden");panel.scrollIntoView({behavior:"smooth",block:"center"});
  $("developerPinInput")?.focus();
 }
-function bindPrivateDeveloperAccess(){/* Panel ditampilkan otomatis saat username edrick dimasukkan. */}
+function syncDeveloperLoginPanel(){
+ const username=String($("memberName")?.value||"").trim().replace(/^@/,"").toLowerCase();
+ const panel=$("developerLoginPanel");if(!panel)return;
+ if(username==="edrick"){
+  const wasHidden=panel.classList.contains("hidden");panel.classList.remove("hidden");
+  if(wasHidden)panel.scrollIntoView({behavior:"smooth",block:"center"});
+ }else{panel.classList.add("hidden");}
+}
+function bindPrivateDeveloperAccess(){const input=$("memberName");if(input){input.addEventListener("input",syncDeveloperLoginPanel);syncDeveloperLoginPanel();}}
 function logout(){if(session?.accessToken&&fcConfigReady())fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":session.anonKey||window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.accessToken}}).catch(()=>{});if(session)log("Logout",session.name);session=null;try{sessionStorage.removeItem("fc_session")}catch(e){}audio.pause();$("workspace").classList.add("hidden");$("guestWorkspace")?.classList.add("hidden");$("landing").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("homeBtn").classList.add("hidden");$("guestInviteBtn")?.classList.add("hidden");$("topUser").textContent="";if($("devGateCode"))$("devGateCode").value=""}
 function goHome(){currentPage="overview";renderPage()}
 function enterApp(){$("landing").classList.add("hidden");$("guestWorkspace")?.classList.add("hidden");$("workspace").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("homeBtn").classList.remove("hidden");if(session?.role!=="Guest")$("guestInviteBtn")?.classList.remove("hidden");$("topUser").textContent=session.name+" · "+session.role;currentPage="overview";$("sideName").textContent=session.name;$("sideRole").textContent=session.role.toUpperCase();buildNav();recordMissionEvent("login","Login ke kerajaan");renderPage();requestPortrait()}
