@@ -33,6 +33,8 @@ func _ready() -> void:
 			_world_session.connect("session_rejected", Callable(self, "_on_world_session_rejected"))
 		if _world_session.has_signal("session_cleared"):
 			_world_session.connect("session_cleared", Callable(self, "_on_world_session_cleared"))
+	if _room_manager != null and _room_manager.has_signal("local_room_changed"):
+		_room_manager.connect("local_room_changed", Callable(self, "_on_local_room_changed"))
 	_create_status_hud()
 	_update_status("offline", "LAN multiplayer siap")
 
@@ -116,11 +118,6 @@ func get_peer_roster() -> Array[int]:
 
 
 func _on_peer_connected(id: int) -> void:
-	if multiplayer.is_server():
-		_rpc_spawn_remote.rpc(id)
-		for existing_id in peer_ids:
-			if existing_id != multiplayer.get_unique_id():
-				_rpc_spawn_remote.rpc_id(id, existing_id)
 	if not peer_ids.has(id):
 		peer_ids.append(id)
 		peer_ids.sort()
@@ -138,7 +135,6 @@ func _on_peer_disconnected(id: int) -> void:
 
 
 func _on_connected_to_server() -> void:
-	_request_peer_roster.rpc_id(1)
 	var local_id := multiplayer.get_unique_id()
 	if not peer_ids.has(local_id):
 		peer_ids.append(local_id)
@@ -158,6 +154,35 @@ func _on_server_disconnected() -> void:
 
 
 
+func _on_local_room_changed(room_id: String, members: Array[int]) -> void:
+	# A room is also the visibility boundary: clients must not see or receive
+	# movement from avatars assigned to another room.
+	var visible_peers: Dictionary = {}
+	if not room_id.is_empty():
+		for peer_id in members:
+			if peer_id != multiplayer.get_unique_id():
+				visible_peers[peer_id] = true
+	for peer_id in _remote_players.keys():
+		if not visible_peers.has(int(peer_id)):
+			_remove_remote_player(int(peer_id))
+	for peer_id in visible_peers.keys():
+		_ensure_remote_player(int(peer_id))
+
+
+func _route_player_state(peer_id: int, position_value: Vector3, rotation_value: float, motion_value: float) -> void:
+	if not multiplayer.is_server() or _room_manager == null:
+		return
+	var room_id := str(_room_manager.call("get_peer_room_id", peer_id))
+	if room_id.is_empty():
+		return
+	_apply_remote_state(peer_id, position_value, rotation_value, motion_value)
+	var room_peers: Array = _room_manager.call("get_room_peer_ids", room_id)
+	for target in room_peers:
+		var target_id := int(target)
+		if target_id != multiplayer.get_unique_id() and target_id != peer_id:
+			_rpc_apply_state.rpc_id(target_id, peer_id, position_value, rotation_value, motion_value)
+
+
 func _publish_local_player_state() -> void:
 	var player := get_parent().get_node_or_null("Player") as CharacterBody3D
 	if player == null:
@@ -168,8 +193,7 @@ func _publish_local_player_state() -> void:
 		motion = float(avatar.get_motion_strength())
 	var local_id := multiplayer.get_unique_id()
 	if multiplayer.is_server():
-		_apply_remote_state(local_id, player.global_position, player.rotation.y, motion)
-		_rpc_apply_state.rpc(local_id, player.global_position, player.rotation.y, motion)
+		_route_player_state(local_id, player.global_position, player.rotation.y, motion)
 	else:
 		_rpc_submit_state.rpc_id(1, player.global_position, player.rotation.y, motion)
 
@@ -191,8 +215,7 @@ func _rpc_submit_state(position_value: Vector3, rotation_value: float, motion_va
 	if position_value.length_squared() > 1000000.0:
 		return
 	var safe_motion := clampf(motion_value, 0.0, 1.0)
-	_apply_remote_state(sender_id, position_value, rotation_value, safe_motion)
-	_rpc_apply_state.rpc(sender_id, position_value, rotation_value, safe_motion)
+	_route_player_state(sender_id, position_value, rotation_value, safe_motion)
 
 
 @rpc("authority", "call_remote", "unreliable")
@@ -208,16 +231,6 @@ func _rpc_spawn_remote(peer_id: int) -> void:
 @rpc("authority", "call_remote", "reliable")
 func _rpc_remove_remote(peer_id: int) -> void:
 	_remove_remote_player(peer_id)
-
-
-@rpc("any_peer", "call_remote", "reliable")
-func _request_peer_roster() -> void:
-	if not multiplayer.is_server():
-		return
-	var requester := multiplayer.get_remote_sender_id()
-	for peer_id in peer_ids:
-		if peer_id != requester:
-			_rpc_spawn_remote.rpc_id(requester, peer_id)
 
 
 func _ensure_remote_player(peer_id: int) -> void:
