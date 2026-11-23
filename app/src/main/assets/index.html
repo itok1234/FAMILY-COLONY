@@ -161,6 +161,15 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
       <p class="tiny">Akun diverifikasi melalui server Family Colony. Jangan gunakan password WePlay.</p>
     </section>
 
+    <section class="panel login-panel" id="developerLoginPanel">
+      <div class="eyebrow">PRIVATE DEVELOPER ACCESS</div><h2>Login Developer</h2>
+      <p class="muted tiny">Jalur khusus Developer FAMILY COLONY. Gunakan PIN 6 digit yang telah disiapkan.</p>
+      <div class="field"><label for="developerPinInput">PIN Developer</label><input id="developerPinInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="••••••" onkeydown="if(event.key==='Enter')developerPinLogin()"></div>
+      <button class="btn primary" style="width:100%" onclick="developerPinLogin()">MASUK SEBAGAI DEVELOPER</button>
+      <button class="btn ghost small" style="width:100%;margin-top:9px" onclick="developerPinSetup()">PENYIAPAN PIN PERTAMA KALI</button>
+      <p class="tiny" style="margin-top:10px">Penyiapan pertama memerlukan kode bootstrap server. PIN diverifikasi oleh server dan tidak disimpan di perangkat.</p>
+      <div id="developerPinFeedback" class="notice hidden"></div>
+    </section>
   </div>
 </section>
 <section id="workspace" class="hidden">
@@ -280,11 +289,12 @@ function toast(s){const t=$("toast");t.textContent=s;t.classList.add("show");set
 function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function fcAuthEmail(username){const bytes=new TextEncoder().encode(String(username||"").trim().replace(/^@/,"").toLowerCase());const hex=Array.from(bytes).map(b=>b.toString(16).padStart(2,"0")).join("");return "fc_"+hex+"@members.familycolony.invalid"}
 function fcConfigReady(){return !!window.FC_SUPABASE_URL}
-function fcFriendlyError(code){const map={developer_password_rejected:"Password akun Developer ditolak oleh Supabase Auth. Tautan akun sudah cocok; password perlu dipulihkan melalui jalur admin yang aman.",developer_auth_account_missing:"Akun Auth Developer belum ada atau tautannya tidak ditemukan.",developer_auth_link_mismatch:"Tautan akun Auth Developer tidak cocok dengan username edrick. Login dihentikan demi keamanan.",invalid_credentials:"Username atau password salah.",credentials_required:"Isi username dan password.",member_not_eligible:"Akun belum disiapkan pengurus atau statusnya tidak aktif.",email_not_confirmed:"Akun belum aktif. Hubungi pengurus.",activation_code_invalid_expired_or_used:"Kode aktivasi salah, kedaluwarsa, atau sudah digunakan.",account_creation_failed:"Akun tidak dapat dibuat. Periksa kode aktivasi atau hubungi pengurus.",bootstrap_not_authorized:"Akses setup Developer tidak diizinkan.",bootstrap_secret_not_configured:"Secret setup belum terbaca di server Supabase. Periksa FC_BOOTSTRAP_SECRET.",bootstrap_secret_mismatch:"Bootstrap Secret di aplikasi tidak sama dengan Secret di Supabase. Periksa kembali penyalinannya.",initial_password_min_12:"Password awal minimal 12 karakter.",developer_member_not_eligible:"Akun edrick belum memenuhi syarat setup Developer atau sudah terhubung.",developer_account_setup_failed:"Setup akun Developer gagal. Akun Auth mungkin sudah ada.",developer_account_link_failed:"Akun Developer gagal ditautkan ke data anggota.",developer_member_lookup_failed:"Server gagal membaca data anggota edrick. Periksa tabel fc_members.",developer_member_missing:"Username edrick tidak ditemukan pada tabel fc_members.",developer_member_inactive:"Status anggota edrick bukan Aktif. Perlu diperiksa pada data anggota.",developer_member_repair_failed:"Server tidak dapat memperbaiki role/status edrick.",developer_account_link_missing:"Data anggota menunjuk akun Auth yang sudah tidak ada.",developer_account_link_mismatch:"Akun Auth yang tertaut bukan akun login Developer edrick.",server_not_configured:"Konfigurasi kunci server Supabase belum lengkap.",password_min_12:"Password baru minimal 12 karakter.",password_update_failed:"Password baru gagal disimpan."};return map[code]||"Terjadi kendala koneksi atau akun. Coba lagi atau hubungi pengurus."}
+function fcFriendlyError(code){const map={developer_pin_rejected:"PIN Developer salah atau akses sementara dikunci. Periksa PIN dan coba lagi nanti.",developer_pin_not_initialized:"PIN Developer belum disiapkan di server.",developer_pin_setup_unavailable:"Penyiapan PIN belum tersedia. Periksa kode bootstrap server.",developer_pin_invalid_format:"PIN harus tepat 6 angka.",developer_pin_already_initialized:"PIN Developer sudah pernah disiapkan. Hubungi administrator untuk reset yang aman.",developer_pin_setup_failed:"Server gagal menyimpan PIN Developer.",developer_pin_verification_failed:"Server gagal memverifikasi PIN Developer.",developer_session_issue_failed:"PIN benar, tetapi server gagal membuat sesi Developer.",developer_password_rejected:"Password akun Developer ditolak oleh Supabase Auth. Tautan akun sudah cocok; password perlu dipulihkan melalui jalur admin yang aman.",developer_auth_account_missing:"Akun Auth Developer belum ada atau tautannya tidak ditemukan.",developer_auth_link_mismatch:"Tautan akun Auth Developer tidak cocok dengan username edrick. Login dihentikan demi keamanan.",invalid_credentials:"Username atau password salah.",credentials_required:"Isi username dan password.",member_not_eligible:"Akun belum disiapkan pengurus atau statusnya tidak aktif.",email_not_confirmed:"Akun belum aktif. Hubungi pengurus.",activation_code_invalid_expired_or_used:"Kode aktivasi salah, kedaluwarsa, atau sudah digunakan.",account_creation_failed:"Akun tidak dapat dibuat. Periksa kode aktivasi atau hubungi pengurus.",bootstrap_not_authorized:"Akses setup Developer tidak diizinkan.",bootstrap_secret_not_configured:"Secret setup belum terbaca di server Supabase. Periksa FC_BOOTSTRAP_SECRET.",bootstrap_secret_mismatch:"Bootstrap Secret di aplikasi tidak sama dengan Secret di Supabase. Periksa kembali penyalinannya.",initial_password_min_12:"Password awal minimal 12 karakter.",developer_member_not_eligible:"Akun edrick belum memenuhi syarat setup Developer atau sudah terhubung.",developer_account_setup_failed:"Setup akun Developer gagal. Akun Auth mungkin sudah ada.",developer_account_link_failed:"Akun Developer gagal ditautkan ke data anggota.",developer_member_lookup_failed:"Server gagal membaca data anggota edrick. Periksa tabel fc_members.",developer_member_missing:"Username edrick tidak ditemukan pada tabel fc_members.",developer_member_inactive:"Status anggota edrick bukan Aktif. Perlu diperiksa pada data anggota.",developer_member_repair_failed:"Server tidak dapat memperbaiki role/status edrick.",developer_account_link_missing:"Data anggota menunjuk akun Auth yang sudah tidak ada.",developer_account_link_mismatch:"Akun Auth yang tertaut bukan akun login Developer edrick.",server_not_configured:"Konfigurasi kunci server Supabase belum lengkap.",password_min_12:"Password baru minimal 12 karakter.",password_update_failed:"Password baru gagal disimpan."};return map[code]||"Terjadi kendala koneksi atau akun. Coba lagi atau hubungi pengurus."}
 function toggleActivationPanel(){$("activationPanel").classList.toggle("hidden")}
 async function requestAccess(){
  const username=$("memberName").value.trim().replace(/^@/,"").toLowerCase();
  const password=$("memberPassword").value;
+ if(username==="edrick"){showMemberFeedback("Gunakan panel LOGIN DEVELOPER dengan PIN 6 digit, bukan login anggota.");$("developerPinInput")?.focus();return}
  if(username.length<2||!password){showMemberFeedback("Isi username dan password terlebih dahulu.");return}
  if(!fcConfigReady()){showMemberFeedback("Alamat server belum dikonfigurasi pada aplikasi.");return}
  const btn=document.querySelector(".login-panel button.primary");if(btn){btn.disabled=true;btn.textContent="MEMERIKSA AKUN..."}
@@ -301,6 +311,34 @@ async function requestAccess(){
   $("developerPasswordChange").classList.add("hidden");$("memberFeedback").classList.add("hidden");log("Login online",m.username);enterApp();
  }catch(err){const code=String(err.message||"login_failed").split(":")[0];showMemberFeedback(fcFriendlyError(code)+" ["+code+"]")}
  finally{if(btn){btn.disabled=false;btn.textContent="MASUK KE FAMILY COLONY"}}
+}
+async function developerPinFeedback(message){const box=$("developerPinFeedback");if(box){box.textContent=message;box.classList.remove("hidden")}}
+async function developerPinSetup(){
+ const setupSecret=prompt("Masukkan kode penyiapan satu kali dari administrator server FAMILY COLONY:");
+ if(!setupSecret)return;
+ const pin=prompt("Buat PIN Developer baru tepat 6 angka:");
+ if(!pin)return;
+ if(!/^\d{6}$/.test(pin)){await developerPinFeedback("PIN harus tepat 6 angka.");return}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json","x-fc-bootstrap-secret":setupSecret},body:JSON.stringify({action:"developer_pin_setup",pin})});
+  const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"developer_pin_setup_unavailable");
+  $("developerPinInput").value=pin;await developerPinFeedback("PIN berhasil disiapkan. Silakan masuk menggunakan PIN tersebut.");
+ }catch(err){await developerPinFeedback(fcFriendlyError(String(err.message||"").split(":")[0]))}
+}
+async function developerPinLogin(){
+ const pin=$("developerPinInput")?.value||"";
+ if(!/^\d{6}$/.test(pin)){await developerPinFeedback("Masukkan PIN Developer tepat 6 angka.");return}
+ const button=document.querySelector("#developerLoginPanel button.primary");if(button){button.disabled=true;button.textContent="MEMVERIFIKASI PIN..."}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"developer_pin_login",pin})});
+  const auth=await response.json();if(!response.ok||!auth.ok||!auth.access_token||!auth.member)throw new Error(auth.error||"developer_pin_rejected");
+  window.FC_SUPABASE_ANON_KEY=auth.anon_key||"";
+  const m=auth.member;
+  session={name:m.name,role:m.role,memberId:m.member_id,username:m.username,accessToken:auth.access_token,refreshToken:auth.refresh_token,anonKey:auth.anon_key,expiresAt:Date.now()+Number(auth.expires_in||3600)*1000};
+  try{sessionStorage.setItem("fc_session",JSON.stringify(session))}catch(e){}
+  $("developerPinInput").value="";$("developerPinFeedback").classList.add("hidden");log("Login Developer via PIN","edrick");enterApp();
+ }catch(err){await developerPinFeedback(fcFriendlyError(String(err.message||"").split(":")[0]))}
+ finally{if(button){button.disabled=false;button.textContent="MASUK SEBAGAI DEVELOPER"}}
 }
 async function developerChangePassword(){
  const newPassword=$("developerNewPassword").value;
