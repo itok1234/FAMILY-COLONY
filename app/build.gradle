@@ -10,8 +10,8 @@ android {
         applicationId 'com.cdl.familycolonyv5d'
         minSdk 23
         targetSdk 35
-        versionCode 8
-        versionName '4.4-install-fix'
+        versionCode 9
+        versionName '4.5-world-maintenance'
     }
 
     compileOptions {
@@ -21,8 +21,8 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix '.onlinetest12' // Unique package id to avoid signature/package conflicts
-            versionNameSuffix '-install-test-12'
+            applicationIdSuffix '.onlinetest13' // Unique package id to avoid signature/package conflicts
+            versionNameSuffix '-world-maintenance-test-13'
         }
         release {
             minifyEnabled false
