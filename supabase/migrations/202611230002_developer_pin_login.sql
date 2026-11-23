@@ -53,3 +53,19 @@ revoke all on function public.fc_initialize_developer_pin(text) from public, ano
 revoke all on function public.fc_verify_developer_pin(text) from public, anon, authenticated;
 grant execute on function public.fc_initialize_developer_pin(text) to service_role;
 grant execute on function public.fc_verify_developer_pin(text) to service_role;
+
+
+create or replace function public.fc_reset_developer_pin(p_pin text)
+returns boolean language plpgsql security definer set search_path = ''
+as $$
+begin
+  if p_pin !~ '^[0-9]{6}$' then return false; end if;
+  update public.fc_developer_credentials
+    set pin_hash = extensions.crypt(p_pin, extensions.gen_salt('bf', 10)),
+        failed_attempts = 0, locked_until = null, updated_at = now()
+    where singleton = true;
+  return found;
+end;
+$$;
+revoke all on function public.fc_reset_developer_pin(text) from public, anon, authenticated;
+grant execute on function public.fc_reset_developer_pin(text) to service_role;
