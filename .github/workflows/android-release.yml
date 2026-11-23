@@ -23,6 +23,27 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Require successful embedded Android smoke test for this commit
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runs = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'android-emulator-smoke.yml',
+              branch: context.ref.replace('refs/heads/', ''),
+              per_page: 20
+            });
+            const passed = runs.data.workflow_runs.some(run =>
+              run.head_sha === context.sha &&
+              run.status === 'completed' &&
+              run.conclusion === 'success'
+            );
+            if (!passed) {
+              throw new Error('APK release blocked: embedded Android emulator smoke test has not passed for this exact commit.');
+            }
+            core.info('Embedded Android smoke test passed for ' + context.sha + '.');
+
       - name: Validate release signing secrets
         shell: bash
         env:
