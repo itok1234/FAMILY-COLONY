@@ -162,7 +162,7 @@ func _on_local_room_changed(room_id: String, members: Array[int]) -> void:
 		for peer_id in members:
 			if peer_id != multiplayer.get_unique_id():
 				visible_peers[peer_id] = true
-	for peer_id in _remote_players.keys():
+	for peer_id in _remote_players.keys().duplicate():
 		if not visible_peers.has(int(peer_id)):
 			_remove_remote_player(int(peer_id))
 	for peer_id in visible_peers.keys():
