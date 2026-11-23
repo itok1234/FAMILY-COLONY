@@ -9,6 +9,7 @@ extends Node3D
 
 var _rng := RandomNumberGenerator.new()
 var _materials: Dictionary = {}
+const INTERACTABLE_SCRIPT: Script = preload("res://scripts/world_interactable.gd")
 
 func _ready() -> void:
 	_rng.seed = random_seed
@@ -137,3 +138,22 @@ func _build_benches() -> void:
 		_box(self, Vector3(2.2, 0.72, 0.14), Vector3(x, 0.55, z - 0.24), wood, "BenchBack")
 		_box(self, Vector3(0.12, 0.48, 0.75), Vector3(x - 0.8, -0.05, z), metal, "BenchLeg")
 		_box(self, Vector3(0.12, 0.48, 0.75), Vector3(x + 0.8, -0.05, z), metal, "BenchLeg")
+		_add_bench_interactable(Vector3(x, 0.8, z))
+
+	
+func _add_bench_interactable(at: Vector3) -> void:
+	var area := Area3D.new()
+	area.name = "BenchInteraction"
+	area.position = at
+	area.collision_layer = 2
+	area.collision_mask = 0
+	area.set_script(INTERACTABLE_SCRIPT)
+	area.set("display_name", "Bangku Taman")
+	area.set("action_label", "Gunakan")
+	area.set("response_text", "Kamu beristirahat sejenak di taman.")
+	add_child(area)
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(3.0, 2.0, 2.2)
+	shape.shape = box
+	area.add_child(shape)
