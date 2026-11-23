@@ -34,7 +34,7 @@ begin
   select * into v from public.fc_developer_credentials where singleton = true for update;
   if not found or v.pin_hash is null then return false; end if;
   if v.locked_until is not null and v.locked_until > now() then return false; end if;
-  if public.crypt(p_pin, v.pin_hash) = v.pin_hash then
+  if extensions.crypt(p_pin, v.pin_hash) = v.pin_hash then
     update public.fc_developer_credentials set failed_attempts=0, locked_until=null, updated_at=now() where singleton=true;
     return true;
   end if;
