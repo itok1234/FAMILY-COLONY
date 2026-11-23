@@ -89,7 +89,7 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build signed Release APK
+      - name: Build signed ARM Release APKs
         env:
           FC_KEYSTORE_PATH: ${{ runner.temp }}/family-colony-release.jks
           FC_KEYSTORE_PASSWORD: ${{ secrets.FC_KEYSTORE_PASSWORD }}
@@ -97,36 +97,39 @@ jobs:
           FC_KEY_PASSWORD: ${{ secrets.FC_KEY_PASSWORD }}
         run: gradle --no-daemon assembleRelease --stacktrace
 
-      - name: Verify signed APK
+      - name: Verify both signed APK variants
         shell: bash
         run: |
           set -euo pipefail
-          APK="app/build/outputs/apk/release/app-release.apk"
-          test -s "$APK"
           SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
           APKSIGNER="$(find "$SDK_ROOT/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           AAPT="$(find "$SDK_ROOT/build-tools" -type f -name aapt | sort -V | tail -n 1)"
-          "$APKSIGNER" verify --verbose "$APK"
-          "$AAPT" dump badging "$APK" | grep -E "^package:|^sdkVersion:|^targetSdkVersion:"
-          "$AAPT" dump xmltree "$APK" AndroidManifest.xml | grep -F "com.cdl.familycolonyv5d.WorldActivity"
-          unzip -l "$APK" | grep -F "assets/godot_world.zip"
-          unzip -p "$APK" "assets/godot_world.zip" > "$RUNNER_TEMP/godot_world.zip"
-          unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "project.godot"
-          unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "scenes/world.tscn"
-          unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "scripts/world_session_client.gd"
-          sha256sum "$APK"
-          APK_BYTES="$(stat -c%s "$APK")"
-          APK_MIB="$((APK_BYTES / 1024 / 1024))"
-          echo "Signed release APK: ${APK_BYTES} bytes (${APK_MIB} MiB)"
-          if [ "$APK_BYTES" -gt $((250 * 1024 * 1024)) ]; then
-            echo "::warning::APK exceeds the 250 MiB optimization target; review ABI and asset packaging before final publication."
-          fi
+          OUT="app/build/outputs/apk/release"
+          for ABI in arm64-v8a armeabi-v7a; do
+            APK="$OUT/app-$ABI-release.apk"
+            test -s "$APK"
+            "$APKSIGNER" verify --verbose "$APK"
+            "$AAPT" dump badging "$APK" | grep -F "package: name='com.cdl.familycolonyv5d'"
+            "$AAPT" dump xmltree "$APK" AndroidManifest.xml | grep -F "com.cdl.familycolonyv5d.WorldActivity"
+            unzip -l "$APK" | grep -F "assets/godot_world.zip"
+            unzip -p "$APK" "assets/godot_world.zip" > "$RUNNER_TEMP/godot_world-$ABI.zip"
+            unzip -l "$RUNNER_TEMP/godot_world-$ABI.zip" | grep -F "project.godot"
+            unzip -l "$RUNNER_TEMP/godot_world-$ABI.zip" | grep -F "scenes/world.tscn"
+            unzip -l "$RUNNER_TEMP/godot_world-$ABI.zip" | grep -F "scripts/world_session_client.gd"
+            sha256sum "$APK"
+            APK_BYTES="$(stat -c%s "$APK")"
+            APK_MIB="$((APK_BYTES / 1024 / 1024))"
+            echo "$ABI signed APK: ${APK_BYTES} bytes (${APK_MIB} MiB)"
+            if [ "$APK_BYTES" -gt $((150 * 1024 * 1024)) ]; then
+              echo "::warning::$ABI APK exceeds the 150 MiB optimization target."
+            fi
+          done
 
-      - name: Upload signed Release APK artifact
+      - name: Upload signed Release APK variants
         uses: actions/upload-artifact@v4
         with:
-          name: FAMILY-COLONY-RELEASE-APK
-          path: app/build/outputs/apk/release/app-release.apk
+          name: FAMILY-COLONY-RELEASE-APKS
+          path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 30
 
@@ -138,9 +141,13 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const path = 'app/build/outputs/apk/release/app-release.apk';
+            const path = 'app/build/outputs/apk/release/';
+            const files = [
+              { path: path + 'app-arm64-v8a-release.apk', name: 'FAMILY-COLONY-' + process.env.RELEASE_TAG + '-arm64-v8a.apk' },
+              { path: path + 'app-armeabi-v7a-release.apk', name: 'FAMILY-COLONY-' + process.env.RELEASE_TAG + '-armeabi-v7a.apk' }
+            ];
             const tag = process.env.RELEASE_TAG.trim();
-            if (!/^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$/.test(tag)) {
+            if (!/^v[0-9]+\\.[0-9]+\\.[0-9]+([.-][A-Za-z0-9.-]+)?$/.test(tag)) {
               throw new Error('Release tag format is invalid.');
             }
             const prerelease = process.env.PRERELEASE === 'true';
@@ -154,24 +161,28 @@ jobs:
                 'FAMILY COLONY Android package for direct installation.',
                 '',
                 '- Package: com.cdl.familycolonyv5d',
+                '- arm64-v8a: for most modern Android phones, including Redmi Note 8 Pro.',
+                '- armeabi-v7a: for older 32-bit ARM Android phones.',
                 '- Distribution: direct APK download; Google Play Store is not required.',
                 '- Status: ' + (prerelease ? 'prerelease / testing' : 'final release'),
-                '- Install only on Android devices; enable permission to install unknown apps when prompted.'
-              ].join('\n'),
+                '- Install only the APK matching the phone architecture.'
+              ].join('\\n'),
               draft: false,
               prerelease,
               make_latest: prerelease ? 'false' : 'true'
             });
-            const data = fs.readFileSync(path);
-            await github.rest.repos.uploadReleaseAsset({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: release.data.id,
-              name: 'FAMILY-COLONY-' + tag + '.apk',
-              data,
-              headers: {
-                'content-type': 'application/vnd.android.package-archive',
-                'content-length': data.length
-              }
-            });
-            core.info('Published APK: ' + release.data.html_url);
+            for (const file of files) {
+              const data = fs.readFileSync(file.path);
+              await github.rest.repos.uploadReleaseAsset({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.data.id,
+                name: file.name,
+                data,
+                headers: {
+                  'content-type': 'application/vnd.android.package-archive',
+                  'content-length': data.length
+                }
+              });
+            }
+            core.info('Published ABI-specific APKs: ' + release.data.html_url);
