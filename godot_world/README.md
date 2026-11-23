@@ -77,3 +77,9 @@ Godot 4.x. Compatibility renderer is the initial baseline for broad Android supp
 - Players can use the existing world interaction menu to enter the hub and return outside; the same player and camera remain active.
 - This is still a single-client/local prototype. Room access permissions, synchronized interior instances, persistent furniture, detailed PBR assets, full collision coverage and multiplayer portal transitions are not implemented.
 - The interior and portal scripts have not yet been parsed or tested in the Godot editor or on Android hardware.
+
+## LAN social gesture relay milestone
+- Greeting-wave and sit gesture events can now be relayed reliably through the LAN host to remote avatar proxies.
+- Clients request the action from the host; the host accepts only the current allowlisted gesture IDs and relays the event with the originating peer ID.
+- This synchronizes the gesture event only. It does not validate FAMILY COLONY account identity, room membership, social permissions, seat ownership or anti-spam policy, and it is not a production multiplayer authority model.
+- This networking change has not been runtime-tested with multiple Godot clients.
