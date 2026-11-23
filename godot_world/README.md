@@ -17,6 +17,7 @@ An isolated Godot 4 project for the future FAMILY COLONY World engine.
 - Hybrid keyboard + touch movement controller.
 - Keyboard movement plus on-screen touch joystick scaffold.
 - Procedural neighborhood blockout: central paved plaza, road layout, community-building shells, trees, street lamps and benches.
+- Added a lightweight royal beehive citadel landmark with a hexagonal keep, golden crowns, honeycomb window motifs, a royal gate and garden approach; this is a recognizable first kingdom focal point, not final authored art.
 - Basic runtime graphics quality manager with saved user preference, an Android-first low-cost AUTO startup profile, and gradual promotion to Balanced only after sustained healthy frame rates.
 - Reusable world-interactable contract with configurable display name, action label and response.
 - Contextual interaction controller using a camera raycast that can detect Area3D targets, keyboard E action, and an on-screen Android interaction button.
@@ -25,7 +26,7 @@ An isolated Godot 4 project for the future FAMILY COLONY World engine.
 - Sample welcome marker in the world to exercise the interaction flow and display a response message.
 
 ## Current art status
-The neighborhood objects are procedural blockout meshes. They establish scale, navigation and composition only; they are not final photorealistic assets. The current avatar is a procedural proportion/material blockout with simple generated geometry and a basic walk cycle. It is not a final ultra-realistic character model, and has not yet been validated in the Godot editor or on a device.
+The neighborhood and royal citadel are currently procedural low-poly/blockout meshes. The citadel gives the first zone a clear bee-kingdom identity, but it is not final photorealistic art or a finished world. The current avatar is a procedural proportion/material blockout with simple generated geometry and a basic walk cycle. It is not a final ultra-realistic character model, and has not yet been validated in the Godot editor or on a device.
 
 ## Session presence foundation milestone\n- Added a session presence registry keyed only by ENet peer IDs, with online/offline events and snapshot requests for newly connected clients.\n- This is transport-level presence only. It does not verify member IDs, profiles, roles, account status or privacy permissions; those require a trusted Supabase session bridge.\n\n## Room foundation milestone\n- Added a host-authoritative in-memory room registry for LAN sessions.\n- Supports room creation, joining, leaving back to the lobby, capacity checks, room list snapshots and local room membership notifications.\n- New clients request a room snapshot after connecting. Room state is ephemeral and is lost when the host exits; no persistent backend or production room matchmaking is connected yet.\n\n## Multiplayer foundation milestone\n- Added a LAN transport/session manager using Godot ENet with host, join and leave methods.
 - Added remote avatar proxies with smoothed position/rotation interpolation and periodic movement-intensity updates relayed through the host.
