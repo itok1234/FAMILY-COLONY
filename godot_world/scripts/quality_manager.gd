@@ -27,10 +27,10 @@ func _load_saved_quality() -> void:
 	var config := ConfigFile.new()
 	var err := config.load("user://family_colony_settings.cfg")
 	if err == OK:
-		_selected_quality = int(config.get_value("graphics", "quality", int(default_quality))) as Quality
+		_selected_quality = int(config.get_value("graphics", "quality", int(default_quality)))
 	else:
 		_selected_quality = default_quality
-	_selected_quality = clampi(int(_selected_quality), int(Quality.AUTO), int(Quality.HIGH)) as Quality
+	_selected_quality = clampi(int(_selected_quality), int(Quality.AUTO), int(Quality.HIGH))
 
 
 func _save_quality() -> void:
@@ -56,6 +56,10 @@ func _build_quality_picker() -> void:
 	_quality_picker.add_item("Grafis: Seimbang", Quality.BALANCED)
 	_quality_picker.add_item("Grafis: Tinggi", Quality.HIGH)
 	_quality_picker.item_selected.connect(_on_quality_selected)
+	for index in range(_quality_picker.item_count):
+		if _quality_picker.get_item_id(index) == int(_selected_quality):
+			_quality_picker.select(index)
+			break
 	layer.add_child(_quality_picker)
 
 
