@@ -1,6 +1,15 @@
 name: Build FAMILY COLONY Google Play Internal Beta
 
 on:
+  push:
+    branches:
+      - feature/guest-premium-access
+    paths:
+      - 'app/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle/**'
+      - '.github/workflows/google-play-internal-beta.yml'
   workflow_dispatch:
 
 permissions:
