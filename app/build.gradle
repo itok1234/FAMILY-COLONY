@@ -10,13 +10,28 @@ android {
         applicationId 'com.cdl.familycolonyv5d'
         minSdk 23
         targetSdk 35
-        versionCode 9
-        versionName '4.5-world-maintenance'
+        versionCode 10
+        versionName '5.0-release'
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+    }
+
+    signingConfigs {
+        release {
+            def ksPath = System.getenv("FC_KEYSTORE_PATH")
+            def ksPassword = System.getenv("FC_KEYSTORE_PASSWORD")
+            def keyAliasValue = System.getenv("FC_KEY_ALIAS")
+            def keyPasswordValue = System.getenv("FC_KEY_PASSWORD")
+            if (ksPath && ksPassword && keyAliasValue && keyPasswordValue) {
+                storeFile file(ksPath)
+                storePassword ksPassword
+                keyAlias keyAliasValue
+                keyPassword keyPasswordValue
+            }
+        }
     }
 
     buildTypes {
@@ -25,6 +40,7 @@ android {
             versionNameSuffix '-world-maintenance-test-13'
         }
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
