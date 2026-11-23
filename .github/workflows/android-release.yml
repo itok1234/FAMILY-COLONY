@@ -1,13 +1,17 @@
-name: Build FAMILY COLONY Release APK
+name: Publish FAMILY COLONY Android APK
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/guest-premium-access
-    paths:
-      - 'app/**'
-      - '.github/workflows/android-release.yml'
+    inputs:
+      release_tag:
+        description: "Release tag (for example v5.0.0)"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark this release as a prerelease"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -82,44 +86,49 @@ jobs:
       - name: Upload signed Release APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FAMILY-COLONY-5.0-RELEASE-APK
+          name: FAMILY-COLONY-RELEASE-APK
           path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 30
 
       - name: Publish direct-download GitHub Release
         uses: actions/github-script@v7
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          PRERELEASE: ${{ inputs.prerelease }}
         with:
           script: |
             const fs = require('fs');
             const path = 'app/build/outputs/apk/release/app-release.apk';
-            const tag = 'v5.0.0-beta.1';
+            const tag = process.env.RELEASE_TAG.trim();
+            if (!/^v[0-9]+\\.[0-9]+\\.[0-9]+([.-][A-Za-z0-9.-]+)?$/.test(tag)) {
+              throw new Error('Release tag format is invalid.');
+            }
+            const prerelease = process.env.PRERELEASE === 'true';
             const release = await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: tag,
               target_commitish: context.sha,
-              name: 'FAMILY COLONY 5.0.0 — Android APK',
+              name: 'FAMILY COLONY — ' + tag + ' Android APK',
               body: [
                 'FAMILY COLONY Android package for direct installation.',
                 '',
                 '- Package: com.cdl.familycolonyv5d',
                 '- Distribution: direct APK download; Google Play Store is not required.',
-                '- Status: beta / device testing. Some planned systems remain under development.',
-                '- Install only on Android devices; enable permission to install unknown apps when prompted.',
-                '',
-                'Microphone functionality is not included in this verification and remains pending.'
+                '- Status: ' + (prerelease ? 'prerelease / testing' : 'final release'),
+                '- Install only on Android devices; enable permission to install unknown apps when prompted.'
               ].join('\\n'),
               draft: false,
-              prerelease: true,
-              make_latest: 'false'
+              prerelease,
+              make_latest: prerelease ? 'false' : 'true'
             });
             const data = fs.readFileSync(path);
             await github.rest.repos.uploadReleaseAsset({
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: release.data.id,
-              name: 'FAMILY-COLONY-5.0.0-beta.1.apk',
+              name: 'FAMILY-COLONY-' + tag + '.apk',
               data,
               headers: {
                 'content-type': 'application/vnd.android.package-archive',
