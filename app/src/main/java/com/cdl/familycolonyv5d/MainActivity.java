@@ -339,6 +339,17 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if (webView != null) {
+            webView.post(() -> webView.evaluateJavascript(
+                    "(function(){if(window.fcRefreshMemberSessionIfNeeded){window.fcRefreshMemberSessionIfNeeded(false);}})();",
+                    null
+            ));
+        }
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
         if (webView != null) webView.saveState(outState);
         super.onSaveInstanceState(outState);
