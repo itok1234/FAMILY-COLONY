@@ -10,8 +10,8 @@ android {
         applicationId 'com.cdl.familycolonyv5d'
         minSdk 23
         targetSdk 35
-        versionCode 10
-        versionName '5.0-release'
+        versionCode 11
+        versionName '5.1-beta-internal'
     }
 
     compileOptions {
