@@ -174,7 +174,7 @@ Deno.serve(async req => {
 
 
     if (action === "issue_guest_recommendation") {
-      const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\\s+/i, "");
+      const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
       if (!bearer) return json({ error: "authentication_required" }, 401);
       const { data: authData, error: authError } = await admin.auth.getUser(bearer);
       if (authError || !authData.user) return json({ error: "invalid_session" }, 401);
