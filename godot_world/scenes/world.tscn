@@ -1,10 +1,11 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/world_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/player_controller.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/quality_manager.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/mobile_joystick.gd" id="4"]
 [ext_resource type="Script" path="res://scripts/environment_builder.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/camera_orbit.gd" id="6"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.12, 0.27, 0.48, 1)
@@ -75,6 +76,7 @@ shape = SubResource("AvatarShape")
 [node name="CameraPivot" type="Node3D" parent="Player"]
 position = Vector3(0, 1.25, 0)
 rotation = Vector3(-0.25, 0, 0)
+script = ExtResource("6")
 
 [node name="Camera3D" type="Camera3D" parent="Player/CameraPivot"]
 position = Vector3(0, 2.1, 6.2)
