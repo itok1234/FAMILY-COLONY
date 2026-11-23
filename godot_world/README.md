@@ -53,3 +53,20 @@ Godot 4.x. Compatibility renderer is the initial baseline for broad Android supp
 - The host validates room membership, trims and rejects empty/oversized messages, applies a per-peer send interval, and keeps a bounded in-memory recent-message buffer.
 - Messages are currently labeled with transport peer IDs (for example, "Anggota #2"), not account names. No private/global messaging, friend list, moderation workflow, report/block system, message persistence, attachment support or Supabase identity binding is implemented.
 - The current chat layer exposes signals and methods for a future chat UI; it is not yet a finished chat screen and has not been runtime-tested.
+
+
+## Avatar appearance preview milestone
+- Added a local preview API for skin, hair, top, trousers and shoe colors, with a snapshot method for the current preview.
+- This is a color-preview scaffold only: no final avatar mesh, wardrobe catalog, owned-item validation, saved profile, or backend inventory sync exists yet.
+
+## Interactive plaza milestone
+- Added interaction zones to the generated park benches so the existing target-selection/action menu can discover seating locations.
+- These zones trigger local interaction feedback only. A synchronized sit animation, seat occupancy, collision reservation and multiplayer authority are still pending.
+
+## Wallet and gift backend contract
+- Added `docs/WALLET_GIFTS_BACKEND_CONTRACT.md` describing trusted-session identity, atomic balance/item transfers, idempotency, immutable ledger history, privacy checks and acceptance tests.
+- This is a specification, not a deployed wallet or gift feature. No payment, coin transfer, inventory persistence or database migration has been enabled.
+
+## Android integration and release gate
+- Added `docs/ANDROID_INTEGRATION_RELEASE_GATE.md` to preserve the existing application and define the required Godot bridge, session verification, regression tests, device profiling and store-release gates.
+- No APK/AAB export, Android integration, signing, installation or device test was performed in this milestone.
