@@ -23,26 +23,32 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Require successful embedded Android smoke test for this commit
+      - name: Require Android build and Godot validation for this commit
         uses: actions/github-script@v7
         with:
           script: |
-            const runs = await github.rest.actions.listWorkflowRuns({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'android-emulator-smoke.yml',
-              branch: context.ref.replace('refs/heads/', ''),
-              per_page: 20
-            });
-            const passed = runs.data.workflow_runs.some(run =>
-              run.head_sha === context.sha &&
-              run.status === 'completed' &&
-              run.conclusion === 'success'
-            );
-            if (!passed) {
-              throw new Error('APK release blocked: embedded Android emulator smoke test has not passed for this exact commit.');
+            const required = [
+              { workflow: 'android-debug.yml', label: 'Android APK build and package validation' },
+              { workflow: 'godot-validation.yml', label: 'Godot project validation' }
+            ];
+            for (const item of required) {
+              const runs = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: item.workflow,
+                branch: context.ref.replace('refs/heads/', ''),
+                per_page: 30
+              });
+              const passed = runs.data.workflow_runs.some(run =>
+                run.head_sha === context.sha &&
+                run.status === 'completed' &&
+                run.conclusion === 'success'
+              );
+              if (!passed) {
+                throw new Error('APK release blocked: ' + item.label + ' has not passed for exact commit ' + context.sha + '.');
+              }
+              core.info(item.label + ' passed for ' + context.sha + '.');
             }
-            core.info('Embedded Android smoke test passed for ' + context.sha + '.');
 
       - name: Validate release signing secrets
         shell: bash
