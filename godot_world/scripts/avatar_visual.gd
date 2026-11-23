@@ -10,6 +10,7 @@ var _left_arm: Node3D
 var _right_arm: Node3D
 var _left_leg: Node3D
 var _right_leg: Node3D
+var _appearance_materials: Dictionary = {}
 
 func _ready() -> void:
 	_build_avatar()
@@ -19,6 +20,30 @@ func set_motion_strength(value: float) -> void:
 
 func get_motion_strength() -> float:
 	return _motion
+
+
+func apply_appearance(appearance: Dictionary) -> void:
+	## Local preview only. Trusted backend must grant and load owned cosmetics.
+	if _appearance_materials.is_empty():
+		return
+	for key in ["skin", "hair", "top", "trousers", "shoes"]:
+		if not appearance.has(key):
+			continue
+		var material := _appearance_materials.get(key) as StandardMaterial3D
+		if material == null:
+			continue
+		var fallback: Color = material.albedo_color
+		material.albedo_color = Color.from_string(str(appearance[key]), fallback)
+
+
+func get_appearance_snapshot() -> Dictionary:
+	var result: Dictionary = {}
+	for key in _appearance_materials.keys():
+		var material := _appearance_materials[key] as StandardMaterial3D
+		if material != null:
+			result[key] = material.albedo_color.to_html(true)
+	return result
+
 
 func play_action(action_name: String) -> void:
 	if action_name in ["wave", "sit"]:
@@ -55,6 +80,13 @@ func _build_avatar() -> void:
 	var trousers := _material(Color(0.12, 0.15, 0.19), 0.92)
 	var shoes := _material(Color(0.055, 0.06, 0.07), 0.88)
 	var eyes := _material(Color(0.035, 0.025, 0.02), 0.5)
+	_appearance_materials = {
+		"skin": skin,
+		"hair": hair,
+		"top": shirt,
+		"trousers": trousers,
+		"shoes": shoes
+	}
 	_add_capsule(self, "Torso", Vector3(0, 1.12, 0), 0.28, 0.82, shirt)
 	_add_capsule(self, "Neck", Vector3(0, 1.61, 0), 0.105, 0.22, skin)
 	_head = Node3D.new()
