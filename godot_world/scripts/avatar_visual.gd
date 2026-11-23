@@ -7,6 +7,7 @@ var _action := "idle"
 var _action_time := 0.0
 var _is_seated := false
 var _head: Node3D
+var _name_label: Label3D
 var _left_arm: Node3D
 var _right_arm: Node3D
 var _left_leg: Node3D
@@ -35,6 +36,13 @@ func apply_appearance(appearance: Dictionary) -> void:
 			continue
 		var fallback: Color = material.albedo_color
 		material.albedo_color = Color.from_string(str(appearance[key]), fallback)
+
+
+func set_display_name(value: String) -> void:
+	if _name_label == null:
+		return
+	var clean_name := value.strip_edges()
+	_name_label.text = "Colony Member" if clean_name.is_empty() else clean_name.left(24)
 
 
 func get_appearance_snapshot() -> Dictionary:
@@ -123,6 +131,19 @@ func _build_avatar() -> void:
 	_add_sphere(_head, "RightBrow", Vector3(0.078, 0.079, -0.195), Vector3(0.047, 0.012, 0.014), hair)
 	_add_sphere(_head, "Nose", Vector3(0, -0.018, -0.224), Vector3(0.032, 0.045, 0.035), skin)
 	_add_sphere(_head, "Mouth", Vector3(0, -0.105, -0.207), Vector3(0.045, 0.012, 0.012), lip)
+
+	_name_label = Label3D.new()
+	_name_label.name = "VerifiedMemberName"
+	_name_label.text = "Colony Member"
+	_name_label.position = Vector3(0, 2.42, 0)
+	_name_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_name_label.font_size = 36
+	_name_label.pixel_size = 0.006
+	_name_label.outline_size = 6
+	_name_label.modulate = Color(1.0, 0.91, 0.72, 1.0)
+	_name_label.outline_modulate = Color(0.025, 0.04, 0.065, 0.92)
+	add_child(_name_label)
+
 	_left_arm = _make_limb("LeftArm", Vector3(-0.34, 1.42, 0), skin, 0.115, 0.72)
 	_right_arm = _make_limb("RightArm", Vector3(0.34, 1.42, 0), skin, 0.115, 0.72)
 	_left_arm.rotation.z = -0.12
