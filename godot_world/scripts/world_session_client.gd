@@ -14,6 +14,7 @@ var _http: HTTPRequest
 var _request_pending: bool = false
 var _current_member: Dictionary = {}
 var _current_permissions: Dictionary = {}
+var last_error_code: String = ""
 
 
 func _ready() -> void:
@@ -30,10 +31,16 @@ func _ready() -> void:
 		var bridge: Object = Engine.get_singleton("FamilyColonyBridge")
 		if bridge.has_method("consumeInitialAccessToken"):
 			var initial_token := str(bridge.call("consumeInitialAccessToken"))
-			if not initial_token.is_empty():
+			if initial_token.is_empty():
+				_access_denied("native_session_token_missing")
+			else:
 				var request_error := verify_access_token(initial_token)
 				if request_error != OK:
 					push_warning("FAMILY COLONY: Could not start member session verification.")
+		else:
+			_access_denied("native_session_bridge_invalid")
+	else:
+		_access_denied("native_session_bridge_missing")
 
 
 ## Called by the future Android native bridge after the existing app login succeeds.
@@ -50,6 +57,7 @@ func verify_access_token(access_token: String) -> Error:
 	_request_pending = false
 	_current_member.clear()
 	_current_permissions.clear()
+	last_error_code = ""
 
 	var headers := PackedStringArray([
 		"Content-Type: application/json",
@@ -85,6 +93,10 @@ func has_native_bridge() -> bool:
 
 func has_verified_session() -> bool:
 	return not _current_member.is_empty() and bool(_current_permissions.get("can_enter_world", false))
+
+
+func get_last_error_code() -> String:
+	return last_error_code
 
 
 func get_member_profile() -> Dictionary:
@@ -131,12 +143,14 @@ func _on_request_completed(
 		_access_denied("session_world_access_denied")
 		return
 
+	last_error_code = ""
 	_current_member = member_data.duplicate(true)
 	_current_permissions = permission_data.duplicate(true)
 	session_verified.emit(get_member_profile(), get_permission_snapshot())
 
 
 func _access_denied(error_code: String) -> void:
+	last_error_code = error_code
 	_current_member.clear()
 	_current_permissions.clear()
 	session_rejected.emit(error_code)
