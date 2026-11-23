@@ -56,9 +56,16 @@ android {
 
     buildTypes {
         debug {
-            // Include x86_64 only in internal debug builds for the Android emulator smoke test.
-            ndk {
-                abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+            // Keep x86_64 for normal emulator-test builds. Release packaging enables ABI splits,
+            // so its debug variant must use the same ARM-only filter to avoid Gradle conflicts.
+            if (project.hasProperty('fcSplitReleaseApks')) {
+                ndk {
+                    abiFilters 'arm64-v8a', 'armeabi-v7a'
+                }
+            } else {
+                ndk {
+                    abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+                }
             }
             applicationIdSuffix '.onlinetest13' // Unique package id to avoid signature/package conflicts
             versionNameSuffix '-world-maintenance-test-13'
