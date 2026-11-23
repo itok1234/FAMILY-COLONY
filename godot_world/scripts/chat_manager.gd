@@ -46,7 +46,7 @@ func send_message(raw_text: String) -> void:
 func _accept_message(sender_id: int, clean_text: String) -> void:
 	if not multiplayer.is_server() or _rooms == null:
 		return
-	var room_id := _rooms.get_peer_room_id(sender_id)
+	var room_id: String = str(_rooms.call("get_peer_room_id", sender_id))
 	if room_id.is_empty():
 		_reject_sender(sender_id, "Kamu belum berada di room.")
 		return
@@ -64,7 +64,8 @@ func _accept_message(sender_id: int, clean_text: String) -> void:
 		"sent_at": int(Time.get_unix_time_from_system())
 	}
 	_store_message(message)
-	for peer_id in _rooms.get_room_peer_ids(room_id):
+	var room_peer_ids: Array = _rooms.call("get_room_peer_ids", room_id)
+	for peer_id in room_peer_ids:
 		if peer_id == multiplayer.get_unique_id():
 			continue
 		_rpc_receive_message.rpc_id(peer_id, message)
