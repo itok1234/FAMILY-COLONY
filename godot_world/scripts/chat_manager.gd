@@ -87,7 +87,7 @@ func _accept_message(sender_id: int, clean_text: String) -> void:
 func _on_peer_roster_changed(peer_ids: Array[int]) -> void:
 	# Drop per-peer throttling state after disconnect so stale peer IDs do not
 	# accumulate and a later connection cannot inherit an old cooldown.
-	for peer_id in _last_send_at.keys():
+	for peer_id in _last_send_at.keys().duplicate():
 		if int(peer_id) != multiplayer.get_unique_id() and not peer_ids.has(int(peer_id)):
 			_last_send_at.erase(peer_id)
 
