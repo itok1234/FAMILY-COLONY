@@ -27,7 +27,13 @@ func _process(delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact") and not event.is_echo():
-		_open_action_menu()
+		var player := get_parent()
+		if player.has_method("is_seated") and player.call("is_seated"):
+			player.call("set_seated", false)
+			_broadcast_social_action("stand")
+			_show_result("Kamu berdiri kembali.")
+		else:
+			_open_action_menu()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_cancel") and _menu.visible:
 		_menu.visible = false
@@ -85,7 +91,11 @@ func _choose_action(action_id: String) -> void:
 			avatar.call("play_action", "wave")
 			_broadcast_social_action("wave")
 		elif action_id == "sit":
-			avatar.call("play_action", "sit")
+			var player := get_parent()
+			if player.has_method("set_seated"):
+				player.call("set_seated", true)
+			else:
+				avatar.call("play_action", "sit")
 			_broadcast_social_action("sit")
 	_result.text = message
 	_result.visible = true
@@ -202,6 +212,13 @@ func _add_menu_button(label_text: String, center_offset: Vector2, action_id: Str
 	button.pressed.connect(_choose_action.bind(action_id))
 	_menu.add_child(button)
 	_menu_buttons.append(button)
+
+func _show_result(message: String) -> void:
+	_result.text = message
+	_result.visible = true
+	await get_tree().create_timer(2.4).timeout
+	if is_instance_valid(_result):
+		_result.visible = false
 
 func _broadcast_social_action(action_id: String) -> void:
 	var world := get_parent().get_parent()
