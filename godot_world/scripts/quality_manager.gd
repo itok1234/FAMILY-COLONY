@@ -95,7 +95,7 @@ func _build_quality_picker() -> void:
 
 
 func _on_quality_selected(index: int) -> void:
-	_selected_quality = int(_quality_picker.get_item_id(index)) as Quality
+	_selected_quality = int(_quality_picker.get_item_id(index))
 	_save_quality()
 	apply_quality(_selected_quality)
 
