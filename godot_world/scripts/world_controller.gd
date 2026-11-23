@@ -103,6 +103,9 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 	if not bool(permissions.get("can_enter_world", false)):
 		_on_session_rejected("world_access_denied")
 		return
+	var avatar := player.get_node_or_null("AvatarVisual")
+	if avatar != null and avatar.has_method("set_display_name"):
+		avatar.call("set_display_name", str(_member.get("name", "Colony Member")))
 	_set_player_enabled(true)
 	if is_instance_valid(_gate_layer):
 		_gate_layer.queue_free()
