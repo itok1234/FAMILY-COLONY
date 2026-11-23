@@ -22,6 +22,22 @@ func _ready() -> void:
 	_build_benches()
 	_build_community_interior()
 
+func apply_quality_density(trees: int, lamps: int, buildings: int) -> void:
+	tree_count = maxi(0, trees)
+	lamp_count = maxi(0, lamps)
+	building_count = maxi(0, buildings)
+	if not is_node_ready():
+		return
+	_rng.seed = random_seed
+	for node_name in ["CommunityBuildings", "TreeInstances", "LampInstances"]:
+		var old_section := get_node_or_null(node_name)
+		if old_section != null:
+			old_section.free()
+	_build_buildings()
+	_build_trees()
+	_build_lamps()
+
+
 func _mat(key: String, color: Color, roughness: float = 0.82, metallic: float = 0.0) -> StandardMaterial3D:
 	if _materials.has(key):
 		return _materials[key]
@@ -89,6 +105,9 @@ func _build_road_network() -> void:
 		_box(self, Vector3(0.16, 0.02, 4.0), Vector3(0, -0.435, float(z)), line, "RoadCenterMark")
 
 func _build_buildings() -> void:
+	var buildings_root := Node3D.new()
+	buildings_root.name = "CommunityBuildings"
+	add_child(buildings_root)
 	var walls := [_mat("wall_ivory", Color(0.82, 0.79, 0.69)), _mat("wall_sand", Color(0.69, 0.58, 0.46)), _mat("wall_sage", Color(0.48, 0.61, 0.55))]
 	var roof := _mat("roof_charcoal", Color(0.16, 0.20, 0.23), 0.72)
 	var glass := _mat("window_glass", Color(0.12, 0.29, 0.38), 0.22, 0.35)
@@ -102,7 +121,7 @@ func _build_buildings() -> void:
 		var group := Node3D.new()
 		group.name = "CommunityBuilding_%02d" % i
 		group.position = Vector3(x, 0, z)
-		add_child(group)
+		buildings_root.add_child(group)
 		var wall_material: Material = walls[i % walls.size()]
 		_box(group, Vector3(width, height, depth), Vector3(0, height * 0.5, 0), wall_material, "BuildingShell")
 		_add_static_collision_box(group, Vector3(width, height, depth), Vector3(0, height * 0.5, 0), "BuildingShell")
@@ -115,6 +134,9 @@ func _build_buildings() -> void:
 		_box(group, Vector3(2.1, 2.7, 0.12), Vector3(0, 1.35, depth * 0.5 + 0.06), roof, "EntryDoor")
 
 func _build_trees() -> void:
+	var trees_root := Node3D.new()
+	trees_root.name = "TreeInstances"
+	add_child(trees_root)
 	var bark := _mat("tree_bark", Color(0.28, 0.19, 0.12))
 	var leaves := [_mat("leaf_deep", Color(0.13, 0.31, 0.20)), _mat("leaf_mid", Color(0.22, 0.40, 0.24)), _mat("leaf_light", Color(0.33, 0.48, 0.27))]
 	for i in range(tree_count):
@@ -123,26 +145,29 @@ func _build_trees() -> void:
 		if absf(x) < 9.0 or (absf(x) < 18.0 and absf(z) < 15.0):
 			continue
 		var height := _rng.randf_range(2.8, 4.0)
-		_cylinder(self, 0.22, height, Vector3(x, height * 0.5 - 0.48, z), bark, "TreeTrunk")
+		_cylinder(trees_root, 0.22, height, Vector3(x, height * 0.5 - 0.48, z), bark, "TreeTrunk")
 		var crown := SphereMesh.new()
 		crown.radius = _rng.randf_range(1.5, 2.1)
 		crown.height = crown.radius * 2.0
 		crown.radial_segments = 12
 		crown.rings = 8
-		_mesh_node(self, crown, leaves[i % leaves.size()], Vector3(x, height + 0.7, z), "TreeCanopy")
+		_mesh_node(trees_root, crown, leaves[i % leaves.size()], Vector3(x, height + 0.7, z), "TreeCanopy")
 
 func _build_lamps() -> void:
+	var lamps_root := Node3D.new()
+	lamps_root.name = "LampInstances"
+	add_child(lamps_root)
 	var metal := _mat("lamp_metal", Color(0.12, 0.16, 0.18), 0.38, 0.72)
 	var warm := _mat("lamp_glow", Color(1.0, 0.78, 0.42), 0.25, 0.1)
 	for i in range(lamp_count):
 		var z := -float(i) * 16.0 - 8.0
 		var x := -7.0 if i % 2 == 0 else 7.0
-		_cylinder(self, 0.09, 4.2, Vector3(x, 1.65, z), metal, "LampPost")
-		_box(self, Vector3(0.8, 0.12, 0.25), Vector3(x, 3.75, z), metal, "LampArm")
+		_cylinder(lamps_root, 0.09, 4.2, Vector3(x, 1.65, z), metal, "LampPost")
+		_box(lamps_root, Vector3(0.8, 0.12, 0.25), Vector3(x, 3.75, z), metal, "LampArm")
 		var bulb := SphereMesh.new()
 		bulb.radius = 0.17
 		bulb.height = 0.34
-		_mesh_node(self, bulb, warm, Vector3(x, 3.55, z), "LampBulb")
+		_mesh_node(lamps_root, bulb, warm, Vector3(x, 3.55, z), "LampBulb")
 
 func _build_benches() -> void:
 	var wood := _mat("bench_wood", Color(0.38, 0.23, 0.13))
