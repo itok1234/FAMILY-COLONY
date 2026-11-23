@@ -314,7 +314,7 @@ async function requestAccess(){
 }
 async function developerPinFeedback(message){const box=$("developerPinFeedback");if(box){box.textContent=message;box.classList.remove("hidden")}}
 async function developerPinSetup(){
- const setupSecret=prompt("Masukkan kode penyiapan satu kali dari administrator server FAMILY COLONY:");
+ const setupSecret=prompt("Masukkan Bootstrap Secret yang sebelumnya sudah kamu gunakan untuk setup Developer. Jangan kirim secret ini melalui chat:");
  if(!setupSecret)return;
  const pin=prompt("Buat PIN Developer baru tepat 6 angka:");
  if(!pin)return;
