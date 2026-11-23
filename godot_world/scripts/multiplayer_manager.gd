@@ -176,10 +176,20 @@ func _rpc_submit_state(position_value: Vector3, rotation_value: float, motion_va
 	if not multiplayer.is_server():
 		return
 	var sender_id := multiplayer.get_remote_sender_id()
-	if sender_id <= 1:
+	if sender_id <= 1 or not peer_ids.has(sender_id):
 		return
-	_apply_remote_state(sender_id, position_value, rotation_value, motion_value)
-	_rpc_apply_state.rpc(sender_id, position_value, rotation_value, motion_value)
+	# Reject malformed movement packets before they reach other clients. LAN
+	# transport is still not a trusted production authority, but this prevents
+	# invalid numeric values and extreme coordinates from corrupting avatars.
+	if not position_value.is_finite():
+		return
+	if not is_finite(rotation_value) or not is_finite(motion_value):
+		return
+	if position_value.length_squared() > 1000000.0:
+		return
+	var safe_motion := clampf(motion_value, 0.0, 1.0)
+	_apply_remote_state(sender_id, position_value, rotation_value, safe_motion)
+	_rpc_apply_state.rpc(sender_id, position_value, rotation_value, safe_motion)
 
 
 @rpc("authority", "call_remote", "unreliable")
