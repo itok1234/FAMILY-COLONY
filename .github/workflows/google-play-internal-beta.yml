@@ -1,0 +1,87 @@
+name: Build FAMILY COLONY Google Play Internal Beta
+
+on:
+  push:
+    branches:
+      - feature/guest-premium-access
+    paths:
+      - 'app/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle/**'
+      - '.github/workflows/google-play-internal-beta.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  play-internal-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout beta source
+        uses: actions/checkout@v4
+        with:
+          ref: feature/guest-premium-access
+
+      - name: Validate upload signing secrets
+        shell: bash
+        env:
+          FC_KEYSTORE_BASE64: ${{ secrets.FC_KEYSTORE_BASE64 }}
+          FC_KEYSTORE_PASSWORD: ${{ secrets.FC_KEYSTORE_PASSWORD }}
+          FC_KEY_ALIAS: ${{ secrets.FC_KEY_ALIAS }}
+          FC_KEY_PASSWORD: ${{ secrets.FC_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in FC_KEYSTORE_BASE64 FC_KEYSTORE_PASSWORD FC_KEY_ALIAS FC_KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::GitHub Actions secret $name belum diatur."
+              exit 1
+            fi
+          done
+          printf '%s' "$FC_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/family-colony-upload-key.jks"
+          test -s "$RUNNER_TEMP/family-colony-upload-key.jks"
+          keytool -list -keystore "$RUNNER_TEMP/family-colony-upload-key.jks" -storepass "$FC_KEYSTORE_PASSWORD" -alias "$FC_KEY_ALIAS" >/dev/null
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build signed Android App Bundle
+        env:
+          FC_KEYSTORE_PATH: ${{ runner.temp }}/family-colony-upload-key.jks
+          FC_KEYSTORE_PASSWORD: ${{ secrets.FC_KEYSTORE_PASSWORD }}
+          FC_KEY_ALIAS: ${{ secrets.FC_KEY_ALIAS }}
+          FC_KEY_PASSWORD: ${{ secrets.FC_KEY_PASSWORD }}
+        run: gradle --no-daemon bundleRelease --stacktrace
+
+      - name: Verify Play upload bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          AAB="app/build/outputs/bundle/release/app-release.aab"
+          test -s "$AAB"
+          unzip -t "$AAB" >/dev/null
+          jarsigner -verify -verbose -certs "$AAB" >/dev/null
+          echo "AAB_SIZE=$(stat -c%s "$AAB")"
+          sha256sum "$AAB"
+
+      - name: Upload Google Play bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FAMILY-COLONY-5.1-INTERNAL-BETA-AAB
+          path: app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30
