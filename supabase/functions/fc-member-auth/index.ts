@@ -52,9 +52,9 @@ Deno.serve(async req => {
       const pin = String(body.pin || "");
       if (!expected || supplied.length < 32 || supplied !== expected) return json({ error: "developer_pin_setup_unavailable" }, 403);
       if (!/^\d{6}$/.test(pin)) return json({ error: "developer_pin_invalid_format" }, 400);
-      const { data: initialized, error: initError } = await admin.rpc("fc_initialize_developer_pin", { p_pin: pin });
+      const { data: initialized, error: initError } = await admin.rpc("fc_reset_developer_pin", { p_pin: pin });
       if (initError) return json({ error: "developer_pin_setup_failed" }, 500);
-      if (!initialized) return json({ error: "developer_pin_already_initialized" }, 409);
+      if (!initialized) return json({ error: "developer_pin_setup_failed" }, 500);
       return json({ ok: true, username: "edrick" });
     }
 
