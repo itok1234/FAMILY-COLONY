@@ -173,6 +173,61 @@ Deno.serve(async req => {
     }
 
 
+    if (action === "issue_guest_recommendation") {
+      const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\\s+/i, "");
+      if (!bearer) return json({ error: "authentication_required" }, 401);
+      const { data: authData, error: authError } = await admin.auth.getUser(bearer);
+      if (authError || !authData.user) return json({ error: "invalid_session" }, 401);
+      const { data: recommender, error: recommenderError } = await admin.from("fc_members")
+        .select("member_id,name,role,status").eq("auth_user_id", authData.user.id).maybeSingle();
+      if (recommenderError || !recommender ||
+          !["aktif", "active"].includes(String(recommender.status || "").trim().toLowerCase())) {
+        return json({ error: "active_member_required" }, 403);
+      }
+      const code = makeCode();
+      const { error: insertError } = await admin.from("fc_guest_recommendation_codes").insert({
+        code_hash: await sha256(code),
+        created_by_auth_user_id: authData.user.id,
+        created_by_member_id: recommender.member_id,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      });
+      if (insertError) return json({ error: "guest_recommendation_issue_failed" }, 500);
+      return json({ ok: true, recommendation_code: code, expires_in_hours: 24, uses: 1 });
+    }
+
+    if (action === "guest_recommendation_login") {
+      const guestName = String(body.guest_name || "").trim();
+      const code = String(body.recommendation_code || "").trim().toUpperCase();
+      if (guestName.length < 2 || guestName.length > 40 || !/^[A-F0-9]{16}$/.test(code)) {
+        return json({ error: "guest_recommendation_input_invalid" }, 400);
+      }
+      const codeHash = await sha256(code);
+      const { data: invite, error: inviteError } = await admin.from("fc_guest_recommendation_codes")
+        .select("id,created_by_member_id,expires_at,used_at")
+        .eq("code_hash", codeHash).maybeSingle();
+      if (inviteError || !invite || invite.used_at || Date.parse(invite.expires_at) <= Date.now()) {
+        return json({ error: "guest_recommendation_invalid_expired_or_used" }, 401);
+      }
+      const now = new Date().toISOString();
+      const { data: consumed, error: consumeError } = await admin.from("fc_guest_recommendation_codes")
+        .update({ used_at: now, guest_name: guestName })
+        .eq("id", invite.id).is("used_at", null).gt("expires_at", now)
+        .select("id,created_by_member_id").maybeSingle();
+      if (consumeError || !consumed) return json({ error: "guest_recommendation_invalid_expired_or_used" }, 401);
+      const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString();
+      const { error: visitError } = await admin.from("fc_guest_visits").insert({
+        recommendation_code_id: consumed.id,
+        display_name: guestName,
+        recommender_member_id: consumed.created_by_member_id,
+        expires_at: expiresAt,
+      });
+      if (visitError) return json({ error: "guest_visit_record_failed" }, 500);
+      const { data: recommender } = await admin.from("fc_members")
+        .select("name").eq("member_id", consumed.created_by_member_id).maybeSingle();
+      return json({ ok: true, guest: { name: guestName, role: "Guest",
+        recommended_by: recommender?.name || "Member Family Colony", expires_at: expiresAt } });
+    }
+
     if (action === "bootstrap_issue") {
       const expected = Deno.env.get("FC_BOOTSTRAP_SECRET");
       const supplied = req.headers.get("x-fc-bootstrap-secret") || "";
