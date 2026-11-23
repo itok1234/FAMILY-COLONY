@@ -408,7 +408,10 @@ async function bootstrapDeveloperPassword(){
 function developerLogin(){closeDeveloperGate();$("developerPinInput")?.focus();toast("Gunakan PIN 6 digit pada panel Login Developer.")}
 function closeDeveloperGate(){$("developerGate")?.classList.add("hidden");if($("devGateCode"))$("devGateCode").value="";if($("bootstrapSecret"))$("bootstrapSecret").value=""}
 let secretTapCount=0,secretTapTimer=null;
-function secretGateTap(){secretTapCount++;clearTimeout(secretTapTimer);secretTapTimer=setTimeout(()=>{secretTapCount=0},2200);if(secretTapCount>=7){secretTapCount=0;const panel=$("developerLoginPanel");if(panel){panel.classList.remove("hidden");panel.scrollIntoView({behavior:"smooth",block:"center"});$("developerPinInput")?.focus();toast("Akses privat Developer dibuka.");}}}
+function openPrivateDeveloperPanel(){const panel=$("developerLoginPanel");if(!panel)return;panel.classList.remove("hidden");panel.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>$("developerPinInput")?.focus(),250);toast("Akses privat Developer dibuka.");}
+function secretGateTap(){secretTapCount++;clearTimeout(secretTapTimer);secretTapTimer=setTimeout(()=>{secretTapCount=0},5000);if(secretTapCount>=5){secretTapCount=0;openPrivateDeveloperPanel();}}
+let secretHoldTimer=null;
+function bindPrivateDeveloperAccess(){const logo=$("secretGate");if(!logo)return;logo.style.touchAction="manipulation";logo.addEventListener("click",secretGateTap);logo.addEventListener("contextmenu",e=>e.preventDefault());logo.addEventListener("pointerdown",()=>{clearTimeout(secretHoldTimer);secretHoldTimer=setTimeout(openPrivateDeveloperPanel,1600)});["pointerup","pointercancel","pointerleave"].forEach(ev=>logo.addEventListener(ev,()=>clearTimeout(secretHoldTimer)));}
 function logout(){if(session?.accessToken&&fcConfigReady())fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":session.anonKey||window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.accessToken}}).catch(()=>{});if(session)log("Logout",session.name);session=null;try{sessionStorage.removeItem("fc_session")}catch(e){}audio.pause();$("workspace").classList.add("hidden");$("landing").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("homeBtn").classList.add("hidden");$("topUser").textContent="";if($("devGateCode"))$("devGateCode").value=""}
 function goHome(){currentPage="overview";renderPage()}
 function enterApp(){$("landing").classList.add("hidden");$("workspace").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("homeBtn").classList.remove("hidden");$("topUser").textContent=session.name+" · "+session.role;currentPage="overview";$("sideName").textContent=session.name;$("sideRole").textContent=session.role.toUpperCase();buildNav();recordMissionEvent("login","Login ke kerajaan");renderPage();requestPortrait()}
@@ -1459,7 +1462,7 @@ function fc12ExportBackup(){if(session?.role!=="Developer")return toast("Akses D
 $("memberName").addEventListener("keydown",e=>{if(e.key==="Enter")requestAccess()});
 $("devGateCode").addEventListener("keydown",e=>{if(e.key==="Enter")developerLogin()});
 const developerSetupButton=$("developerSetupButton");if(developerSetupButton)developerSetupButton.addEventListener("click",()=>bootstrapDeveloperPassword());
-$("secretGate").addEventListener("click",secretGateTap);
+bindPrivateDeveloperAccess();
 $("developerGate").addEventListener("click",e=>{if(e.target.id==="developerGate")closeDeveloperGate()});
 if(!Array.isArray(db.members))db.members=[];if(!Array.isArray(db.requests))db.requests=[];if(!Array.isArray(db.announcements))db.announcements=[];if(!Array.isArray(db.activity))db.activity=[];ensureEconomyData();ensureMissionData();ensureHoneyChallengeData();ensureGuessWhoData();saveDB();try{const saved=JSON.parse(sessionStorage.getItem("fc_session")||"null");if(saved&&saved.accessToken&&saved.expiresAt>Date.now()+30000){session=saved;enterApp()}}catch(e){}
 </script>
