@@ -143,8 +143,8 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
 </head>
 <body>
 <header class="topbar"><div class="shell topbar-inner">
-  <div class="brand"><div class="bee-mark" id="secretGate" title="Akses Developer" role="button" tabindex="0" onclick="openPrivateDeveloperPanel()">♛</div><div><strong>FAMILY COLONY</strong><small>BEE KINGDOM • DIGITAL REALM</small></div></div>
-  <div class="top-actions"><span id="topUser" class="tiny"></span><button id="homeBtn" class="btn ghost small hidden" onclick="goHome()">Beranda</button><button id="logoutBtn" class="btn small hidden" onclick="logout()">Keluar</button></div>
+  <div class="brand"><div class="bee-mark" aria-hidden="true">♛</div><div><strong>FAMILY COLONY</strong><small>BEE KINGDOM • DIGITAL REALM</small></div></div>
+  <div class="top-actions"><span id="topUser" class="tiny"></span><button id="guestInviteBtn" class="btn small hidden" onclick="createGuestRecommendation()">Kode Rekomendasi Tamu</button><button id="homeBtn" class="btn ghost small hidden" onclick="goHome()">Beranda</button><button id="logoutBtn" class="btn small hidden" onclick="logout()">Keluar</button></div>
 </div></header>
 <main class="shell">
 <section id="landing">
@@ -166,13 +166,30 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
 
     <section class="panel login-panel hidden" id="developerLoginPanel">
       <div class="eyebrow">PRIVATE DEVELOPER ACCESS</div><h2>Login Developer</h2>
-      <p class="muted tiny">Jalur khusus Developer FAMILY COLONY. Gunakan PIN 6 digit yang telah disiapkan.</p>
+      <p class="muted tiny">Panel ini muncul otomatis setelah username Developer dimasukkan. Gunakan PIN 6 digit yang telah disiapkan.</p>
       <div class="field"><label for="developerPinInput">PIN Developer</label><input id="developerPinInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="••••••" onkeydown="if(event.key==='Enter')developerPinLogin()"></div>
       <button class="btn primary" style="width:100%" onclick="developerPinLogin()">MASUK SEBAGAI DEVELOPER</button>
       <button class="btn ghost small" style="width:100%;margin-top:9px" onclick="developerPinSetup()">PENYIAPAN / RESET PIN DEVELOPER</button>
       <p class="tiny" style="margin-top:10px">Penyiapan atau reset PIN memerlukan kode bootstrap server yang sudah kamu miliki. PIN diverifikasi server, bukan disimpan di perangkat.</p>
       <div id="developerPinFeedback" class="notice hidden"></div>
     </section>
+    <section class="panel login-panel">
+      <div class="eyebrow">COLONY GUEST ACCESS</div><h2>Login Pengunjung / Tamu</h2>
+      <p class="muted tiny">Akses tamu wajib menggunakan kode rekomendasi dari member Family Colony yang aktif. Tanpa kode yang valid, akses ditolak.</p>
+      <div class="field"><label for="guestDisplayName">Nama pengunjung</label><input id="guestDisplayName" maxlength="40" autocomplete="name" placeholder="Masukkan nama panggilan"></div>
+      <div class="field"><label for="guestRecommendationCode">Kode rekomendasi member</label><input id="guestRecommendationCode" maxlength="16" autocapitalize="characters" placeholder="Masukkan kode 16 karakter"></div>
+      <button class="btn primary" style="width:100%" onclick="guestRecommendationLogin()">MASUK SEBAGAI TAMU</button>
+      <div id="guestFeedback" class="notice hidden"></div>
+      <p class="tiny">Kode hanya dapat digunakan satu kali dan berlaku 24 jam. Akun tamu bersifat sementara dan tidak menjadi akun Member.</p>
+    </section>
+  </div>
+</section>
+<section id="guestWorkspace" class="hidden">
+  <div class="panel" style="max-width:760px;margin:28px auto">
+    <div class="eyebrow">FAMILY COLONY • GUEST SESSION</div><h1>Selamat Datang di Koloni</h1>
+    <p id="guestWelcome" class="muted"></p>
+    <div class="notice">Kamu masuk sebagai <b>Tamu</b>. Akses ini hanya untuk melihat halaman sambutan. Fitur anggota, chat, dompet, hadiah, dan panel pengelola tidak tersedia untuk akun tamu.</div>
+    <button class="btn primary" onclick="logout()">KELUAR DARI AKSES TAMU</button>
   </div>
 </section>
 <section id="workspace" class="hidden">
@@ -294,10 +311,42 @@ function fcAuthEmail(username){const bytes=new TextEncoder().encode(String(usern
 function fcConfigReady(){return !!window.FC_SUPABASE_URL}
 function fcFriendlyError(code){const map={developer_pin_rejected:"PIN Developer salah atau akses sementara dikunci. Periksa PIN dan coba lagi nanti.",developer_pin_not_initialized:"PIN Developer belum disiapkan di server.",developer_pin_setup_unavailable:"Penyiapan PIN belum tersedia. Periksa kode bootstrap server.",developer_pin_invalid_format:"PIN harus tepat 6 angka.",developer_pin_already_initialized:"PIN Developer sudah pernah disiapkan. Hubungi administrator untuk reset yang aman.",developer_pin_setup_failed:"Server gagal menyimpan PIN Developer.",developer_pin_verification_failed:"Server gagal memverifikasi PIN Developer.",developer_session_issue_failed:"PIN benar, tetapi server gagal membuat sesi Developer.",developer_password_rejected:"Password akun Developer ditolak oleh Supabase Auth. Tautan akun sudah cocok; password perlu dipulihkan melalui jalur admin yang aman.",developer_auth_account_missing:"Akun Auth Developer belum ada atau tautannya tidak ditemukan.",developer_auth_link_mismatch:"Tautan akun Auth Developer tidak cocok dengan username edrick. Login dihentikan demi keamanan.",invalid_credentials:"Username atau password salah.",credentials_required:"Isi username dan password.",member_not_eligible:"Akun belum disiapkan pengurus atau statusnya tidak aktif.",email_not_confirmed:"Akun belum aktif. Hubungi pengurus.",activation_code_invalid_expired_or_used:"Kode aktivasi salah, kedaluwarsa, atau sudah digunakan.",account_creation_failed:"Akun tidak dapat dibuat. Periksa kode aktivasi atau hubungi pengurus.",bootstrap_not_authorized:"Akses setup Developer tidak diizinkan.",bootstrap_secret_not_configured:"Secret setup belum terbaca di server Supabase. Periksa FC_BOOTSTRAP_SECRET.",bootstrap_secret_mismatch:"Bootstrap Secret di aplikasi tidak sama dengan Secret di Supabase. Periksa kembali penyalinannya.",initial_password_min_12:"Password awal minimal 12 karakter.",developer_member_not_eligible:"Akun edrick belum memenuhi syarat setup Developer atau sudah terhubung.",developer_account_setup_failed:"Setup akun Developer gagal. Akun Auth mungkin sudah ada.",developer_account_link_failed:"Akun Developer gagal ditautkan ke data anggota.",developer_member_lookup_failed:"Server gagal membaca data anggota edrick. Periksa tabel fc_members.",developer_member_missing:"Username edrick tidak ditemukan pada tabel fc_members.",developer_member_inactive:"Status anggota edrick bukan Aktif. Perlu diperiksa pada data anggota.",developer_member_repair_failed:"Server tidak dapat memperbaiki role/status edrick.",developer_account_link_missing:"Data anggota menunjuk akun Auth yang sudah tidak ada.",developer_account_link_mismatch:"Akun Auth yang tertaut bukan akun login Developer edrick.",server_not_configured:"Konfigurasi kunci server Supabase belum lengkap.",password_min_12:"Password baru minimal 12 karakter.",password_update_failed:"Password baru gagal disimpan."};return map[code]||"Terjadi kendala koneksi atau akun. Coba lagi atau hubungi pengurus."}
 function toggleActivationPanel(){$("activationPanel").classList.toggle("hidden")}
+function showGuestFeedback(message){const el=$("guestFeedback");if(el){el.textContent=message;el.classList.remove("hidden")}}
+async function createGuestRecommendation(){
+ if(!session?.accessToken||session.role==="Guest")return toast("Login sebagai member aktif diperlukan.");
+ const button=$("guestInviteBtn");if(button){button.disabled=true;button.textContent="MEMBUAT KODE..."}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.accessToken},body:JSON.stringify({action:"issue_guest_recommendation"})});
+  const result=await response.json();if(!response.ok||!result.ok||!result.recommendation_code)throw new Error(result.error||"guest_recommendation_issue_failed");
+  const code=result.recommendation_code;
+  try{await navigator.clipboard.writeText(code);alert("Kode rekomendasi tamu berhasil dibuat dan disalin:\n\n"+code+"\n\nBerlaku 24 jam dan hanya dapat dipakai satu kali. Bagikan kepada calon tamu.");}
+  catch(_){alert("Kode rekomendasi tamu (berlaku 24 jam, satu kali pakai):\n\n"+code+"\n\nBagikan kepada calon tamu.");}
+ }catch(err){toast("Gagal membuat kode rekomendasi: "+String(err.message||"").split(":")[0])}
+ finally{if(button){button.disabled=false;button.textContent="Kode Rekomendasi Tamu"}}
+}
+async function guestRecommendationLogin(){
+ const name=($("guestDisplayName")?.value||"").trim(),code=($("guestRecommendationCode")?.value||"").trim().toUpperCase();
+ if(name.length<2||name.length>40)return showGuestFeedback("Nama tamu harus 2–40 karakter.");
+ if(!/^[A-F0-9]{16}$/.test(code))return showGuestFeedback("Kode rekomendasi harus 16 karakter.");
+ const button=document.querySelector("#guestWorkspace button");
+ const submit=document.querySelector('button[onclick="guestRecommendationLogin()"]');if(submit){submit.disabled=true;submit.textContent="MEMERIKSA REKOMENDASI..."}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"guest_recommendation_login",guest_name:name,recommendation_code:code})});
+  const result=await response.json();if(!response.ok||!result.ok||!result.guest)throw new Error(result.error||"guest_recommendation_rejected");
+  session={name:result.guest.name,role:"Guest",guest:true,referrer:result.guest.recommended_by,expiresAt:Date.parse(result.guest.expires_at)};
+  try{sessionStorage.setItem("fc_session",JSON.stringify(session))}catch(e){}
+  $("guestRecommendationCode").value="";$("guestFeedback").classList.add("hidden");
+  $("landing").classList.add("hidden");$("workspace").classList.add("hidden");$("guestWorkspace").classList.remove("hidden");
+  $("guestWelcome").textContent="Halo, "+session.name+". Rekomendasi diberikan oleh "+(session.referrer||"member Family Colony")+". Sesi tamu berlaku sampai "+new Date(session.expiresAt).toLocaleString("id-ID")+".";
+  $("logoutBtn").classList.remove("hidden");$("homeBtn").classList.add("hidden");$("guestInviteBtn").classList.add("hidden");$("topUser").textContent=session.name+" · TAMU";
+ }catch(err){showGuestFeedback("Akses ditolak: "+String(err.message||"").split(":")[0]+". Pastikan kode berasal dari member aktif, belum dipakai, dan belum kedaluwarsa.")}
+ finally{if(submit){submit.disabled=false;submit.textContent="MASUK SEBAGAI TAMU"}}
+}
 async function requestAccess(){
  const username=$("memberName").value.trim().replace(/^@/,"").toLowerCase();
+ if(username==="edrick"){openPrivateDeveloperPanel();showMemberFeedback("Panel Login Developer dibuka. Masukkan PIN 6 digit.");return}
  const password=$("memberPassword").value;
- if(username==="edrick"){showMemberFeedback("Gunakan panel LOGIN DEVELOPER dengan PIN 6 digit, bukan login anggota.");$("developerPinInput")?.focus();return}
+ if(username==="edrick"){showMemberFeedback("Masukkan PIN pada panel Login Developer yang muncul di bawah.");openPrivateDeveloperPanel();return}
  if(username.length<2||!password){showMemberFeedback("Isi username dan password terlebih dahulu.");return}
  if(!fcConfigReady()){showMemberFeedback("Alamat server belum dikonfigurasi pada aplikasi.");return}
  const btn=document.querySelector(".login-panel button.primary");if(btn){btn.disabled=true;btn.textContent="MEMERIKSA AKUN..."}
@@ -408,16 +457,14 @@ async function bootstrapDeveloperPassword(){
 function developerLogin(){closeDeveloperGate();$("developerPinInput")?.focus();toast("Gunakan PIN 6 digit pada panel Login Developer.")}
 function closeDeveloperGate(){$("developerGate")?.classList.add("hidden");if($("devGateCode"))$("devGateCode").value="";if($("bootstrapSecret"))$("bootstrapSecret").value=""}
 function openPrivateDeveloperPanel(){
- const panel=$("developerLoginPanel");
- if(!panel)return;
- panel.classList.remove("hidden");
- panel.scrollIntoView({behavior:"smooth",block:"center"});
+ const panel=$("developerLoginPanel");if(!panel)return;
+ panel.classList.remove("hidden");panel.scrollIntoView({behavior:"smooth",block:"center"});
  $("developerPinInput")?.focus();
 }
-function bindPrivateDeveloperAccess(){/* Akses dibuka melalui satu ketukan logo mahkota. */}
-function logout(){if(session?.accessToken&&fcConfigReady())fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":session.anonKey||window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.accessToken}}).catch(()=>{});if(session)log("Logout",session.name);session=null;try{sessionStorage.removeItem("fc_session")}catch(e){}audio.pause();$("workspace").classList.add("hidden");$("landing").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("homeBtn").classList.add("hidden");$("topUser").textContent="";if($("devGateCode"))$("devGateCode").value=""}
+function bindPrivateDeveloperAccess(){/* Panel ditampilkan otomatis saat username edrick dimasukkan. */}
+function logout(){if(session?.accessToken&&fcConfigReady())fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":session.anonKey||window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.accessToken}}).catch(()=>{});if(session)log("Logout",session.name);session=null;try{sessionStorage.removeItem("fc_session")}catch(e){}audio.pause();$("workspace").classList.add("hidden");$("guestWorkspace")?.classList.add("hidden");$("landing").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("homeBtn").classList.add("hidden");$("guestInviteBtn")?.classList.add("hidden");$("topUser").textContent="";if($("devGateCode"))$("devGateCode").value=""}
 function goHome(){currentPage="overview";renderPage()}
-function enterApp(){$("landing").classList.add("hidden");$("workspace").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("homeBtn").classList.remove("hidden");$("topUser").textContent=session.name+" · "+session.role;currentPage="overview";$("sideName").textContent=session.name;$("sideRole").textContent=session.role.toUpperCase();buildNav();recordMissionEvent("login","Login ke kerajaan");renderPage();requestPortrait()}
+function enterApp(){$("landing").classList.add("hidden");$("guestWorkspace")?.classList.add("hidden");$("workspace").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("homeBtn").classList.remove("hidden");if(session?.role!=="Guest")$("guestInviteBtn")?.classList.remove("hidden");$("topUser").textContent=session.name+" · "+session.role;currentPage="overview";$("sideName").textContent=session.name;$("sideRole").textContent=session.role.toUpperCase();buildNav();recordMissionEvent("login","Login ke kerajaan");renderPage();requestPortrait()}
 function requestPortrait(){
   // Android Activity is locked to portrait; this class keeps the in-app layout vertical.
   document.documentElement.classList.add("fc-portrait");
@@ -1465,8 +1512,10 @@ function fc12ExportBackup(){if(session?.role!=="Developer")return toast("Akses D
 $("memberName").addEventListener("keydown",e=>{if(e.key==="Enter")requestAccess()});
 $("devGateCode").addEventListener("keydown",e=>{if(e.key==="Enter")developerLogin()});
 const developerSetupButton=$("developerSetupButton");if(developerSetupButton)developerSetupButton.addEventListener("click",()=>bootstrapDeveloperPassword());
-/* Panel Developer tetap tersembunyi sampai logo mahkota diketuk. */
+$("memberName").addEventListener("input",e=>{const value=e.target.value.trim().replace(/^@/,"").toLowerCase();if(value==="edrick")openPrivateDeveloperPanel();else $("developerLoginPanel")?.classList.add("hidden")});
+$("guestRecommendationCode")?.addEventListener("keydown",e=>{if(e.key==="Enter")guestRecommendationLogin()});
+/* Panel Developer tetap tersembunyi sampai username khusus Developer dimasukkan. */
 $("developerGate").addEventListener("click",e=>{if(e.target.id==="developerGate")closeDeveloperGate()});
-if(!Array.isArray(db.members))db.members=[];if(!Array.isArray(db.requests))db.requests=[];if(!Array.isArray(db.announcements))db.announcements=[];if(!Array.isArray(db.activity))db.activity=[];ensureEconomyData();ensureMissionData();ensureHoneyChallengeData();ensureGuessWhoData();saveDB();try{const saved=JSON.parse(sessionStorage.getItem("fc_session")||"null");if(saved&&saved.accessToken&&saved.expiresAt>Date.now()+30000){session=saved;enterApp()}}catch(e){}
+if(!Array.isArray(db.members))db.members=[];if(!Array.isArray(db.requests))db.requests=[];if(!Array.isArray(db.announcements))db.announcements=[];if(!Array.isArray(db.activity))db.activity=[];ensureEconomyData();ensureMissionData();ensureHoneyChallengeData();ensureGuessWhoData();saveDB();try{const saved=JSON.parse(sessionStorage.getItem("fc_session")||"null");if(saved&&saved.expiresAt>Date.now()+30000){session=saved;if(saved.guest){$("landing").classList.add("hidden");$("workspace").classList.add("hidden");$("guestWorkspace").classList.remove("hidden");$("guestWelcome").textContent="Halo, "+saved.name+". Akses tamu terbatas."; $("logoutBtn").classList.remove("hidden");$("topUser").textContent=saved.name+" · TAMU"}else if(saved.accessToken){enterApp()}}}catch(e){}
 </script>
 </body></html>
