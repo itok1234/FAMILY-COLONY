@@ -8,6 +8,7 @@ on:
       - "godot_world/**"
       - ".github/workflows/godot-validation.yml"
       - ".github/workflows/android-release.yml"
+      - ".github/workflows/android-debug.yml"
   pull_request:
     paths:
       - "godot_world/**"
