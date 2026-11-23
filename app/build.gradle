@@ -26,7 +26,8 @@ android {
     // This substantially reduces the download and storage footprint versus a universal APK.
     splits {
         abi {
-            enable true
+            // Split only the production release; keep debug as a universal emulator-test APK.
+            enable project.hasProperty('fcSplitReleaseApks')
             reset()
             include 'arm64-v8a', 'armeabi-v7a'
             universalApk false
