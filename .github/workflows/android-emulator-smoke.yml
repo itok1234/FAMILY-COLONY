@@ -20,9 +20,6 @@ jobs:
   embedded-godot-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      # GitHub-hosted runners may lack KVM; explicitly permit Android Emulator TCG.
-      ANDROID_I_WANT_MY_TCG: "yes"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -47,11 +44,21 @@ jobs:
           api-level: 30
           target: google_apis
           arch: x86_64
-          profile: Nexus 6
+          profile: Pixel 2
+          force-avd-creation: true
           disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           script: |
             set -euo pipefail
             APK="app/build/outputs/apk/debug/app-debug.apk"
+            adb wait-for-device
+            for attempt in $(seq 1 30); do
+              if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; then
+                break
+              fi
+              sleep 2
+            done
+            test "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1"
             adb install "$APK"
             adb shell am start -W -n "com.cdl.familycolonyv5d.onlinetest13/com.cdl.familycolonyv5d.WorldActivity" \
               --es "com.cdl.familycolonyv5d.extra.WORLD_ACCESS_TOKEN" "invalid.world.session.token" \
