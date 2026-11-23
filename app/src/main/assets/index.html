@@ -525,6 +525,43 @@ function goHome(){currentPage="overview";renderPage()}
 function syncDeveloperTestControls(){const dev=!!(developerTestOriginalSession||session?.role==="Developer");["devTestMemberBtn","devTestGuestBtn"].forEach(id=>$(id)?.classList.toggle("hidden",!dev||!!developerTestOriginalSession));$("devTestReturnBtn")?.classList.toggle("hidden",!developerTestOriginalSession);}
 function startDeveloperPreview(mode){if(!session||session.role!=="Developer"||!["member","guest"].includes(mode))return toast("Hanya Developer yang dapat membuka mode uji.");if(!developerTestOriginalSession)developerTestOriginalSession={...session};if(mode==="member"){session={name:"Pratinjau Member",role:"Member",testPreview:true};$("guestWorkspace")?.classList.add("hidden");enterApp();}else{session={name:"Pengunjung Uji",role:"Guest",guest:true,testPreview:true,guestToken:null,referrer:"Mode Uji Developer",expiresAt:Date.now()+30*60*1000};$("landing").classList.add("hidden");$("workspace").classList.add("hidden");$("guestWorkspace").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("homeBtn").classList.add("hidden");$("guestInviteBtn")?.classList.add("hidden");$("topUser").textContent="Pengunjung Uji · TAMU";$("guestWelcome").textContent="Mode simulasi Guest Premium. Tidak menggunakan akun tamu sungguhan."; $("guestReferrer").textContent="Mode Uji Developer";$("guestExpiry").textContent="Sesi demo 30 menit";guestOpen("overview");syncDeveloperTestControls();}}
 function returnDeveloperPreview(){if(!developerTestOriginalSession)return;session=developerTestOriginalSession;developerTestOriginalSession=null;try{sessionStorage.setItem("fc_session",JSON.stringify(session))}catch(e){}enterApp();syncDeveloperTestControls();}
+let fcSessionRefreshPromise=null;
+async function refreshMemberSessionIfNeeded(force=false){
+ if(!session||session.guest||!session.accessToken||!session.refreshToken)return false;
+ const apiKey=session.anonKey||window.FC_SUPABASE_ANON_KEY||"";
+ if(!apiKey)return false;
+ if(!force&&Number(session.expiresAt||0)>Date.now()+120000)return true;
+ if(fcSessionRefreshPromise)return fcSessionRefreshPromise;
+ fcSessionRefreshPromise=(async()=>{
+  try{
+   const response=await fetch(window.FC_SUPABASE_URL+"/auth/v1/token?grant_type=refresh_token",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","apikey":apiKey},
+    body:JSON.stringify({refresh_token:session.refreshToken})
+   });
+   const auth=await response.json().catch(()=>({}));
+   if(!response.ok||!auth.access_token||!auth.refresh_token){
+    if(response.status===400||response.status===401){logout();}
+    return false;
+   }
+   session.accessToken=auth.access_token;
+   session.refreshToken=auth.refresh_token;
+   session.anonKey=apiKey;
+   session.expiresAt=Date.now()+Number(auth.expires_in||3600)*1000;
+   window.FC_SUPABASE_ANON_KEY=apiKey;
+   try{sessionStorage.setItem("fc_session",JSON.stringify(session))}catch(e){}
+   return true;
+  }catch(e){
+   return false;
+  }
+ })();
+ try{return await fcSessionRefreshPromise}finally{fcSessionRefreshPromise=null}
+}
+window.fcRefreshMemberSessionIfNeeded=refreshMemberSessionIfNeeded;
+document.addEventListener("visibilitychange",()=>{
+ if(!document.hidden&&session?.accessToken)refreshMemberSessionIfNeeded();
+});
+setInterval(()=>{if(session?.accessToken)refreshMemberSessionIfNeeded()},60000);
 function enterApp(){$("landing").classList.add("hidden");$("guestWorkspace")?.classList.add("hidden");$("workspace").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("homeBtn").classList.remove("hidden");if(session?.role!=="Guest")$("guestInviteBtn")?.classList.remove("hidden");$("topUser").textContent=session.name+" · "+session.role;currentPage="overview";$("sideName").textContent=session.name;$("sideRole").textContent=session.role.toUpperCase();buildNav();recordMissionEvent("login","Login ke kerajaan");renderPage();requestPortrait();syncDeveloperTestControls()}
 function requestPortrait(){
   // Android Activity is locked to portrait; this class keeps the in-app layout vertical.
@@ -1661,7 +1698,7 @@ $("memberName").addEventListener("input",e=>{const value=e.target.value.trim().r
 $("guestRecommendationCode")?.addEventListener("keydown",e=>{if(e.key==="Enter")guestRecommendationLogin()});
 /* Panel Developer tetap tersembunyi sampai username khusus Developer dimasukkan. */
 $("developerGate").addEventListener("click",e=>{if(e.target.id==="developerGate")closeDeveloperGate()});
-if(!Array.isArray(db.members))db.members=[];if(!Array.isArray(db.requests))db.requests=[];if(!Array.isArray(db.announcements))db.announcements=[];if(!Array.isArray(db.activity))db.activity=[];ensureEconomyData();ensureMissionData();ensureHoneyChallengeData();ensureGuessWhoData();saveDB();try{const saved=JSON.parse(sessionStorage.getItem("fc_session")||"null");if(saved&&saved.expiresAt>Date.now()+30000){session=saved;if(saved.guest&&saved.guestToken){$("landing").classList.add("hidden");$("workspace").classList.add("hidden");$("guestWorkspace").classList.remove("hidden");$("guestWelcome").textContent="Halo, "+saved.name+". Selamat menjelajahi fitur publik dan area demo FAMILY COLONY.";$("guestReferrer").textContent=saved.referrer||"Member Family Colony";$("guestExpiry").textContent="Sesi sampai "+new Date(saved.expiresAt).toLocaleString("id-ID");$("logoutBtn").classList.remove("hidden");$("topUser").textContent=saved.name+" · TAMU";guestOpen("overview")}else if(saved.accessToken){enterApp()}}}catch(e){}
+if(!Array.isArray(db.members))db.members=[];if(!Array.isArray(db.requests))db.requests=[];if(!Array.isArray(db.announcements))db.announcements=[];if(!Array.isArray(db.activity))db.activity=[];ensureEconomyData();ensureMissionData();ensureHoneyChallengeData();ensureGuessWhoData();saveDB();try{const saved=JSON.parse(sessionStorage.getItem("fc_session")||"null");if(saved&&saved.guest&&saved.guestToken&&saved.expiresAt>Date.now()+30000){session=saved;$("landing").classList.add("hidden");$("workspace").classList.add("hidden");$("guestWorkspace").classList.remove("hidden");$("guestWelcome").textContent="Halo, "+saved.name+". Selamat menjelajahi fitur publik dan area demo FAMILY COLONY.";$("guestReferrer").textContent=saved.referrer||"Member Family Colony";$("guestExpiry").textContent="Sesi sampai "+new Date(saved.expiresAt).toLocaleString("id-ID");$("logoutBtn").classList.remove("hidden");$("topUser").textContent=saved.name+" · TAMU";guestOpen("overview")}else if(saved&&saved.accessToken&&saved.refreshToken){session=saved;window.FC_SUPABASE_ANON_KEY=saved.anonKey||"";refreshMemberSessionIfNeeded().then(ok=>{if(ok||Number(saved.expiresAt||0)>Date.now())enterApp();else showMemberFeedback("Sesi login perlu diperbarui. Periksa koneksi internet lalu masuk kembali.")})}}catch(e){}
 
 setInterval(fcPollAppStatus,45000);fcPollAppStatus();
 </script>
