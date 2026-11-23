@@ -136,9 +136,12 @@ func _apply_resolved_quality(resolved: Quality) -> void:
 func _set_scene_density(trees: int, lamps: int, buildings: int) -> void:
 	if environment_builder == null:
 		return
-	environment_builder.set("tree_count", trees)
-	environment_builder.set("lamp_count", lamps)
-	environment_builder.set("building_count", buildings)
+	if environment_builder.has_method("apply_quality_density"):
+		environment_builder.call("apply_quality_density", trees, lamps, buildings)
+	else:
+		environment_builder.set("tree_count", trees)
+		environment_builder.set("lamp_count", lamps)
+		environment_builder.set("building_count", buildings)
 
 
 func _set_effects(shadows: bool, glow: bool) -> void:
