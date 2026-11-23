@@ -39,8 +39,14 @@ Status: the existing Android application compiles with the Godot 4.4.1 Android e
 - Full regression of existing app screens and member/admin/developer permissions.
 - Signed final APK verification, versioning, installation/upgrade test, and direct-download release validation.
 
-## Visual quality gate
-Ultra-realistic 3D remains the approved art target. The current procedural avatar and neighborhood are blockout assets, not the finished visual standard. Ultra/High/Balanced/Performance profiles may change rendering quality only and must never unlock or hide gameplay features.
+## Visual quality and low-end device gate
+Ultra-realistic 3D remains the approved art target, but low-end device access is a first-class requirement. The current procedural avatar and neighborhood are blockout assets, not the finished visual standard.
+
+- The 3D world exposes saved graphics profiles: Automatic, Hemat (Performance), Seimbang (Balanced), and Tinggi (High).
+- Automatic currently uses processor-count heuristics; it is a starting point and must be calibrated on physical low-, mid-, and high-range Android devices.
+- Performance/Balanced reduce render scale, disable expensive effects, and reduce environment object density. High enables higher render scale, MSAA, shadows, and glow.
+- Graphics profiles must never unlock, hide, or remove gameplay/member features.
+- APK size target: aim for 150–250 MB where technically feasible; this is a target, not a measured build size. CI must report actual APK bytes and installed-size/device performance still needs physical testing.
 
 ## Do not release as a demo substitute
 The Godot world must be integrated as one part of the existing FAMILY COLONY application. Internal validation builds are not final releases and must not be presented as the completed full app.
