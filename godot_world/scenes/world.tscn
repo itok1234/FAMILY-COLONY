@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/world_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/player_controller.gd" id="2"]
@@ -30,6 +30,10 @@ size = Vector2(240, 240)
 subdivide_width = 24
 subdivide_depth = 24
 
+[sub_resource type="StandardMaterial3D" id="GrassMaterial"]
+albedo_color = Color(0.24, 0.34, 0.22, 1)
+roughness = 1.0
+
 [sub_resource type="BoxShape3D" id="GroundShape"]
 size = Vector3(240, 1, 240)
 
@@ -59,8 +63,10 @@ position = Vector3(0, -0.55, 0)
 
 [node name="GroundMesh" type="MeshInstance3D" parent="Ground"]
 mesh = SubResource("GroundMesh")
+material_override = SubResource("GrassMaterial")
 
 [node name="GroundCollision" type="CollisionShape3D" parent="Ground"]
+position = Vector3(0, -0.5, 0)
 shape = SubResource("GroundShape")
 
 [node name="Player" type="CharacterBody3D" parent="."]
