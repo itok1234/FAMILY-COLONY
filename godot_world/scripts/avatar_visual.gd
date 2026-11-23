@@ -5,6 +5,7 @@ var _time := 0.0
 var _motion := 0.0
 var _action := "idle"
 var _action_time := 0.0
+var _is_seated := false
 var _head: Node3D
 var _left_arm: Node3D
 var _right_arm: Node3D
@@ -46,9 +47,23 @@ func get_appearance_snapshot() -> Dictionary:
 
 
 func play_action(action_name: String) -> void:
-	if action_name in ["wave", "sit"]:
-		_action = action_name
+	if action_name == "sit":
+		_is_seated = true
+		_action = "sit"
 		_action_time = 0.0
+	elif action_name == "stand":
+		stand_up()
+	elif action_name == "wave" and not _is_seated:
+		_action = "wave"
+		_action_time = 0.0
+
+func stand_up() -> void:
+	_is_seated = false
+	_action = "idle"
+	_action_time = 0.0
+
+func is_seated() -> bool:
+	return _is_seated
 
 func _process(delta: float) -> void:
 	_time += delta
@@ -62,14 +77,12 @@ func _process(delta: float) -> void:
 		if wave_weight <= 0.0:
 			_action = "idle"
 	elif _action == "sit":
-		sit_weight = 1.0 if _action_time < 2.8 else maxf(0.0, 1.0 - (_action_time - 2.8) * 2.0)
-		if sit_weight <= 0.0:
-			_action = "idle"
+		sit_weight = 1.0
 	if _left_arm != null:
-		_left_arm.rotation.x = swing
-		_right_arm.rotation.x = -swing - wave_weight * 2.15 + sin(_time * 13.0) * 0.28 * wave_weight
-		_left_leg.rotation.x = -swing + sit_weight * 0.9
-		_right_leg.rotation.x = swing + sit_weight * 0.9
+		_left_arm.rotation.x = lerpf(swing, -0.28, sit_weight)
+		_right_arm.rotation.x = lerpf(-swing - wave_weight * 2.15 + sin(_time * 13.0) * 0.28 * wave_weight, -0.28, sit_weight)
+		_left_leg.rotation.x = lerpf(-swing, 0.9, sit_weight)
+		_right_leg.rotation.x = lerpf(swing, 0.9, sit_weight)
 		_head.rotation.x = idle * 0.35 - wave_weight * 0.08
 		position.y = idle * (1.0 - _motion) - sit_weight * 0.28
 
