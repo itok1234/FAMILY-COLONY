@@ -62,10 +62,10 @@ jobs:
           sql = Path("supabase/migrations/202611230001_operational_finance_ledger.sql").read_text()
           Path("/tmp/fc-finance-query.json").write_text(json.dumps({"query": sql}))
           PY
-          code=$(curl -sS -w "%{http_code}" -o /tmp/fc-finance-result.json -X POST \\
-            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \\
-            -H "Content-Type: application/json" \\
-            --data-binary @/tmp/fc-finance-query.json \\
+          code=$(curl -sS -w "%{http_code}" -o /tmp/fc-finance-result.json -X POST \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data-binary @/tmp/fc-finance-query.json \
             "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")
           echo "Finance schema HTTP status: $code"
           if [[ "$code" != 2* ]]; then
