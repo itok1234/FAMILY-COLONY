@@ -68,7 +68,7 @@ jobs:
             done
             test "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1"
             adb install "$APK"
-            adb shell am start -W -n "com.cdl.familycolonyv5d.onlinetest15/com.cdl.familycolonyv5d.WorldActivity" \
+            adb shell am start -n "com.cdl.familycolonyv5d.onlinetest15/com.cdl.familycolonyv5d.WorldActivity" \
               --es "com.cdl.familycolonyv5d.extra.WORLD_ACCESS_TOKEN" "invalid.world.session.token" \
               --es "com.cdl.familycolonyv5d.extra.WORLD_API_KEY" "invalid-publishable-key"
             sleep 25
