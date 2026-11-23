@@ -1,156 +1,1667 @@
-extends Node
-## Secure in-memory bridge between the Android host and the verified Supabase session.
-## The native host supplies only the short-lived access token. Refresh tokens stay in
-## the existing app authentication layer and are never stored by this Godot node.
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#091426">
+<title>FAMILY COLONY — BEE KINGDOM | TAHAP 20 — MINI GAME CENTER</title>
+<style>
+:root{--navy:#091426;--navy2:#101f36;--panel:rgba(19,35,57,.82);--gold:#e8bd62;--gold2:#f7df9c;--amber:#bd792c;--white:#f5f2e9;--muted:#aab6c8;--line:rgba(232,189,98,.22);--green:#7ed5a1;--red:#f08d8d;--shadow:0 18px 55px #0008}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 15% 0%,#233b5a 0,transparent 38%),radial-gradient(ellipse at 90% 20%,#513a1b55 0,transparent 35%),linear-gradient(145deg,#07101e,#0d1d32 55%,#090f1b);color:var(--white);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.13;background-image:linear-gradient(30deg,transparent 24%,#d6a64a 25%,#d6a64a 26%,transparent 27%,transparent 74%,#d6a64a 75%,#d6a64a 76%,transparent 77%),linear-gradient(150deg,transparent 24%,#d6a64a 25%,#d6a64a 26%,transparent 27%,transparent 74%,#d6a64a 75%,#d6a64a 76%,transparent 77%);background-size:62px 108px;mask-image:linear-gradient(to bottom,#000,transparent 85%)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}.muted{color:var(--muted)}.gold{color:var(--gold2)}.tiny{font-size:.78rem;color:var(--muted)}.eyebrow{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:800}
+.brand{display:flex;align-items:center;gap:13px}.bee-mark{width:46px;height:46px;border:2px solid #e8bd6277;border-radius:15px;display:grid;place-items:center;font-size:25px;background:linear-gradient(145deg,#f5d98e,#a76b21);box-shadow:0 0 18px #e8bd6244;color:#1a1b20;padding:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:box-shadow .15s,border-color .15s,transform .15s}.bee-mark:active{transform:scale(.94)}.bee-mark.tap-glow{border-color:#fff2b8;box-shadow:0 0 0 3px #f7df9c55,0 0 18px 7px #f4c75eaa,0 0 38px 12px #e8bd6266;animation:beeFramePulse .42s ease-out}@keyframes beeFramePulse{0%{box-shadow:0 0 0 0 #fff2b8,0 0 0 0 #e8bd62}55%{box-shadow:0 0 0 5px #fff2b855,0 0 24px 10px #f4c75eaa}100%{box-shadow:0 0 0 3px #f7df9c55,0 0 18px 7px #f4c75eaa}}.brand strong{display:block;letter-spacing:.09em;font-size:.9rem}.brand small{color:var(--gold);letter-spacing:.18em;font-size:.62rem}
+.shell{width:min(1200px,100% - 32px);margin:auto}.topbar{position:sticky;top:0;z-index:10;background:#081323dc;backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}.topbar-inner{height:76px;display:flex;align-items:center;justify-content:space-between;gap:12px}.top-actions{display:flex;align-items:center;gap:9px}
+.btn{border:1px solid var(--line);border-radius:12px;padding:11px 15px;background:linear-gradient(145deg,#24364d,#132238);color:var(--white);font-weight:700;transition:.2s;box-shadow:0 7px 18px #0003}.btn:hover{transform:translateY(-2px);border-color:#e8bd6299}.btn.primary{background:linear-gradient(135deg,#f0d48d,#bd842f);color:#20180b;border:0}.btn.ghost{background:transparent}.btn.danger{border-color:#a94b4b;color:#ffc0b8}.btn.small{padding:8px 11px;font-size:.82rem}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;align-items:center;padding:35px 0 42px}.hero h1{font-size:clamp(2.1rem,6vw,4.2rem);line-height:1.02;margin:13px 0 17px;letter-spacing:-.045em}.hero h1 span{color:var(--gold2);text-shadow:0 0 30px #e8bd6240}.hero p{max-width:590px;color:#bdc8d7;line-height:1.75}.hero-art{min-height:290px;display:grid;place-items:center;position:relative}.hive{width:min(300px,70vw);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#f4d98c 0 3%,#b67b2b 4% 7%,#2c3d50 8% 25%,#15263b 26% 52%,transparent 53%);box-shadow:0 0 0 1px #e8bd6255,0 0 80px #d49a3a22,inset 0 0 55px #f5d98c22;position:relative}.hive:before,.hive:after{content:"";position:absolute;inset:8%;border:1px solid #e8bd6266;border-radius:50%;animation:orbit 18s linear infinite}.hive:after{inset:-5%;border-style:dashed;animation-direction:reverse;animation-duration:28s}.hive span{font-size:100px;filter:drop-shadow(0 12px 20px #0009)}@keyframes orbit{to{transform:rotate(360deg)}}
+.panel{background:linear-gradient(145deg,rgba(25,43,66,.92),rgba(11,23,39,.91));border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow);backdrop-filter:blur(15px)}.login-grid{display:grid;grid-template-columns:minmax(0,520px);justify-content:center;gap:16px;max-width:850px;margin:0 auto}.login-panel h2{margin:8px 0}.field{display:grid;gap:7px;margin:14px 0}.field label{font-size:.83rem;color:#c9d3df;font-weight:700}.field input,.field select,.field textarea{width:100%;padding:13px 14px;border:1px solid #40516a;border-radius:11px;background:#091525;color:#fff;outline:none}.field input:focus,.field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px #e8bd621c}.field textarea{min-height:90px;resize:vertical}.rowline{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.notice{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#dba94c12;color:#e9d8b2;font-size:.84rem;line-height:1.55;margin:12px 0}.status{display:inline-flex;align-items:center;gap:7px;border-radius:99px;padding:6px 10px;font-size:.72rem;font-weight:800;background:#ffffff12;color:#dce5ef}.status.ok{color:#a4efc0;background:#65d58b18}.status.wait{color:#f6d58b;background:#e8bd6218}.status.bad{color:#ffaaaa;background:#e45b5b18}
+.app-layout{display:grid;grid-template-columns:245px minmax(0,1fr);gap:20px}.sidebar{align-self:start;position:sticky;top:95px}.side-head{padding:8px 9px 18px;border-bottom:1px solid var(--line);margin-bottom:12px}.side-nav{display:grid;gap:5px}.navbtn{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:12px;border:1px solid transparent;border-radius:11px;background:transparent;color:#c4cfdd}.navbtn:hover,.navbtn.active{background:#e8bd6217;border-color:#e8bd6244;color:var(--gold2)}.navbtn .ico{width:22px;text-align:center}.content{min-width:0}.pagehead{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:20px}.pagehead h1{margin:4px 0 6px;font-size:clamp(1.6rem,4vw,2.3rem)}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:15px 0 22px}.stat{padding:17px;border-radius:15px;background:#ffffff08;border:1px solid var(--line)}.stat strong{display:block;font-size:1.55rem;color:var(--gold2);margin-top:6px}.stat span{font-size:.78rem;color:var(--muted)}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.module-card{padding:18px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,#1b3048,#102036);min-height:145px;display:flex;flex-direction:column;justify-content:space-between;gap:13px;transition:.2s}.module-card:hover{transform:translateY(-3px);border-color:#e8bd6288}.module-card .bigico{font-size:27px}.module-card h3{margin:7px 0 4px;font-size:1rem}.module-card p{margin:0;color:var(--muted);font-size:.8rem;line-height:1.5}.section{margin:18px 0}.section h2{font-size:1.15rem;margin:0 0 13px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}table{width:100%;border-collapse:collapse;min-width:540px;font-size:.86rem}th,td{text-align:left;padding:12px 13px;border-bottom:1px solid #ffffff12}th{color:var(--gold2);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;background:#ffffff08}tr:last-child td{border-bottom:0}.empty{padding:25px;text-align:center;color:var(--muted);border:1px dashed #65748a66;border-radius:14px}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}.player{padding:18px;border-radius:17px;border:1px solid var(--line);background:#091625}.player-display{padding:18px;border-radius:13px;background:radial-gradient(circle at 50% 0,#d49b3b24,transparent 60%),#101f33;text-align:center;margin-bottom:12px}.disc{width:92px;height:92px;margin:3px auto 12px;border-radius:50%;border:8px solid #293b50;background:repeating-radial-gradient(circle,#10151e 0 3px,#28384b 4px 5px);display:grid;place-items:center;box-shadow:0 0 22px #e8bd6230}.disc span{width:23px;height:23px;border-radius:50%;background:linear-gradient(135deg,#f4d98c,#a76b21);display:block}.player-controls{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:12px 0}.range{width:100%;accent-color:#e8bd62}.playlist{display:grid;gap:7px;margin-top:12px}.track{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 11px;border-radius:9px;background:#ffffff08;font-size:.82rem}.track.active{border:1px solid #e8bd6266;color:var(--gold2)}.video-frame{width:100%;aspect-ratio:16/9;border:1px solid var(--line);border-radius:14px;background:#05090f;overflow:hidden}.video-frame iframe{width:100%;height:100%;border:0}.profile-badge{width:76px;height:76px;border-radius:24px;background:linear-gradient(145deg,#f3d88f,#a56b25);display:grid;place-items:center;color:#1a1b20;font-size:34px;overflow:hidden;position:relative;flex:0 0 auto;border:3px solid #d9b45f;box-shadow:0 0 0 3px #14263d,0 0 0 5px #d9b45f}.profile-badge img{width:100%;height:100%;object-fit:cover}.profile-badge.frame-royal{border:4px solid #f2cf65;box-shadow:0 0 0 3px #8e5c19,0 0 0 6px #f6e5a4}.profile-badge.frame-guardian{border:4px solid #8bc9e8;box-shadow:0 0 0 3px #315e83,0 0 0 6px #c6efff}.profile-badge.frame-flora{border:4px solid #9bd58d;box-shadow:0 0 0 3px #376a39,0 0 0 6px #d5f0b9}.profile-badge.frame-event{border:4px solid #d5a4f2;box-shadow:0 0 0 3px #71479a,0 0 0 6px #f0d8ff}.photo-thumb{width:62px;height:62px;object-fit:cover;border-radius:15px;border:2px solid #d9b45f}.frame-chip{display:inline-flex;padding:7px 10px;border-radius:10px;border:1px solid var(--line);background:#ffffff0a;font-size:.8rem}.toast{position:fixed;bottom:18px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#f0d48d;color:#211a0d;padding:12px 18px;border-radius:12px;font-weight:800;z-index:50;box-shadow:var(--shadow);transition:.25s;max-width:90vw;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}.footer{padding:25px 0;color:#8392a7;text-align:center;font-size:.75rem;border-top:1px solid #ffffff12;margin-top:35px}
+.chat-shell{border:1px solid var(--line);border-radius:17px;background:linear-gradient(155deg,#10223a,#091625);padding:14px;overflow:hidden}.chat-room-head{display:flex;align-items:center;gap:12px;padding:8px 4px 14px;border-bottom:1px solid var(--line);margin-bottom:12px}.chat-room-icon{width:48px;height:48px;border-radius:15px;background:linear-gradient(145deg,#f4d98c,#a76b21);display:grid;place-items:center;font-size:25px;color:#111;flex:0 0 auto}.chat-room-head>div:nth-child(2){flex:1;min-width:0}.chat-notice{padding:10px 12px;background:#e8bd6210;border:1px solid #e8bd6233;border-radius:11px;color:#c5d0de;font-size:.78rem;margin-bottom:12px}.chat-stream{height:min(48vh,480px);min-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:8px 2px 14px;scroll-behavior:smooth}.chat-line{display:flex;gap:8px;align-items:flex-end;max-width:92%}.chat-line.mine{align-self:flex-end;flex-direction:row-reverse}.chat-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(145deg,#f4d98c,#a76b21);display:grid;place-items:center;color:#172033;font-weight:900;font-size:.8rem;flex:0 0 auto}.chat-bubble{padding:9px 12px;border:1px solid #ffffff18;border-radius:13px 13px 13px 4px;background:#ffffff0b;min-width:100px;max-width:100%;overflow-wrap:anywhere}.chat-line.mine .chat-bubble{background:#b9853824;border-color:#e8bd6244;border-radius:13px 13px 4px 13px}.chat-meta{display:flex;gap:12px;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--gold2);margin-bottom:4px}.chat-meta span{color:var(--muted);font-size:.65rem;white-space:nowrap}.chat-text{font-size:.88rem;line-height:1.5;color:#f4f2eb}.chat-compose{display:flex;gap:8px;align-items:stretch;margin-top:8px}.chat-compose textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:130px;background:#07111f;border:1px solid var(--line);border-radius:11px;color:var(--white);padding:11px;font:inherit}.chat-compose button{align-self:stretch}.chat-create{margin-bottom:18px}.chat-create-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.chat-room-card{min-height:170px}.chat-room-card .rowline{align-items:center}.chat-room-card .rowline:last-child{margin-top:auto}.chat-room-card .bigico{font-size:24px}
+@media(max-width:850px){.hero{grid-template-columns:1fr;padding-top:20px}.hero-art{min-height:200px}.hive{width:210px}.hive span{font-size:72px}.app-layout{grid-template-columns:1fr}.sidebar{position:static}.side-nav{display:flex;overflow:auto;padding-bottom:5px}.navbtn{white-space:nowrap;width:auto;flex:0 0 auto}.side-head{display:none}.stats{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Hidden developer gate and compact landscape layout */
+.dev-gate{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:18px;background:#030914dd;backdrop-filter:blur(14px)}
+.dev-gate-card{width:min(420px,100%);background:linear-gradient(145deg,#1b3048,#0b1728);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 25px 80px #000b}
+@media (orientation:landscape) and (max-height:600px){main{padding-top:16px}.hero{padding:12px 0 18px;grid-template-columns:1.2fr .8fr;gap:12px}.hero-art{min-height:155px}.hive{width:150px}.hive span{font-size:58px}.panel{padding:15px}.app-layout{grid-template-columns:190px minmax(0,1fr);gap:12px}.sidebar{top:76px}.stats{margin:8px 0 14px}.stat{padding:11px}.module-card{min-height:120px;padding:13px}}
+/* FAMILY COLONY portrait-first phone layout */
+@media (orientation:portrait){.app-layout{grid-template-columns:minmax(0,1fr)!important;gap:12px}.sidebar{position:static;top:auto}.side-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;overflow:visible;padding-bottom:0}.navbtn{width:100%;min-width:0;white-space:normal;justify-content:flex-start;text-align:left}.content{min-width:0;width:100%}.pagehead{display:block}.pagehead .toolbar{margin-top:12px}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:380px){.side-nav{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.shell{width:min(100% - 22px,1200px)}.topbar-inner{height:66px}.brand strong{font-size:.72rem}.brand small{font-size:.55rem}.bee-mark{width:39px;height:39px}.top-actions .btn{padding:9px 10px;font-size:.76rem}.hero{gap:4px}.hero-art{min-height:175px}.login-grid,.two-col{grid-template-columns:1fr}.panel{padding:17px}.cards{grid-template-columns:1fr 1fr;gap:9px}.module-card{padding:13px;min-height:145px}.stats{gap:8px}.stat{padding:13px}.stat strong{font-size:1.3rem}.pagehead{display:block}.pagehead .toolbar{margin-top:12px}.app-layout{gap:12px}.navbtn{padding:10px;font-size:.8rem}.content .panel{padding:15px}}
 
-signal session_verified(member: Dictionary, permissions: Dictionary)
-signal session_rejected(error_code: String)
-signal session_cleared
+.mission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:13px;margin-top:15px}.mission-card{background:linear-gradient(145deg,#172a43dd,#101d31);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}.mission-card h3{margin:7px 0}.mission-meta{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.mission-progress{height:9px;background:#ffffff18;border-radius:20px;overflow:hidden;margin:9px 0}.mission-progress span{display:block;height:100%;background:linear-gradient(90deg,#bd842f,#f7df9c);border-radius:20px}.mission-icon{font-size:27px}.tier{display:inline-flex;border:1px solid var(--line);border-radius:20px;padding:3px 9px;font-size:.72rem;color:var(--gold2)}.audit-row{border-bottom:1px solid var(--line);padding:10px 0;overflow-wrap:anywhere}.field select{width:100%;background:#0c192b;color:var(--white);border:1px solid var(--line);border-radius:9px;padding:11px}
 
-@export var endpoint_url: String = "https://irwtnqekrwhgompulach.supabase.co/functions/v1/fc-world-session"
-@export_range(3.0, 30.0, 1.0) var request_timeout_seconds: float = 10.0
-
-var _http: HTTPRequest
-var _request_pending: bool = false
-var _current_member: Dictionary = {}
-var _current_permissions: Dictionary = {}
-var last_error_code: String = ""
-
-
-func _ready() -> void:
-	_http = HTTPRequest.new()
-	_http.name = "WorldSessionHTTPRequest"
-	_http.timeout = request_timeout_seconds
-	_http.use_threads = true
-	add_child(_http)
-	_http.request_completed.connect(_on_request_completed)
-
-	# The Android host exposes a one-time access-token handoff. No refresh token
-	# or privileged server key is made available to the Godot project.
-	if Engine.has_singleton("FamilyColonyBridge"):
-		var bridge: Object = Engine.get_singleton("FamilyColonyBridge")
-		if bridge.has_method("consumeInitialAccessToken"):
-			var initial_token := str(bridge.call("consumeInitialAccessToken"))
-			if initial_token.is_empty():
-				_access_denied("native_session_token_missing")
-			else:
-				var request_error := verify_access_token(initial_token)
-				if request_error != OK:
-					push_warning("FAMILY COLONY: Could not start member session verification.")
-		else:
-			_access_denied("native_session_bridge_invalid")
-	else:
-		_access_denied("native_session_bridge_missing")
-
-
-## Called by the future Android native bridge after the existing app login succeeds.
-## Do not pass refresh tokens, service-role keys, member IDs, or role values here.
-func verify_access_token(access_token: String) -> Error:
-	var token := access_token.strip_edges()
-	if token.is_empty():
-		return ERR_INVALID_PARAMETER
-	if endpoint_url.strip_edges().is_empty():
-		return ERR_UNCONFIGURED
-
-	if _request_pending:
-		_http.cancel_request()
-	_request_pending = false
-	_current_member.clear()
-	_current_permissions.clear()
-	last_error_code = ""
-
-	var headers := PackedStringArray([
-		"Content-Type: application/json",
-		"Authorization: Bearer " + token
-	])
-	var request_error := _http.request(
-		endpoint_url,
-		headers,
-		HTTPClient.METHOD_POST,
-		"{}"
-	)
-	if request_error != OK:
-		_access_denied("session_request_could_not_start")
-		return request_error
-
-	_request_pending = true
-	return OK
+/* TAHAP 20 — GUESS WHO prototype */
+.game-hero{border:1px solid rgba(232,189,98,.35);border-radius:20px;padding:22px;background:radial-gradient(circle at 85% 15%,#9a6a2d55,transparent 35%),linear-gradient(135deg,#142945,#0b1729);box-shadow:var(--shadow)}
+.game-hero h2{font-size:clamp(1.5rem,4vw,2.25rem);margin:8px 0;color:var(--gold2)}
+.game-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;margin-top:14px}
+.game-tile,.game-question,.game-admin{background:rgba(15,31,51,.88);border:1px solid var(--line);border-radius:16px;padding:16px}
+.game-clue{padding:12px 14px;margin:8px 0;border-radius:12px;background:#ffffff0b;border:1px solid #ffffff12}
+.game-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.game-option{white-space:normal;min-height:52px;text-align:left}
+.game-option:disabled{opacity:.7;cursor:default}
+.game-meter{height:8px;border-radius:20px;background:#ffffff18;overflow:hidden;margin:10px 0}
+.game-meter span{display:block;height:100%;background:linear-gradient(90deg,#b8792d,#f7df9c);transition:width .25s}
+.game-meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:.88rem}
+.game-feedback{padding:12px;border-radius:12px;margin-top:12px;font-weight:700}
+.game-feedback.good{background:#1b694333;color:#9ce6b6}.game-feedback.bad{background:#9b343433;color:#ffaaaa}
+.game-admin-list{display:grid;gap:8px;margin-top:12px}
+.game-admin-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:12px}
+.game-admin-row>div:first-child{min-width:0}
+.game-admin-row strong{display:block;overflow-wrap:anywhere}
+.game-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.game-form-grid .wide{grid-column:1/-1}
+@media(max-width:560px){.game-options{grid-template-columns:1fr}.game-form-grid{grid-template-columns:1fr}.game-form-grid .wide{grid-column:auto}.game-admin-row{align-items:flex-start;flex-direction:column}}
 
 
-## Called by the Android host when the member logs out or leaves the world.
-func clear_session() -> void:
-	if _request_pending and is_instance_valid(_http):
-		_http.cancel_request()
-	_request_pending = false
-	_current_member.clear()
-	_current_permissions.clear()
-	session_cleared.emit()
+/* TAHAP 20 — GAME 02: ROYAL BOMB / HONEY BLAST */
+.rb-shell{position:relative;overflow:hidden;border:1px solid rgba(232,189,98,.34);border-radius:22px;padding:18px;background:radial-gradient(circle at 50% -15%,#6b4b2555,transparent 48%),linear-gradient(145deg,#142945,#091426 68%,#111827);box-shadow:0 20px 60px #0008}
+.rb-shell:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.12;background-image:radial-gradient(#e8bd62 1px,transparent 1px);background-size:19px 19px}
+.rb-shell>*{position:relative}
+.rb-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.rb-title h2{margin:4px 0;color:#f7df9c;font-size:clamp(1.35rem,4vw,2rem);letter-spacing:.04em}
+.rb-table{margin-top:16px;padding:14px;border:1px solid #d6a64a55;border-radius:20px;background:radial-gradient(ellipse at center,#25445a 0,#10283b 50%,#0b1729 100%);box-shadow:inset 0 0 35px #0008}
+.rb-players{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px}
+.rb-player{padding:10px 7px;text-align:center;border-radius:14px;border:1px solid #d6a64a44;background:linear-gradient(145deg,#1c3149,#0b1728);min-width:0}
+.rb-player.active{border-color:#f7df9c;box-shadow:0 0 0 2px #e8bd6233,0 0 22px #e8bd6244}
+.rb-player.dead{opacity:.36;filter:grayscale(1)}
+.rb-avatar{width:42px;height:42px;margin:0 auto 6px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:linear-gradient(145deg,#f7df9c,#9c642b);color:#1a2430;box-shadow:0 3px 14px #0008}
+.rb-player strong{display:block;font-size:.83rem;overflow-wrap:anywhere}
+.rb-player small{color:#b8c5d5;font-size:.72rem}
+.rb-center{text-align:center;padding:18px 8px}
+.rb-deck{width:88px;height:122px;margin:0 auto 10px;border-radius:13px;border:2px solid #f1d58a;background:repeating-linear-gradient(45deg,#182d46,#182d46 7px,#243e59 7px,#243e59 14px);box-shadow:0 9px 24px #0009,inset 0 0 0 4px #d6a64a55;display:grid;place-items:center;font-size:34px;cursor:default}
+.rb-deck span{display:block;font-size:10px;letter-spacing:.13em;color:#f7df9c}
+.rb-hand{display:flex;gap:9px;overflow-x:auto;padding:12px 2px 16px;scroll-snap-type:x proximity}
+.rb-card{flex:0 0 112px;min-height:150px;border-radius:14px;border:1px solid #e8bd62aa;background:linear-gradient(155deg,#203b55,#101c2c);color:#f7f2e8;padding:10px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:space-between;box-shadow:0 8px 18px #0007;scroll-snap-align:start}
+.rb-card .rb-symbol{font-size:32px;filter:drop-shadow(0 3px 5px #0008)}
+.rb-card b{font-size:.78rem;color:#f7df9c}
+.rb-card small{font-size:.67rem;color:#c2cbd5;line-height:1.25}
+.rb-card.playable{cursor:pointer;transition:transform .18s,border-color .18s}
+.rb-card.playable:active{transform:translateY(-5px);border-color:#fff1ae}
+.rb-card:disabled{opacity:.45;filter:grayscale(.6)}
+.rb-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.rb-status{padding:12px;border-radius:13px;background:#050d19aa;border:1px solid #e8bd6244;margin:10px 0;text-align:center;min-height:48px}
+.rb-status.good{color:#9ce6b6;border-color:#62c98a66}.rb-status.warn{color:#ffce86;border-color:#d99a4666}.rb-status.bad{color:#ffaaaa;border-color:#f08d8d66}
+.rb-log{max-height:110px;overflow:auto;font-size:.78rem;color:#b9c5d5;padding:8px 10px;background:#050d1977;border-radius:10px}
+.rb-cover{position:absolute;z-index:5;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;background:#07101eeb;backdrop-filter:blur(10px);border-radius:22px;text-align:center}
+.rb-cover-card{max-width:340px;border:1px solid #e8bd62aa;border-radius:20px;padding:24px;background:linear-gradient(145deg,#1a3049,#0a1424);box-shadow:0 20px 60px #000b}
+.rb-cover-card h3{color:#f7df9c;margin:8px 0}
+.rb-result{font-size:clamp(2rem,7vw,3.4rem);font-weight:900;color:#f7df9c;text-shadow:0 4px 18px #d69a3d55}
+.rb-mode-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px}
+.rb-mode{padding:18px;border:1px solid #e8bd6255;border-radius:18px;background:linear-gradient(145deg,#172d46,#0c1728)}
+.rb-mode h3{color:#f7df9c;margin:6px 0}
+@media(max-width:520px){.rb-shell{padding:12px}.rb-card{flex-basis:102px;min-height:142px}.rb-player{padding:8px 4px}.rb-table{padding:9px}}
 
 
-func has_native_bridge() -> bool:
-	return Engine.has_singleton("FamilyColonyBridge")
+/* GAME 03 — ROYAL MURDER MYSTERY */
+.rm-shell{border:1px solid #d8ad5b55;border-radius:22px;padding:clamp(15px,3vw,26px);background:radial-gradient(circle at 50% 0,#9a6b2926,transparent 42%),linear-gradient(145deg,#172941,#080f1c);box-shadow:0 18px 55px #0008;margin:14px 0}.rm-title{text-align:center;color:#f3d88f;font-weight:900;letter-spacing:.12em}.rm-card{border:1px solid #d9b35b66;border-radius:18px;background:linear-gradient(145deg,#243b56,#0b1728);padding:20px;text-align:center;box-shadow:inset 0 0 30px #d7a64b10,0 12px 35px #0006}.rm-seal{width:112px;height:142px;margin:12px auto;border:2px solid #e8bd62;border-radius:16px;background:repeating-linear-gradient(45deg,#14243a 0 8px,#1d3048 8px 16px);display:grid;place-items:center;font-size:48px;box-shadow:0 0 28px #e8bd6230;animation:rmReveal .6s ease both}.rm-seal.open{background:linear-gradient(145deg,#f4d98c,#b87928);color:#1a1b20}.rm-player{padding:12px;border:1px solid #ffffff18;border-radius:12px;background:#ffffff08;margin:7px 0}.rm-timer{font-size:clamp(2.4rem,9vw,4rem);font-weight:900;color:#f4d98c;text-align:center;font-variant-numeric:tabular-nums;text-shadow:0 0 25px #e8bd6244}.rm-role{font-size:1.35rem;color:#f5d98e;font-weight:900;letter-spacing:.08em}.rm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.rm-grid>*{min-width:0}@keyframes rmReveal{from{transform:rotateY(90deg) scale(.8);opacity:0}to{transform:rotateY(0) scale(1);opacity:1}}@media(max-width:650px){.rm-grid{grid-template-columns:1fr}.rm-shell{padding:14px}}
 
 
-func has_verified_session() -> bool:
-	return not _current_member.is_empty() and bool(_current_permissions.get("can_enter_world", false))
+/* ROYAL DICE — GAME 04 */
+.rd-shell{border:1px solid #d8ad5b66;border-radius:22px;padding:clamp(14px,3vw,24px);background:radial-gradient(circle at 50% 0,#9a6b2926,transparent 42%),linear-gradient(145deg,#172941,#080f1c);box-shadow:0 18px 55px #0008;margin:14px 0}.rd-panel{border:1px solid #d9b35b55;border-radius:16px;background:linear-gradient(145deg,#243b56,#0b1728);padding:16px;margin:10px 0}.rd-dice{display:flex;justify-content:center;gap:16px;margin:20px 0}.rd-die{width:82px;height:82px;border-radius:18px;background:linear-gradient(145deg,#fff2bd,#d99a37);color:#241909;display:grid;place-items:center;font-size:2.7rem;font-weight:1000;box-shadow:0 10px 24px #0008,inset 0 2px 4px #fff9;animation:rdPop .35s ease}.rd-card{border:1px solid #d9b35b66;border-radius:14px;padding:13px;background:linear-gradient(145deg,#263b56,#101b2b);min-width:0}.rd-card h4{margin:5px 0;color:#f5d98e}.rd-card p{font-size:.8rem;line-height:1.45;color:#d5deea;margin:7px 0}.rd-rarity{font-size:.68rem;letter-spacing:.1em;font-weight:900;color:#f5d98e}.rd-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.rd-player{border:1px solid #d9b35b44;border-radius:12px;padding:11px;background:#ffffff08}.rd-player.active{border-color:#f5d98e;box-shadow:0 0 0 1px #f5d98e33}.rd-log{max-height:230px;overflow:auto;display:grid;gap:6px}.rd-log div{padding:8px 10px;border-radius:9px;background:#ffffff09;font-size:.8rem}.rd-pass{text-align:center;padding:28px 12px}.rd-pass .seal{font-size:62px;margin:8px}.rd-balance{font-size:1.25rem;color:#f5d98e;font-weight:900}.rd-muted{font-size:.76rem;color:#aab6c8}@keyframes rdPop{from{transform:scale(.65) rotate(-12deg);opacity:.4}to{transform:scale(1) rotate(0);opacity:1}}@media(max-width:700px){.rd-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rd-die{width:68px;height:68px;font-size:2.2rem}.rd-shell{padding:12px}}@media(max-width:420px){.rd-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.chat-create-grid{grid-template-columns:1fr}.chat-compose{flex-direction:column}.chat-compose button{min-height:44px}.chat-line{max-width:98%}.chat-stream{height:52vh;min-height:200px}.chat-room-head .status{font-size:.6rem;padding:4px 6px}}
+
+/* CHAT IMAGE SHARING + PRIVATE CHAT */
+.chat-image{display:block;max-width:min(100%,320px);max-height:320px;border-radius:12px;border:1px solid #e8bd6244;margin-top:5px;object-fit:contain;background:#07111f}
+.chat-image-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:7px 0}
+.chat-image-tools input[type=file]{display:none}
+.chat-private-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:12px 0}
+.chat-private-user{display:flex;align-items:center;gap:10px;text-align:left;width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#ffffff08;color:var(--white)}
+.chat-private-user .chat-avatar{width:38px;height:38px}
+/* GROUP CHAT HORIZONTAL TOOLBAR + SOCIAL FEATURES */
+.chat-horizontal-head{display:flex;align-items:center;gap:12px;flex-wrap:nowrap;overflow-x:auto;padding:10px 4px 14px;border-bottom:1px solid var(--line);margin-bottom:12px;scrollbar-width:thin}
+.chat-horizontal-head .chat-room-icon{width:48px;height:48px;flex:0 0 48px}
+.chat-horizontal-head .chat-head-info{flex:1;min-width:170px}
+.chat-horizontal-head .chat-head-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto;white-space:nowrap}
+.chat-horizontal-head .btn{padding:9px 11px;min-height:38px;font-size:.75rem}
+.chat-actionbar{display:flex;align-items:center;gap:7px;flex-wrap:nowrap;overflow-x:auto;padding:9px 0 4px;scrollbar-width:thin}
+.chat-actionbar .btn{flex:0 0 auto;white-space:nowrap}
+.chat-emoji-panel{display:none;flex-wrap:wrap;gap:5px;padding:10px;background:#07111f;border:1px solid var(--line);border-radius:12px;margin:6px 0}
+.chat-emoji-panel.open{display:flex}
+.chat-emoji-panel button{border:0;border-radius:8px;background:#ffffff12;padding:7px;font-size:21px;min-width:38px}
+.chat-horizontal-compose{display:flex;gap:8px;align-items:stretch;margin-top:8px}
+.chat-horizontal-compose textarea{flex:1;min-width:120px;resize:vertical;min-height:48px;max-height:130px;background:#07111f;border:1px solid var(--line);border-radius:11px;color:var(--white);padding:11px;font:inherit}
+.chat-horizontal-compose .btn{align-self:stretch}
+.chat-audio{display:block;width:min(260px,65vw);height:38px;margin-top:6px}
+.chat-gift-card{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:#e8bd6218;border:1px solid #e8bd6255;margin-top:6px}
+.chat-gift-card .gift-icon{font-size:30px}
+.chat-transfer-panel{display:none;margin-top:8px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#07111f}
+.chat-transfer-panel.open{display:block}
+.chat-transfer-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chat-transfer-grid .field{margin:0}
+.chat-message-note{font-size:.68rem;color:var(--muted);margin-top:4px}
+@media(max-width:560px){.chat-horizontal-head{align-items:flex-start}.chat-horizontal-head .chat-head-info{min-width:145px}.chat-horizontal-head .status{display:none}.chat-horizontal-compose{align-items:stretch}.chat-horizontal-compose textarea{min-width:0}.chat-transfer-grid{grid-template-columns:1fr}.chat-actionbar .btn{padding:8px 10px}}
 
 
-func get_last_error_code() -> String:
-	return last_error_code
+/* ROOM CHAT LOCAL DEVICE MUSIC PLAYER */
+.room-music-panel{margin:12px 0;padding:14px;border:1px solid rgba(212,175,55,.35);border-radius:14px;background:linear-gradient(135deg,rgba(20,35,62,.96),rgba(10,18,34,.96));}
+.room-music-title{font-weight:800;letter-spacing:.06em;margin-bottom:5px;color:var(--gold,#e7c45b)}
+.room-music-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.room-music-panel audio{max-width:100%;}
+.room-music-queue{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;max-height:110px;overflow:auto;}
+.room-music-queue .btn{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+.guest-shell{max-width:1100px;margin:22px auto 40px}.guest-hero{display:grid;grid-template-columns:1fr 180px;align-items:center;gap:20px;padding:28px!important}.guest-hero h1{font-size:clamp(1.8rem,5vw,3rem);margin:10px 0}.guest-hero p{line-height:1.65}.guest-emblem{width:155px;height:155px;border-radius:50%;display:grid;place-items:center;font-size:76px;background:radial-gradient(circle,#f4d98c,#9a682b 35%,#14263d 68%);box-shadow:0 0 55px #e8bd6240}.guest-nav{margin:16px 0;gap:8px}.guest-content{min-height:330px}.guest-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}.guest-tile{padding:17px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(145deg,#1b3048,#102036);min-height:145px}.guest-tile .big{font-size:29px}.guest-tile h3{margin:8px 0 5px}.guest-tile p{font-size:.83rem;color:var(--muted);line-height:1.55;margin:0}.guest-lock{opacity:.7}.guest-preview{padding:18px;border-radius:15px;border:1px solid var(--line);background:radial-gradient(circle at 50% 0,#e8bd6224,transparent 65%),#0b192b;text-align:center;min-height:185px;display:grid;place-items:center}.guest-preview .scene{font-size:62px}.guest-quiz{display:grid;gap:10px;max-width:650px}.guest-quiz button{text-align:left}.guest-feedback{padding:11px;border-radius:10px;background:#7ed5a11a;border:1px solid #7ed5a155;color:#b9f1cc}.guest-form{max-width:650px}.guest-form .field{margin:12px 0}@media(max-width:700px){.guest-hero{grid-template-columns:1fr;padding:20px!important}.guest-emblem{display:none}.guest-card-grid{grid-template-columns:1fr 1fr}.guest-nav .btn{flex:1 1 42%}}@media(max-width:420px){.guest-card-grid{grid-template-columns:1fr}}
+
+#fcLiveAnnouncement{display:none;position:sticky;top:76px;z-index:20;margin:10px auto;max-width:1200px;width:calc(100% - 24px);padding:12px 15px;border:1px solid #e8bd6288;border-radius:13px;background:#2b2416;color:#f7df9c;box-shadow:0 10px 28px #0006}
+#fcMaintenanceOverlay{display:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(ellipse at 50% 0%,#263d59,#07101e 70%);align-items:center;justify-content:center;padding:22px}
+#fcMaintenanceOverlay .panel{width:min(560px,100%);text-align:center;border-color:#e8bd6288}
+\n#fcWorldCanvas{image-rendering:auto;max-height:520px}\n</style>
+<script>window.FC_SUPABASE_URL="https://irwtnqekrwhgompulach.supabase.co";</script>
+</head>
+<body>
+<header class="topbar"><div class="shell topbar-inner">
+  <div class="brand"><button type="button" class="bee-mark" aria-label="Logo lebah FAMILY COLONY — ketuk 5 kali untuk akses Developer" title="Ketuk logo lebah 5 kali untuk akses Developer" onclick="developerLogoTap()">🐝</button><div><strong>FAMILY COLONY</strong><small>BEE KINGDOM • DIGITAL REALM</small></div></div>
+  <div class="top-actions"><span id="topUser" class="tiny"></span><button id="devTestMemberBtn" class="btn small hidden" onclick="startDeveloperPreview(\'member\')">Uji Member</button><button id="devTestGuestBtn" class="btn small hidden" onclick="startDeveloperPreview(\'guest\')">Uji Tamu</button><button id="devTestReturnBtn" class="btn small hidden" onclick="returnDeveloperPreview()">Kembali Developer</button><button id="guestInviteBtn" class="btn small hidden" onclick="createGuestRecommendation()">Kode Rekomendasi Tamu</button><button id="homeBtn" class="btn ghost small hidden" onclick="goHome()">Beranda</button><button id="logoutBtn" class="btn small hidden" onclick="logout()">Keluar</button></div>
+</div></header>
+<main class="shell">
+<section id="landing">
+  <div class="hero"><div><div class="eyebrow">A DIGITAL KINGDOM • EST. BY COMMUNITY</div><h1>One Colony.<br><span>One Kingdom.</span></h1><p>Selamat datang di dunia Family Colony — Bee Kingdom. Ruang digital untuk mengenal anggota, membangun kebersamaan, menikmati hiburan, dan menjaga kehidupan koloni.</p><div class="toolbar"><span class="status ok">● ANDROID APP • SERVER AUTH</span><span class="status">♢ Premium Royal Experience</span></div></div><div class="hero-art"><div class="hive"><span>🐝</span></div></div></div>
+  <div class="login-grid">
+    <section class="panel login-panel"><div class="eyebrow">COLONY ACCESS</div><h2>Member Login</h2><p class="muted tiny">Masuk menggunakan username Family Colony dan password akunmu. Email pribadi tidak diperlukan.</p>
+      <div class="field"><label for="memberName">Username</label><input id="memberName" maxlength="32" autocomplete="username" placeholder="Contoh: dhita atau @dhita" oninput="openPrivateDeveloperPanelIfOwner(this.value)" onchange="openPrivateDeveloperPanelIfOwner(this.value)"></div>
+      <div class="field"><label for="memberPassword">Password</label><input id="memberPassword" type="password" maxlength="128" autocomplete="current-password" placeholder="Masukkan password"></div>
+      <button class="btn primary" style="width:100%" onclick="requestAccess()">MASUK KE FAMILY COLONY</button>
+      <p class="tiny" style="margin-top:14px">Login langsung dengan username dan password akun Family Colony. Tidak ada kode aktivasi.</p>
+      <div id="memberFeedback" class="notice hidden"></div>
+      <div id="developerPasswordChange" class="notice hidden">
+        <strong>Ganti password awal Developer</strong><p class="tiny">Password awal hanya untuk masuk pertama kali. Buat password pribadi minimal 12 karakter.</p>
+        <div class="field"><label for="developerNewPassword">Password baru</label><input id="developerNewPassword" type="password" minlength="12" maxlength="128" autocomplete="new-password" placeholder="Minimal 12 karakter"></div>
+        <button class="btn primary" style="width:100%" onclick="developerChangePassword()">SIMPAN PASSWORD BARU</button>
+      </div>
+      <p class="tiny">Akun diverifikasi melalui server Family Colony. Jangan gunakan password WePlay.</p>
+    </section>
+
+    <section class="panel login-panel hidden" id="developerLoginPanel">
+      <div class="eyebrow">PRIVATE DEVELOPER ACCESS</div><h2>Login Developer</h2>
+      <p class="muted tiny">Panel ini muncul otomatis setelah username Developer dimasukkan. Gunakan PIN 6 digit yang telah disiapkan.</p>
+      <div class="field"><label for="developerPinInput">PIN Developer</label><input id="developerPinInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="••••••" onkeydown="if(event.key==='Enter')developerPinLogin()"></div>
+      <button class="btn primary" style="width:100%" onclick="developerPinLogin()">MASUK SEBAGAI DEVELOPER</button>
+      <button class="btn ghost small" style="width:100%;margin-top:9px" onclick="developerPinSetup()">PENYIAPAN / RESET PIN DEVELOPER</button>
+      <p class="tiny" style="margin-top:10px">Penyiapan atau reset PIN memerlukan kode bootstrap server yang sudah kamu miliki. PIN diverifikasi server, bukan disimpan di perangkat.</p>
+      <div id="developerPinFeedback" class="notice hidden"></div>
+    </section>
+    <section class="panel login-panel">
+      <div class="eyebrow">COLONY GUEST ACCESS</div><h2>Login Pengunjung / Tamu</h2>
+      <p class="muted tiny">Akses tamu wajib menggunakan kode rekomendasi dari member Family Colony yang aktif. Tanpa kode yang valid, akses ditolak.</p>
+      <div class="field"><label for="guestDisplayName">Nama pengunjung</label><input id="guestDisplayName" maxlength="40" autocomplete="name" placeholder="Masukkan nama panggilan"></div>
+      <div class="field"><label for="guestRecommendationCode">Kode rekomendasi member</label><input id="guestRecommendationCode" maxlength="16" autocapitalize="characters" placeholder="Masukkan kode 16 karakter"></div>
+      <button class="btn primary" style="width:100%" onclick="guestRecommendationLogin()">MASUK SEBAGAI TAMU</button>
+      <div id="guestFeedback" class="notice hidden"></div>
+      <p class="tiny">Kode hanya dapat digunakan satu kali dan berlaku 24 jam. Akun tamu bersifat sementara dan tidak menjadi akun Member.</p>
+    </section>
+  </div>
+</section>
+<section id="guestWorkspace" class="hidden">
+ <div class="guest-shell">
+  <div class="guest-hero panel"><div><div class="eyebrow">FAMILY COLONY • GUEST PREMIUM</div><h1>Jelajahi Dunia <span class="gold">Family Colony</span></h1><p id="guestWelcome" class="muted"></p><div class="toolbar"><span class="status ok">GUEST PREMIUM</span><span id="guestExpiry" class="status">Sesi 12 jam</span></div></div><div class="guest-emblem">🐝</div></div>
+  <div class="guest-nav toolbar" role="navigation" aria-label="Menu Guest Premium">
+   <button class="btn small primary" onclick="guestOpen('overview')">🏰 Beranda</button><button class="btn small" onclick="guestOpen('announcements')">📢 Pengumuman</button><button class="btn small" onclick="guestOpen('world')">🌍 Dunia Virtual</button><button class="btn small" onclick="guestOpen('room')">🏡 Demo Room</button><button class="btn small" onclick="guestOpen('games')">🎮 Mini Games</button><button class="btn small" onclick="guestOpen('music')">🎵 Music Hall</button><button class="btn small" onclick="guestOpen('apply')">📝 Gabung Koloni</button>
+  </div>
+  <div id="guestPremiumContent" class="panel guest-content"></div>
+  <div class="notice">Mode tamu: area demo dan informasi publik saja. Chat pribadi, room anggota, dompet, koin, hadiah, data finansial, serta panel Admin/Developer tetap terkunci.</div>
+  <div class="rowline"><span class="tiny">Direkomendasikan oleh: <b id="guestReferrer">Member FAMILY COLONY</b></span><button class="btn danger small" onclick="logout()">KELUAR DARI AKSES TAMU</button></div>
+ </div>
+</section>
+<section id="workspace" class="hidden">
+  <div class="app-layout">
+    <aside class="panel sidebar"><div class="side-head"><div class="eyebrow">KINGDOM NAVIGATION</div><h3 id="sideName" style="margin:7px 0 3px">Colony Member</h3><span id="sideRole" class="status">MEMBER</span></div><nav id="sideNav" class="side-nav"></nav></aside>
+    <div class="content"><div id="pageContent"></div></div>
+  </div>
+</section>
+<div class="footer">FAMILY COLONY — BEE KINGDOM · TAHAP 20 MINI GAME CENTER · PREMIUM 4D WEB APPLICATION<br>Aplikasi Android hybrid · Login diverifikasi server · Sebagian modul dan data masih tersimpan lokal di perangkat</div>
+</main>
+<div id="developerGate" class="dev-gate hidden" role="dialog" aria-modal="true" aria-labelledby="devGateTitle">
+  <div class="dev-gate-card">
+    <div class="eyebrow">PRIVATE ACCESS</div><h2 id="devGateTitle">Developer Entry</h2>
+    <p class="tiny">Login Developer dilakukan langsung melalui halaman login utama. Tidak ada aktivasi, bootstrap secret, atau setup password di aplikasi.</p>
+    <div class="toolbar"><button class="btn primary" onclick="developerLogin()">LOGIN SEBAGAI EDRICK</button><button class="btn ghost" onclick="closeDeveloperGate()">TUTUP</button></div>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+<div id="fcLiveAnnouncement" role="status" aria-live="polite"></div>
+<div id="fcMaintenanceOverlay" role="alert" aria-live="assertive"><div class="panel"><div class="eyebrow">FAMILY COLONY • SYSTEM MAINTENANCE</div><div style="font-size:42px;margin:12px">🐝</div><h1 id="fcMaintenanceTitle">Sedang dalam pemeliharaan</h1><p id="fcMaintenanceMessage" class="muted" style="line-height:1.7"></p><div id="fcMaintenanceSchedule" class="tiny"></div><p class="tiny" style="margin-top:18px">Silakan coba kembali setelah pemeliharaan selesai. Pengumuman diperbarui langsung dari server.</p></div></div>
+<script>
+"use strict";
+const STORE="fc_bee_kingdom_premium_v1";
+const $=id=>document.getElementById(id);
+const modules=[
+ ["overview","⌂","Overview","Ringkasan kerajaan dan aktivitas."],
+ ["profile","♙","Member Profile","Identitas dan ringkasan profil."],
+ ["kingdom","♛","Colony Kingdom","Ruang informasi kerajaan koloni."],
+ ["avatar","♟","Avatar & Character","Personalisasi karakter."],
+ ["world","✧","3D World","Eksplorasi dunia 3D (dalam pengembangan)."],
+ ["store","◇","Colony Store","Etalase item demo (tanpa transaksi)."],
+ ["games","♜","Mini Games","GUESS WHO? dan prototype permainan koloni."],
+ ["music","♫","Music Hall","Pemutar MP3 lokal dan video YouTube."],
+ ["groupChat","💬","Group Chat","Percakapan utama seluruh anggota koloni."],
+ ["roomChat","▣","Room Chat","Ruang obrolan teks berdasarkan topik dan aktivitas."],
+ ["achievement","★","Achievement","Pencapaian demo anggota."],
+ ["economy","🪙","Royal Wallet","Coins, Honey, transaksi, transfer, XP, dan leaderboard."],
+ ["missionCenter","🎯","Mission Center","Ringkasan misi, streak, dan pencapaian koloni."],
+ ["dailyMission","☀","Daily Mission","Misi harian dan hadiah tervalidasi."],
+ ["weeklyMission","▣","Weekly Mission","Target dan progres mingguan."],
+ ["specialMission","✦","Special Mission","Misi khusus koloni dan event."],
+ ["achievementCenter","🏅","Achievement Center","Koleksi lencana pencapaian."],
+ ["missionHistory","▤","Mission History","Riwayat misi dan klaim hadiah."],
+ ["honeyChallenge","🍯","Honey Challenge","Tantangan kontribusi Honey dan leaderboard koloni."],
+ ["information","ⓘ","Member Information","Informasi keanggotaan."],
+ ["notifications","♧","Notification Center","Pemberitahuan akun."],
+ ["management","⚑","Pengurus Colony","Alat pengelolaan pengurus."],
+ ["developer","⌘","Developer Control Center","Kontrol teknis website."],
+ ["cloudIntegration","☁","Cloud Integration","Firebase connection & migration readiness."],
+[ "finance", "▤", "Financial Center", "Keuangan operasional dan laporan WPS." ],
+];
+let db=loadDB(), session=null, currentPage="overview", audio=new Audio(), tracks=[], trackIndex=0, activeVideo="";
+let developerTestOriginalSession=null;
+if(!Array.isArray(db.gameQuestions))db.gameQuestions=[];
+function levelFromXP(xp){return Math.floor(Math.max(0,Number(xp)||0)/100)+1}
+function localDateKey(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function ensureEconomyData(){
+ if(!Array.isArray(db.members))db.members=[];
+ if(!db.economy||typeof db.economy!=="object")db.economy=defaultDB().economy;
+ if(!Array.isArray(db.economy.transactions))db.economy.transactions=[];
+ if(!db.economy.claims||typeof db.economy.claims!=="object")db.economy.claims={};
+ if(!Array.isArray(db.economy.redemptions))db.economy.redemptions=[];
+ if(!Array.isArray(db.economy.rewards)||!db.economy.rewards.length)db.economy.rewards=defaultDB().economy.rewards;
+ db.members.forEach(m=>{
+  // Tahap 17: preserve legacy Royal Coin as Coins; initialize Honey independently.
+  if(!Number.isFinite(m.coins))m.coins=0;
+  if(!Number.isFinite(m.honey))m.honey=0;
+  if(!Number.isFinite(m.xp))m.xp=0;
+  m.level=levelFromXP(m.xp);
+  if(!m.createdAt)m.createdAt=m.joined||new Date().toLocaleDateString("id-ID");
+ });
+ if(!db.economy.walletLedgerVersion)db.economy.walletLedgerVersion=1;
+ if(!db.economy.processedOperations||typeof db.economy.processedOperations!=="object")db.economy.processedOperations={};
+ if(!db.economy.settings||typeof db.economy.settings!=="object")db.economy.settings={transfersEnabled:true,minimumTransfer:1};
+ if(!Array.isArray(db.economy.transactions))db.economy.transactions=[];
+}
+function memberRecord(name){return db.members.find(m=>m.name.toLowerCase()===String(name).toLowerCase())}
+function economyLog(member,kind,amount,detail,actor="System",currency="coins",balanceBefore=null,balanceAfter=null){
+ const id="LEGACY-"+Date.now()+"-"+Math.random().toString(36).slice(2,8);
+ db.economy.transactions.unshift({id,operationId:id,member,kind,amount,currency,detail,actor,source:detail||"Legacy economy",destination:member,balanceBefore,balanceAfter,fromMember:"",toMember:"",at:new Date().toLocaleString("id-ID"),createdAt:new Date().toISOString()});
+ db.economy.transactions=db.economy.transactions.slice(0,1500);
+}
+function changeWallet(name,coinDelta,xpDelta,detail,actor="System"){
+ const m=memberRecord(name);if(!m)return false;
+ const beforeCoins=Number(m.coins)||0,beforeXP=Number(m.xp)||0;
+ const nextCoins=beforeCoins+Number(coinDelta||0),nextXP=beforeXP+Number(xpDelta||0);
+ if(!Number.isSafeInteger(nextCoins)||!Number.isSafeInteger(nextXP)||nextCoins<0||nextXP<0)return false;
+ m.coins=nextCoins;m.xp=nextXP;m.level=levelFromXP(nextXP);
+ if(coinDelta)economyLog(name,coinDelta>0?"COIN_IN":"COIN_OUT",coinDelta,detail,actor,"coins",beforeCoins,nextCoins);
+ if(xpDelta)economyLog(name,xpDelta>0?"XP_IN":"XP_OUT",xpDelta,detail,actor,"xp",beforeXP,nextXP);
+ saveDB();return true;
+}
+ensureEconomyData();
+ensureKingdomData();
+
+function ensureChatData(){
+ if(!db.chat||typeof db.chat!=="object")db.chat={group:{messages:[]},rooms:[]};
+ if(!db.chat.group||typeof db.chat.group!=="object")db.chat.group={messages:[]};
+ if(!Array.isArray(db.chat.group.messages))db.chat.group.messages=[];
+ if(!Array.isArray(db.chat.rooms))db.chat.rooms=[];
+ if(!db.chat.privateChats||typeof db.chat.privateChats!=="object")db.chat.privateChats={};
+ if(!db.chat.rooms.length){
+  db.chat.rooms=[
+   {id:"lounge",name:"Royal Lounge",topic:"Obrolan santai seluruh koloni",category:"Santai",createdBy:"System",createdAt:new Date().toISOString(),members:[],messages:[],system:true},
+   {id:"games",name:"Game & Event",topic:"Koordinasi permainan dan event koloni",category:"Game & Event",createdBy:"System",createdAt:new Date().toISOString(),members:[],messages:[],system:true},
+   {id:"ideas",name:"Ide & Diskusi",topic:"Berbagi ide, saran, dan masukan",category:"Diskusi",createdBy:"System",createdAt:new Date().toISOString(),members:[],messages:[],system:true}
+  ];
+ }
+ db.chat.group.messages=db.chat.group.messages.slice(-150);
+ db.chat.rooms.forEach(r=>{if(!Array.isArray(r.messages))r.messages=[];if(!Array.isArray(r.members))r.members=[];r.messages=r.messages.slice(-150);if(!Number.isFinite(Number(r.level)))r.level=1;if(!Number.isFinite(Number(r.xp)))r.xp=0;if(!r.topic)r.topic='Ruang obrolan komunitas';if(!r.owner)r.owner=r.createdBy||'System';if(!Array.isArray(r.admins))r.admins=[];if(!Array.isArray(r.playlist))r.playlist=[];});
+}
+ensureChatData();
+function defaultKingdom(){return {name:"Family Colony — Bee Kingdom",slogan:"Together We Build Our Hive",description:"Koloni tumbuh melalui rasa hormat, kerja sama, dan kebersamaan setiap anggotanya.",logo:"🐝",history:"Family Colony dibangun sebagai rumah bersama bagi para anggota untuk bertumbuh, berkontribusi, dan saling mendukung. Setiap anggota memiliki peran dalam menjaga keharmonisan dan kemajuan koloni.",foundedAt:"",values:["Kebersamaan","Kontribusi","Saling menghormati"]}}
+function ensureKingdomData(){if(!db.config||typeof db.config!=="object")db.config={};db.config.kingdom=Object.assign(defaultKingdom(),db.config.kingdom&&typeof db.config.kingdom==="object"?db.config.kingdom:{});if(!Array.isArray(db.announcements))db.announcements=[]}
+function defaultDB(){return {members:[],requests:[],gameQuestions:[],announcements:["Selamat datang di Family Colony — Bee Kingdom!"],activity:[],config:{maintenance:false,siteName:"FAMILY COLONY — BEE KINGDOM"},avatar:{},profilePhotos:{},profileFrames:{},achievements:{},economy:{walletLedgerVersion:1,processedOperations:{},settings:{transfersEnabled:true,minimumTransfer:1},transactions:[],claims:{},redemptions:[],rewards:[{id:"badge",name:"Royal Badge",cost:100,description:"Lencana kehormatan koloni."},{id:"title",name:"Royal Title",cost:250,description:"Gelar kehormatan untuk profil."},{id:"crown",name:"Golden Crown",cost:500,description:"Hadiah spesial kerajaan."}]}}}
+function loadDB(){try{return Object.assign(defaultDB(),JSON.parse(localStorage.getItem(STORE)||"{}"))}catch(e){return defaultDB()}}
+function saveDB(){try{localStorage.setItem(STORE,JSON.stringify(db))}catch(e){toast("Penyimpanan lokal tidak tersedia atau penuh.")}}
+function log(action,who="System"){db.activity.unshift({action,who,at:new Date().toLocaleString("id-ID")});db.activity=db.activity.slice(0,80);saveDB()}
+function toast(s){const t=$("toast");t.textContent=s;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500)}
+function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function fcAuthEmail(username){const bytes=new TextEncoder().encode(String(username||"").trim().replace(/^@/,"").toLowerCase());const hex=Array.from(bytes).map(b=>b.toString(16).padStart(2,"0")).join("");return "fc_"+hex+"@members.familycolony.invalid"}
+function fcConfigReady(){return !!window.FC_SUPABASE_URL}
+function fcFriendlyError(code){const map={developer_pin_rejected:"PIN Developer salah atau akses sementara dikunci. Periksa PIN dan coba lagi nanti.",developer_pin_not_initialized:"PIN Developer belum disiapkan di server.",developer_pin_setup_unavailable:"Penyiapan PIN belum tersedia. Periksa kode bootstrap server.",developer_pin_invalid_format:"PIN harus tepat 6 angka.",developer_pin_already_initialized:"PIN Developer sudah pernah disiapkan. Hubungi administrator untuk reset yang aman.",developer_pin_setup_failed:"Server gagal menyimpan PIN Developer.",developer_pin_verification_failed:"Server gagal memverifikasi PIN Developer.",developer_session_issue_failed:"PIN benar, tetapi server gagal membuat sesi Developer.",developer_password_rejected:"Password akun Developer ditolak oleh Supabase Auth. Tautan akun sudah cocok; password perlu dipulihkan melalui jalur admin yang aman.",developer_auth_account_missing:"Akun Auth Developer belum ada atau tautannya tidak ditemukan.",developer_auth_link_mismatch:"Tautan akun Auth Developer tidak cocok dengan username edrick. Login dihentikan demi keamanan.",invalid_credentials:"Username atau password salah.",credentials_required:"Isi username dan password.",member_not_eligible:"Akun belum disiapkan pengurus atau statusnya tidak aktif.",email_not_confirmed:"Akun belum aktif. Hubungi pengurus.",activation_code_invalid_expired_or_used:"Kode aktivasi salah, kedaluwarsa, atau sudah digunakan.",account_creation_failed:"Akun tidak dapat dibuat. Periksa kode aktivasi atau hubungi pengurus.",bootstrap_not_authorized:"Akses setup Developer tidak diizinkan.",bootstrap_secret_not_configured:"Secret setup belum terbaca di server Supabase. Periksa FC_BOOTSTRAP_SECRET.",bootstrap_secret_mismatch:"Bootstrap Secret di aplikasi tidak sama dengan Secret di Supabase. Periksa kembali penyalinannya.",initial_password_min_12:"Password awal minimal 12 karakter.",developer_member_not_eligible:"Akun edrick belum memenuhi syarat setup Developer atau sudah terhubung.",developer_account_setup_failed:"Setup akun Developer gagal. Akun Auth mungkin sudah ada.",developer_account_link_failed:"Akun Developer gagal ditautkan ke data anggota.",developer_member_lookup_failed:"Server gagal membaca data anggota edrick. Periksa tabel fc_members.",developer_member_missing:"Username edrick tidak ditemukan pada tabel fc_members.",developer_member_inactive:"Status anggota edrick bukan Aktif. Perlu diperiksa pada data anggota.",developer_member_repair_failed:"Server tidak dapat memperbaiki role/status edrick.",developer_account_link_missing:"Data anggota menunjuk akun Auth yang sudah tidak ada.",developer_account_link_mismatch:"Akun Auth yang tertaut bukan akun login Developer edrick.",server_not_configured:"Konfigurasi kunci server Supabase belum lengkap.",password_min_12:"Password baru minimal 12 karakter.",password_update_failed:"Password baru gagal disimpan."};return map[code]||"Terjadi kendala koneksi atau akun. Coba lagi atau hubungi pengurus."}
+function toggleActivationPanel(){$("activationPanel").classList.toggle("hidden")}
+function showGuestFeedback(message){const el=$("guestFeedback");if(el){el.textContent=message;el.classList.remove("hidden")}}
+async function createGuestRecommendation(){
+ if(!session?.accessToken||session.role==="Guest")return toast("Login sebagai member aktif diperlukan.");
+ const button=$("guestInviteBtn");if(button){button.disabled=true;button.textContent="MEMBUAT KODE..."}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.accessToken},body:JSON.stringify({action:"issue_guest_recommendation"})});
+  const result=await response.json();if(!response.ok||!result.ok||!result.recommendation_code)throw new Error(result.error||"guest_recommendation_issue_failed");
+  const code=result.recommendation_code;
+  try{await navigator.clipboard.writeText(code);alert("Kode rekomendasi tamu berhasil dibuat dan disalin:\n\n"+code+"\n\nBerlaku 24 jam dan hanya dapat dipakai satu kali. Bagikan kepada calon tamu.");}
+  catch(_){alert("Kode rekomendasi tamu (berlaku 24 jam, satu kali pakai):\n\n"+code+"\n\nBagikan kepada calon tamu.");}
+ }catch(err){toast("Gagal membuat kode rekomendasi: "+String(err.message||"").split(":")[0])}
+ finally{if(button){button.disabled=false;button.textContent="Kode Rekomendasi Tamu"}}
+}
+async function guestRecommendationLogin(){
+ const name=($("guestDisplayName")?.value||"").trim(),code=($("guestRecommendationCode")?.value||"").trim().toUpperCase();
+ if(name.length<2||name.length>40)return showGuestFeedback("Nama tamu harus 2–40 karakter.");
+ if(!/^[A-F0-9]{16}$/.test(code))return showGuestFeedback("Kode rekomendasi harus 16 karakter.");
+ const button=document.querySelector("#guestWorkspace button");
+ const submit=document.querySelector('button[onclick="guestRecommendationLogin()"]');if(submit){submit.disabled=true;submit.textContent="MEMERIKSA REKOMENDASI..."}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"guest_recommendation_login",guest_name:name,recommendation_code:code})});
+  const result=await response.json();if(!response.ok||!result.ok||!result.guest)throw new Error(result.error||"guest_recommendation_rejected");
+  session={name:result.guest.name,role:"Guest",guest:true,guestToken:result.guest.guest_session_token,referrer:result.guest.recommended_by,expiresAt:Date.parse(result.guest.expires_at)};
+  try{sessionStorage.setItem("fc_session",JSON.stringify(session))}catch(e){}
+  $("guestRecommendationCode").value="";$("guestFeedback").classList.add("hidden");
+  $("landing").classList.add("hidden");$("workspace").classList.add("hidden");$("guestWorkspace").classList.remove("hidden");
+  $("guestWelcome").textContent="Halo, "+session.name+". Selamat menjelajahi fitur publik dan area demo FAMILY COLONY.";
+  $("guestReferrer").textContent=session.referrer||"Member Family Colony";$("guestExpiry").textContent="Sesi sampai "+new Date(session.expiresAt).toLocaleString("id-ID");
+  $("logoutBtn").classList.remove("hidden");$("homeBtn").classList.add("hidden");$("guestInviteBtn").classList.add("hidden");$("topUser").textContent=session.name+" · TAMU";
+  guestOpen("overview");
+ }catch(err){showGuestFeedback("Akses ditolak: "+String(err.message||"").split(":")[0]+". Pastikan kode berasal dari member aktif, belum dipakai, dan belum kedaluwarsa.")}
+ finally{if(submit){submit.disabled=false;submit.textContent="MASUK SEBAGAI TAMU"}}
+}
+function guestOpen(page){
+ if(!session?.guest||session.expiresAt<=Date.now())return logout();
+ const root=$("guestPremiumContent");if(!root)return;
+ const tiles=[
+  ["📢","Pengumuman Publik","Informasi umum koloni dan panduan pengunjung.","announcements"],
+  ["🌍","Virtual World Preview","Kenali plaza dan lingkungan demo FAMILY COLONY.","world"],
+  ["🏡","Demo Room","Lihat contoh ruangan dan fasilitas yang disiapkan untuk demo.","room"],
+  ["🎮","Mini Games Demo","Coba kuis ringan pengenalan koloni tanpa hadiah koin.","games"],
+  ["🎵","Music Hall Demo","Lihat pengalaman panggung dan tata ruang Music Hall.","music"],
+  ["📝","Pengajuan Anggota","Ajukan keanggotaan dan pantau tindak lanjut pengajuan.","apply"]
+ ];
+ const tileGrid=()=>'<div class="guest-card-grid">'+tiles.map(t=>'<button class="guest-tile" onclick="guestOpen(\''+t[3]+'\')"><div class="big">'+t[0]+'</div><h3>'+t[1]+'</h3><p>'+t[2]+'</p></button>').join("")+'</div>';
+ const pages={
+ overview:'<div class="eyebrow">WELCOME CENTER</div><h2>Selamat datang, '+escapeGuestText(session.name)+'</h2><p class="muted">Ini adalah pintu masuk Guest Premium. Jelajahi informasi publik, lihat pratinjau dunia virtual, dan coba aktivitas demo sebelum mengajukan keanggotaan.</p>'+tileGrid()+'<div class="notice">Semua aktivitas demo bersifat percobaan. Progres demo tidak menghasilkan koin, item, atau hak anggota.</div>',
+ announcements:'<div class="eyebrow">PUBLIC INFORMATION</div><h2>Pengumuman & Informasi</h2><div class="guest-card-grid"><article class="guest-tile"><div class="big">📜</div><h3>Selamat Datang</h3><p>Gunakan akses tamu untuk mengenal FAMILY COLONY dan memahami tata tertib komunitas.</p></article><article class="guest-tile"><div class="big">🤝</div><h3>Etika Koloni</h3><p>Hormati sesama pengunjung dan anggota. Jangan membagikan kode rekomendasi milik orang lain.</p></article><article class="guest-tile"><div class="big">🔔</div><h3>Agenda Publik</h3><p>Informasi jadwal kegiatan akan ditampilkan setelah pengelola menerbitkan agenda publik.</p></article></div><p class="tiny">Konten contoh pengenalan; bukan pengumuman event terjadwal.</p>',
+ world:'<div class="eyebrow">WORLD PREVIEW</div><h2>Virtual World Preview</h2><div class="guest-preview"><div><div class="scene">🏰 🌳 🐝</div><h3>Colony Plaza</h3><p class="muted">Area pratinjau lingkungan koloni</p></div></div><p class="muted">Jelajahi gambaran awal plaza, taman, dan titik kumpul. Area dunia penuh dan interaksi avatar anggota tetap terkunci dari akun tamu.</p>',
+ room:'<div class="eyebrow">DEMO ENVIRONMENT</div><h2>Demo Room</h2><div class="guest-preview"><div><div class="scene">🛋️ 🪴 🪟</div><h3>Welcome Lounge</h3><p class="muted">Ruang contoh khusus pengunjung</p></div></div><p class="muted">Pratinjau ruangan ini tidak terhubung ke room privat atau daftar anggota.</p>',
+ games:'<div class="eyebrow">MINI GAMES • DEMO</div><h2>Kuis Pengenalan Koloni</h2><p class="muted">Jawab pertanyaan ringan. Ini hanya demo lokal dan tidak memberikan hadiah.</p><div class="guest-quiz"><b>FAMILY COLONY adalah komunitas digital untuk…</b><button class="btn" onclick="guestQuizAnswer(false)">A. Transaksi keuangan</button><button class="btn" onclick="guestQuizAnswer(true)">B. Kebersamaan, hiburan, dan aktivitas komunitas</button><button class="btn" onclick="guestQuizAnswer(false)">C. Penyimpanan file pribadi</button><div id="guestQuizFeedback" aria-live="polite"></div></div>',
+ music:'<div class="eyebrow">MUSIC HALL • PREVIEW</div><h2>Music Hall Demo</h2><div class="guest-preview"><div><div class="scene">🎼 🎤 ✨</div><h3>Royal Music Hall</h3><p class="muted">Panggung dan area pertunjukan demo</p></div></div><p class="muted">Ini pratinjau tata ruang. Pemutaran musik, acara live, dan ruang khusus anggota tidak dibuka pada mode tamu.</p>',
+ apply:'<div class="eyebrow">MEMBERSHIP APPLICATION</div><h2>Pengajuan Keanggotaan</h2><p class="muted">Isi permohonan. Pengajuan akan tercatat untuk ditinjau pengelola; pengiriman formulir tidak otomatis menjadikanmu anggota.</p><form class="guest-form" onsubmit="submitGuestApplication(event)"><div class="field"><label for="guestApplyName">Nama lengkap / nama panggilan</label><input id="guestApplyName" maxlength="60" required value="'+escapeGuestAttr(session.name)+'"></div><div class="field"><label for="guestApplyContact">Kontak yang bisa dihubungi (opsional)</label><input id="guestApplyContact" maxlength="100" placeholder="Email atau username kontak"></div><div class="field"><label for="guestApplyReason">Alasan ingin bergabung</label><textarea id="guestApplyReason" maxlength="500" required placeholder="Ceritakan secara singkat…"></textarea></div><button class="btn primary" type="submit">KIRIM PENGAJUAN</button><div id="guestApplyFeedback" class="tiny" aria-live="polite"></div></form>'
+ };
+ root.innerHTML=pages[page]||pages.overview;
+}
+function escapeGuestText(value){return String(value||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function escapeGuestAttr(value){return escapeGuestText(value);}
+function guestQuizAnswer(correct){const el=$("guestQuizFeedback");if(el)el.innerHTML=correct?'<div class="guest-feedback">Benar! Ini demo saja—tidak ada koin atau hadiah yang diberikan.</div>':'<div class="notice">Belum tepat. Coba pilih jawaban lainnya.</div>';}
+async function submitGuestApplication(event){
+ event.preventDefault();if(!session?.guest||!session.guestToken||session.expiresAt<=Date.now())return logout();
+ const button=event.target.querySelector('button[type="submit"]'),feedback=$("guestApplyFeedback");
+ const payload={action:"guest_membership_apply",guest_session_token:session.guestToken,applicant_name:$("guestApplyName").value.trim(),contact:$("guestApplyContact").value.trim(),reason:$("guestApplyReason").value.trim()};
+ if(payload.applicant_name.length<2||payload.reason.length<10){if(feedback)feedback.textContent="Nama minimal 2 karakter dan alasan minimal 10 karakter.";return;}
+ if(button){button.disabled=true;button.textContent="MENGIRIM...";}
+ try{const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"application_failed");if(feedback)feedback.innerHTML='<span class="guest-feedback">Pengajuan berhasil dicatat. Nomor referensi: '+escapeGuestText(result.application_id||"tercatat")+'. Pengelola akan meninjau permohonanmu.</span>';event.target.reset();$("guestApplyName").value=session.name;}
+ catch(error){if(feedback)feedback.textContent="Pengajuan belum berhasil: "+String(error.message||"").split(":")[0]+". Coba kembali selama sesi tamu masih aktif.";}
+ finally{if(button){button.disabled=false;button.textContent="KIRIM PENGAJUAN";}}
+}
+async function requestAccess(){
+ const username=$("memberName").value.trim().replace(/^@/,"").toLowerCase();
+ if(username==="edrick"){openPrivateDeveloperPanel();showMemberFeedback("Panel Login Developer dibuka. Masukkan PIN 6 digit.");return}
+ const password=$("memberPassword").value;
+ if(username.length<2||!password){showMemberFeedback("Isi username dan password terlebih dahulu.");return}
+ if(!fcConfigReady()){showMemberFeedback("Alamat server belum dikonfigurasi pada aplikasi.");return}
+ const btn=document.querySelector(".login-panel button.primary");if(btn){btn.disabled=true;btn.textContent="MEMERIKSA AKUN..."}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"login",username,password})});
+  const auth=await response.json();
+  if(!response.ok||!auth.ok||!auth.access_token||!auth.member)throw new Error(auth.error||"invalid_credentials");
+  window.FC_SUPABASE_ANON_KEY=auth.anon_key||"";
+  const m=auth.member;
+  session={name:m.name,role:m.role,memberId:m.member_id,username:m.username,accessToken:auth.access_token,refreshToken:auth.refresh_token,anonKey:auth.anon_key,expiresAt:Date.now()+Number(auth.expires_in||3600)*1000};
+  try{sessionStorage.setItem("fc_session",JSON.stringify(session))}catch(e){}
+  $("memberPassword").value="";
+  if(auth.must_change_password===true && m.role==="Developer" && m.username==="edrick"){$("memberFeedback").classList.add("hidden");$("developerPasswordChange").classList.remove("hidden");$("developerNewPassword").focus();return;}
+  $("developerPasswordChange").classList.add("hidden");$("memberFeedback").classList.add("hidden");log("Login online",m.username);enterApp();
+ }catch(err){const code=String(err.message||"login_failed").split(":")[0];showMemberFeedback(fcFriendlyError(code)+" ["+code+"]")}
+ finally{if(btn){btn.disabled=false;btn.textContent="MASUK KE FAMILY COLONY"}}
+}
+async function developerPinFeedback(message){const box=$("developerPinFeedback");if(box){box.textContent=message;box.classList.remove("hidden")}}
+async function developerPinSetup(){
+ const setupSecret=prompt("Masukkan Bootstrap Secret yang sebelumnya sudah kamu gunakan untuk setup Developer. Jangan kirim secret ini melalui chat:");
+ if(!setupSecret)return;
+ const pin=prompt("Buat PIN Developer baru tepat 6 angka:");
+ if(!pin)return;
+ if(!/^\d{6}$/.test(pin)){await developerPinFeedback("PIN harus tepat 6 angka.");return}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json","x-fc-bootstrap-secret":setupSecret},body:JSON.stringify({action:"developer_pin_setup",pin})});
+  const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"developer_pin_setup_unavailable");
+  $("developerPinInput").value=pin;await developerPinFeedback("PIN berhasil disiapkan. Silakan masuk menggunakan PIN tersebut.");
+ }catch(err){await developerPinFeedback(fcFriendlyError(String(err.message||"").split(":")[0]))}
+}
+async function developerPinLogin(){
+ const pin=$("developerPinInput")?.value||"";
+ if(!/^\d{6}$/.test(pin)){await developerPinFeedback("Masukkan PIN Developer tepat 6 angka.");return}
+ const button=document.querySelector("#developerLoginPanel button.primary");if(button){button.disabled=true;button.textContent="MEMVERIFIKASI PIN..."}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"developer_pin_login",pin})});
+  const auth=await response.json();if(!response.ok||!auth.ok||!auth.access_token||!auth.member)throw new Error(auth.error||"developer_pin_rejected");
+  window.FC_SUPABASE_ANON_KEY=auth.anon_key||"";
+  const m=auth.member;
+  session={name:m.name,role:m.role,memberId:m.member_id,username:m.username,accessToken:auth.access_token,refreshToken:auth.refresh_token,anonKey:auth.anon_key,expiresAt:Date.now()+Number(auth.expires_in||3600)*1000};
+  try{sessionStorage.setItem("fc_session",JSON.stringify(session))}catch(e){}
+  $("developerPinInput").value="";$("developerPinFeedback").classList.add("hidden");log("Login Developer via PIN","edrick");enterApp();
+ }catch(err){await developerPinFeedback(fcFriendlyError(String(err.message||"").split(":")[0]))}
+ finally{if(button){button.disabled=false;button.textContent="MASUK SEBAGAI DEVELOPER"}}
+}
+async function developerChangePassword(){
+ const newPassword=$("developerNewPassword").value;
+ if(!session?.accessToken||session.username!=="edrick"||session.role!=="Developer"){showMemberFeedback("Sesi Developer tidak valid. Silakan login kembali.");return}
+ if(newPassword.length<12){toast("Password baru minimal 12 karakter.");return}
+ const button=document.querySelector("#developerPasswordChange button");if(button){button.disabled=true;button.textContent="MENYIMPAN..."}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.accessToken},body:JSON.stringify({action:"developer_change_password",new_password:newPassword})});
+  const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"password_update_failed");
+  $("developerNewPassword").value="";$("developerPasswordChange").classList.add("hidden");log("Password Developer diperbarui","edrick");enterApp();
+ }catch(err){showMemberFeedback(fcFriendlyError(String(err.message||"").split(":")[0]))}
+ finally{if(button){button.disabled=false;button.textContent="SIMPAN PASSWORD BARU"}}
+}
+async function activateMemberAccount(){
+ const username=$("activationUsername").value.trim().replace(/^@/,"").toLowerCase();
+ const code=$("activationCode").value.trim().toUpperCase();
+ const password=$("activationPassword").value;
+ if(!username||!code||password.length<10){showMemberFeedback("Lengkapi username, kode aktivasi, dan password minimal 10 karakter.");return}
+ if(!fcConfigReady()){showMemberFeedback("Konfigurasi server belum tersedia. APK perlu dibangun melalui pipeline resmi.");return}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"activate",username,activation_code:code,password})});
+  const result=await response.json();
+  if(!response.ok||!result.ok)throw new Error(result.error||"activation_failed");
+  $("activationPassword").value="";$("activationCode").value="";$("memberName").value=username;$("memberFeedback").textContent="Akun berhasil diaktifkan. Silakan masuk menggunakan username dan password baru.";$("memberFeedback").classList.remove("hidden");$("activationPanel").classList.add("hidden");
+ }catch(err){showMemberFeedback(fcFriendlyError(String(err.message||"").split(":")[0]))}
+}
+function showMemberFeedback(msg){$("memberFeedback").textContent=msg;$("memberFeedback").classList.remove("hidden")}
+function demoDecision(approve){const name=$("memberName").value.trim();const req=db.requests.find(r=>r.name.toLowerCase()===name.toLowerCase()&&r.status==="pending");if(!req){toast("Tidak ada permintaan yang menunggu.");return}req.status=approve?"approved":"rejected";if(approve){const migrated=db.members.find(m=>m.name.toLowerCase()===req.name.toLowerCase());if(migrated){migrated.status="approved";migrated.approvedAt=new Date().toISOString();migrated.mustChangePassword=!!migrated.legacyMemberId;}else{db.members.push({name:req.name,role:"Member",status:"approved",joined:new Date().toLocaleDateString("id-ID"),coins:0,xp:0,level:1});}showMemberFeedback("Akses disetujui. Selamat datang di koloni!");session={name:req.name,role:"Member"};log("Permintaan disetujui (simulasi)",req.name);saveDB();enterApp()}else{showMemberFeedback("Pengajuan akses ditolak dalam simulasi demo.");$("pendingActions").classList.add("hidden");log("Permintaan ditolak (simulasi)",req.name);saveDB()}}
+async function bootstrapFirstManager(){
+ const secret=$("bootstrapSecret").value;
+ if(secret.length<20){toast("Bootstrap secret belum valid.");return}
+ const button=document.querySelector('#developerGate button[onclick="bootstrapFirstManager()"]');if(button){button.disabled=true;button.textContent="MEMBUAT KODE..."}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json","x-fc-bootstrap-secret":secret},body:JSON.stringify({action:"bootstrap_issue"})});
+  const result=await response.json();
+  if(!response.ok||!result.ok)throw new Error(result.error||"bootstrap_not_authorized");
+  $("bootstrapResult").innerHTML="Kode aktivasi pertama untuk <strong>Dhita (@dhita) — Kepsuk</strong>:<br><strong style='font-size:1.25rem;letter-spacing:.12em'>"+escapeHTML(result.activation_code)+"</strong><br><span class='tiny'>Berlaku 24 jam. Kirim langsung secara pribadi kepada Dhita. Kode hanya dapat dipakai sekali.</span>";
+  $("bootstrapResult").classList.remove("hidden");$("bootstrapSecret").value="";
+ }catch(err){$("bootstrapResult").textContent=fcFriendlyError(String(err.message||"").split(":")[0]);$("bootstrapResult").classList.remove("hidden")}
+ finally{if(button){button.disabled=false;button.textContent="BUAT KODE AKTIVASI KEPSUK"}}
+}
+async function bootstrapDeveloperPassword(){
+ const secret=($("bootstrapSecret")?.value||"").trim(),initialPassword=$("developerInitialPassword")?.value||"";
+ const resultBox=$("developerBootstrapResult");
+ const button=$("developerSetupButton");
+ const showResult=(message)=>{if(resultBox){resultBox.textContent=message;resultBox.classList.remove("hidden")}};
+ showResult("Memeriksa data setup Developer...");
+ if(secret.length<32){showResult("Gagal: Bootstrap Secret harus sama dengan FC_BOOTSTRAP_SECRET dan minimal 32 karakter.");return}
+ if(initialPassword.length<12){showResult("Gagal: Password awal Developer minimal 12 karakter.");return}
+ if(!window.FC_SUPABASE_URL){showResult("Gagal: alamat server Supabase belum tersedia pada APK ini.");return}
+ if(button){button.disabled=true;button.textContent="MENYIAPKAN AKUN..."}
+ try{
+  let response;try{response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json","x-fc-bootstrap-secret":secret},body:JSON.stringify({action:"developer_password_setup",initial_password:initialPassword})})}catch(networkError){throw new Error("network_error")}
+  let result={};try{result=await response.json()}catch(parseError){throw new Error("server_invalid_response")}
+  if(!response.ok||!result.ok){const code=result.error||("http_"+response.status);throw new Error(code)}
+  showResult("Login Developer @edrick berhasil disiapkan. Silakan masuk melalui formulir utama untuk mengganti password awal.");
+  $("bootstrapSecret").value="";
+  $("memberName").value="edrick";$("memberPassword").value=initialPassword;$("developerInitialPassword").value="";
+  closeDeveloperGate();
+  showMemberFeedback("Akun Developer siap. Tekan MASUK KE FAMILY COLONY untuk mengganti password awal.");
+ }catch(err){const code=String(err.message||"").split(":")[0];const detail=code==="network_error"?"Koneksi ke Supabase gagal. Periksa internet dan coba lagi.":code==="server_invalid_response"?"Server mengirim respons yang tidak dapat dibaca.":code.startsWith("http_")?"Server menolak permintaan ("+code.replace("http_","HTTP ")+").":fcFriendlyError(code);showResult("Gagal menyiapkan login Developer: "+detail+" ["+code+"]")}
+ finally{if(button){button.disabled=false;button.textContent="SIAPKAN LOGIN DEVELOPER"}}
+}
+let developerLogoTapCount=0,developerLogoTapStart=0,developerLogoGlowTimer=0;
+function developerLogoTap(){const logo=document.querySelector(".bee-mark");if(logo){logo.classList.remove("tap-glow");void logo.offsetWidth;logo.classList.add("tap-glow");clearTimeout(developerLogoGlowTimer);developerLogoGlowTimer=setTimeout(()=>logo.classList.remove("tap-glow"),650);}const now=Date.now();if(!developerLogoTapStart||now-developerLogoTapStart>3500)developerLogoTapCount=0;developerLogoTapStart=now;developerLogoTapCount++;if(developerLogoTapCount>=5){developerLogoTapCount=0;developerLogoTapStart=0;const panel=$("developerLoginPanel");if(panel){panel.classList.remove("hidden");panel.style.display="block";panel.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>$("developerPinInput")?.focus(),350);toast("Akses Developer terbuka. Masukkan PIN 6 digit.");}else{toast("Panel Login Developer belum tersedia.");}}}
+function developerLogin(){closeDeveloperGate();$("developerPinInput")?.focus();toast("Gunakan PIN 6 digit pada panel Login Developer.")}
+function closeDeveloperGate(){$("developerGate")?.classList.add("hidden");if($("devGateCode"))$("devGateCode").value="";if($("bootstrapSecret"))$("bootstrapSecret").value=""}
+function openPrivateDeveloperPanel(){
+ const panel=$("developerLoginPanel");if(!panel)return;
+ panel.classList.remove("hidden");panel.scrollIntoView({behavior:"smooth",block:"center"});
+ $("developerPinInput")?.focus();
+}
+function openPrivateDeveloperPanelIfOwner(value){
+ const username=String(value||"").trim().replace(/^@/,"").toLowerCase();
+ const panel=$("developerLoginPanel");if(!panel)return;
+ if(username==="edrick"){panel.classList.remove("hidden");panel.style.display="block";}
+ else{panel.classList.add("hidden");panel.style.removeProperty("display");}
+}
+function syncDeveloperLoginPanel(){openPrivateDeveloperPanelIfOwner($("memberName")?.value||"")}
+function bindPrivateDeveloperAccess(){const input=$("memberName");if(input){input.addEventListener("input",()=>openPrivateDeveloperPanelIfOwner(input.value));openPrivateDeveloperPanelIfOwner(input.value);}}
+function logout(){if(developerTestOriginalSession){returnDeveloperPreview();return;}if(session?.accessToken&&fcConfigReady())fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":session.anonKey||window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.accessToken}}).catch(()=>{});if(session)log("Logout",session.name);session=null;try{sessionStorage.removeItem("fc_session")}catch(e){}audio.pause();$("workspace").classList.add("hidden");$("guestWorkspace")?.classList.add("hidden");$("landing").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("homeBtn").classList.add("hidden");$("guestInviteBtn")?.classList.add("hidden");$("topUser").textContent="";if($("devGateCode"))$("devGateCode").value=""}
+function goHome(){currentPage="overview";renderPage()}
+function syncDeveloperTestControls(){const dev=!!(developerTestOriginalSession||session?.role==="Developer");["devTestMemberBtn","devTestGuestBtn"].forEach(id=>$(id)?.classList.toggle("hidden",!dev||!!developerTestOriginalSession));$("devTestReturnBtn")?.classList.toggle("hidden",!developerTestOriginalSession);}
+function startDeveloperPreview(mode){if(!session||session.role!=="Developer"||!["member","guest"].includes(mode))return toast("Hanya Developer yang dapat membuka mode uji.");if(!developerTestOriginalSession)developerTestOriginalSession={...session};if(mode==="member"){session={name:"Pratinjau Member",role:"Member",testPreview:true};$("guestWorkspace")?.classList.add("hidden");enterApp();}else{session={name:"Pengunjung Uji",role:"Guest",guest:true,testPreview:true,guestToken:null,referrer:"Mode Uji Developer",expiresAt:Date.now()+30*60*1000};$("landing").classList.add("hidden");$("workspace").classList.add("hidden");$("guestWorkspace").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("homeBtn").classList.add("hidden");$("guestInviteBtn")?.classList.add("hidden");$("topUser").textContent="Pengunjung Uji · TAMU";$("guestWelcome").textContent="Mode simulasi Guest Premium. Tidak menggunakan akun tamu sungguhan."; $("guestReferrer").textContent="Mode Uji Developer";$("guestExpiry").textContent="Sesi demo 30 menit";guestOpen("overview");syncDeveloperTestControls();}}
+function returnDeveloperPreview(){if(!developerTestOriginalSession)return;session=developerTestOriginalSession;developerTestOriginalSession=null;try{sessionStorage.setItem("fc_session",JSON.stringify(session))}catch(e){}enterApp();syncDeveloperTestControls();}
+function enterApp(){$("landing").classList.add("hidden");$("guestWorkspace")?.classList.add("hidden");$("workspace").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("homeBtn").classList.remove("hidden");if(session?.role!=="Guest")$("guestInviteBtn")?.classList.remove("hidden");$("topUser").textContent=session.name+" · "+session.role;currentPage="overview";$("sideName").textContent=session.name;$("sideRole").textContent=session.role.toUpperCase();buildNav();recordMissionEvent("login","Login ke kerajaan");renderPage();requestPortrait();syncDeveloperTestControls()}
+function requestPortrait(){
+  // Android Activity is locked to portrait; this class keeps the in-app layout vertical.
+  document.documentElement.classList.add("fc-portrait");
+  window.scrollTo({top:0,behavior:"instant"});
+}
+// Pengurus operasional: Kepsuk, Deputi, dan Admin. Developer hanya memantau teknis.
+function isStaff(){return ["Kepsuk","Deputi","Admin"].includes(session?.role)}
+function canManage(){return ["Kepsuk","Deputi","Admin"].includes(session?.role)}
+function visibleModules(){let arr=modules.filter(m=>m[0]!=="developer"&&m[0]!=="management");if(isStaff())arr.push(modules.find(m=>m[0]==="management"));if(session.role==="Developer"){arr.push(modules.find(m=>m[0]==="developer"));arr.push(modules.find(m=>m[0]==="cloudIntegration"));arr.push(modules.find(m=>m[0]==="finance"))}return arr}
+function buildNav(){const nav=$("sideNav");nav.innerHTML=visibleModules().map(m=>`<button class="navbtn ${m[0]===currentPage?"active":""}" onclick="navigate('${m[0]}')"><span class="ico">${m[1]}</span>${m[2]}</button>`).join("")}
+function navigate(page){if(!session||!authorizedMissionPage(page)){toast("Akses tidak diizinkan.");return}if(currentPage==="games"&&page!=="games"&&typeof rbStopOnNavigation==="function")rbStopOnNavigation();if(currentPage==="games"&&page!=="games"&&typeof rmClearTalk==="function"){rmClearTalk();rmGame=null;}currentPage=page;if(page==="games")recordMissionEvent("game_visit","Mengunjungi Royal Game Center");buildNav();renderPage();window.scrollTo({top:0,behavior:"smooth"})}
+function pageHead(kicker,title,desc,actions=""){return `<div class="pagehead"><div><div class="eyebrow">${kicker}</div><h1>${title}</h1><div class="muted">${desc}</div></div><div class="toolbar">${actions}</div></div>`}
+function card(icon,title,desc,action,label="Buka"){return `<div class="module-card"><div><div class="bigico">${icon}</div><h3>${title}</h3><p>${desc}</p></div><button class="btn small" onclick="${action}">${label} →</button></div>`}
+
+// ================= TAHAP 20 — GAME 01: GUESS WHO? =================
+const GUESS_WHO_SAMPLE = [
+ {id:"sample-01",name:"Luna Bee",category:"Member Fiktif",clues:["Selalu hadir membawa semangat positif.","Suka mengoleksi avatar bertema bunga.","Warna favoritnya ungu."],options:["Luna Bee","Raja Madu","Bintang Hive","Milo Honey"],active:true,photo:"",sample:true},
+ {id:"sample-02",name:"Raja Madu",category:"Member Fiktif",clues:["Sering mengingatkan anggota untuk kompak.","Identik dengan simbol mahkota.","Julukannya terinspirasi dari hasil kerja lebah."],options:["Luna Bee","Raja Madu","Bintang Hive","Milo Honey"],active:true,photo:"",sample:true},
+ {id:"sample-03",name:"Bintang Hive",category:"Member Fiktif",clues:["Suka membuat suasana room menjadi ramai.","Nama panggilannya berkaitan dengan cahaya malam.","Sering memakai emoji bintang."],options:["Luna Bee","Raja Madu","Bintang Hive","Milo Honey"],active:true,photo:"",sample:true},
+ {id:"sample-04",name:"Milo Honey",category:"Member Fiktif",clues:["Nama panggilannya terdengar manis.","Suka membantu anggota baru mengenal koloni.","Identik dengan warna keemasan."],options:["Luna Bee","Raja Madu","Bintang Hive","Milo Honey"],active:true,photo:"",sample:true},
+ {id:"sample-05",name:"Awan Ceria",category:"Member Fiktif",clues:["Suka suasana tenang dan santai.","Nama panggilannya terinspirasi dari langit.","Sering mengirim emoji awan."],options:["Awan Ceria","Raja Madu","Bintang Hive","Milo Honey"],active:true,photo:"",sample:true}
+];
+let guessWhoState = {questions:[],index:0,score:0,correct:0,wrong:0,hints:0,seconds:25,timer:null,locked:false,runId:"",finished:false};
+
+function guessWhoIsManager(){return ["Kepsuk","Deputi","Admin"].includes(session?.role)}
+function ensureGuessWhoData(){
+ if(!Array.isArray(db.gameQuestions))db.gameQuestions=[];
+ // Seed fictional examples only once; these are clearly labelled and editable/deletable.
+ if(!db.gameQuestionSeeded){db.gameQuestions.push(...GUESS_WHO_SAMPLE.filter(sample=>!db.gameQuestions.some(q=>q.id===sample.id)));db.gameQuestionSeeded=true;}
+ db.gameQuestions.forEach(q=>{q.clues=Array.isArray(q.clues)?q.clues:[];q.options=Array.isArray(q.options)?q.options:[];if(typeof q.active!=="boolean")q.active=true});
+}
+ensureGuessWhoData();
+
+function guessWhoHomePage(){
+ const active=db.gameQuestions.filter(q=>q.active).length;
+ return pageHead("ROYAL GAME CENTER","Mini Games","Game pertama Tahap 20 — prototype lokal yang terhubung dengan profil dan Royal Wallet.")+
+ `<div class="game-hero"><div class="eyebrow">GAME 01 · MYSTERY MEMBER</div><h2>🐝 GUESS WHO?</h2><p class="muted">Kenali sosok misterius dari petunjuk yang terbuka satu per satu. Semakin cepat menjawab dan semakin sedikit memakai bantuan, semakin tinggi skor.</p><div class="game-meta"><span>⏱️ 25 detik / soal</span><span>🎯 Maksimal 5 soal / sesi</span><span>🪙 Hadiah: hingga 10 Coins</span></div><div class="toolbar" style="margin-top:16px"><button class="btn primary" onclick="guessWhoStart()">▶ Mulai Bermain</button><span class="status ok">${active} pertanyaan aktif</span></div></div>
+ <div class="game-grid"><div class="game-tile"><div class="bigico">🕵️</div><h3>Mystery Member</h3><p class="muted">Tebak anggota berdasarkan 3–5 petunjuk.</p></div><div class="game-tile"><div class="bigico">💡</div><h3>Hint System</h3><p class="muted">Gunakan bantuan dengan konsekuensi pengurangan skor.</p></div><div class="game-tile"><div class="bigico">🏆</div><h3>Royal Score</h3><p class="muted">Skor, akurasi, dan hadiah dicatat setelah sesi selesai.</p></div></div>
+ <div class="game-hero" style="margin-top:14px"><div class="eyebrow">GAME 02 · STRATEGY CARD BATTLE</div><h2>💣 ROYAL BOMB: HONEY BLAST</h2><p class="muted">Tarik kartu, susun strategi, hindari bom, dan bertahan sampai akhir. Tersedia mode Bot dan mode bergantian satu perangkat.</p><div class="game-meta"><span>👥 2–6 pemain</span><span>🃏 Kartu aksi</span><span>🛡️ Honey Defuse</span></div><div class="toolbar" style="margin-top:14px"><button class="btn primary" onclick="royalBombLobby()">Masuk ke Royal Bomb →</button></div></div>
+ <div class="game-hero" style="margin-top:14px"><div class="eyebrow">GAME 03 · SOCIAL DEDUCTION</div><h2>👑 ROYAL MURDER MYSTERY</h2><p class="muted">Misteri pembunuhan di istana Bee Kingdom. Rahasia peran baru diacak setelah pertandingan dimulai, lalu dibuka satu per satu dengan layar privasi.</p><div class="game-meta"><span>👥 7–10 pemain</span><span>🎭 3 Killer berbeda</span><span>⏱️ Diskusi 2 menit / pemain</span></div><div class="toolbar" style="margin-top:14px"><button class="btn primary" onclick="rmLobby()">Masuk ke Royal Murder Mystery →</button></div></div>
+ <div class="game-hero" style="margin-top:14px"><div class="eyebrow">GAME 04 · DICE & CARD BATTLE</div><h2>🎲 ROYAL DICE — THE KINGDOM OF FORTUNE</h2><p class="muted">Lempar dadu, pilih strategi, gunakan kartu serangan, sihir, dan jebakan. Kumpulkan koleksi kartu pribadi dan rebut posisi tertinggi di kerajaan.</p><div class="game-meta"><span>👥 2–10 pemain</span><span>🎲 5 ronde</span><span>🃏 33 kartu katalog awal</span><span>🪙 Royal Coins</span></div><div class="toolbar" style="margin-top:14px"><button class="btn primary" onclick="rdLobby()">▶ MAIN ROYAL DICE</button><button class="btn" onclick="rdCollection()">🃏 Koleksi Kartu</button><button class="btn" onclick="rdStore()">🏪 Card Store</button><button class="btn" onclick="rdEvent()">✨ Card Event</button></div></div>
+ ${guessWhoIsManager()?guessWhoAdminPanel():""}
+ <div class="notice" style="margin-top:14px">Data contoh memakai nama fiktif. Untuk memakai nama/foto anggota asli, pastikan anggota memberi persetujuan terlebih dahulu. Versi ini berjalan lokal di browser yang sama; belum multiplayer atau tersinkron antarperangkat.</div>`;
+}
+function guessWhoAdminPanel(){
+ const rows=db.gameQuestions.map(q=>`<div class="game-admin-row"><div><strong>${escapeHTML(q.name)}</strong><span class="tiny">${escapeHTML(q.category||"Umum")} · ${q.clues.length} petunjuk · ${q.active?"Aktif":"Nonaktif"} ${q.sample?"· Contoh":""}</span></div><div class="toolbar"><button class="btn small" onclick="guessWhoEdit('${q.id}')">Edit</button><button class="btn small ghost" onclick="guessWhoToggle('${q.id}')">${q.active?"Nonaktifkan":"Aktifkan"}</button><button class="btn small danger" onclick="guessWhoDelete('${q.id}')">Hapus</button></div></div>`).join("");
+ return `<div class="section game-admin"><div class="rowline"><h3>⚙️ Question Manager</h3><span class="status">PENGURUS</span></div><p class="muted">Khusus Kepsuk, Deputi, dan Admin. Tambahkan 3–5 petunjuk dan minimal 4 pilihan jawaban.</p><div id="guessWhoFormHost">${guessWhoForm()}</div><div class="game-admin-list">${rows||'<div class="empty">Belum ada pertanyaan.</div>'}</div></div>`;
+}
+function guessWhoForm(q=null){
+ const edit=q?`guessWhoSave('${q.id}')`:"guessWhoSave('')";
+ return `<div class="game-form-grid"><input class="field" id="gwName" placeholder="Nama karakter / anggota" value="${escapeHTML(q?.name||"")}"><input class="field" id="gwCategory" placeholder="Kategori" value="${escapeHTML(q?.category||"Member")}"><input class="field wide" id="gwPhoto" placeholder="URL foto (opsional, gunakan dengan izin)" value="${escapeHTML(q?.photo||"")}"><textarea class="field wide" id="gwClues" rows="4" placeholder="Tulis 3–5 petunjuk, satu petunjuk per baris">${escapeHTML((q?.clues||[]).join("\n"))}</textarea><textarea class="field wide" id="gwOptions" rows="3" placeholder="Minimal 4 pilihan, pisahkan dengan koma">${escapeHTML((q?.options||[]).join(", "))}</textarea><div class="toolbar wide"><button class="btn primary" onclick="${edit}">${q?"Simpan Perubahan":"Tambah Pertanyaan"}</button><button class="btn ghost" onclick="guessWhoClearForm()">Kosongkan</button></div></div>`;
+}
+function guessWhoClearForm(){const host=$("guessWhoFormHost");if(host)host.innerHTML=guessWhoForm()}
+function guessWhoSave(id){
+ if(!guessWhoIsManager())return toast("Question Manager hanya untuk Kepsuk, Deputi, dan Admin.");
+ const name=$("gwName")?.value.trim(),category=$("gwCategory")?.value.trim()||"Umum",photo=$("gwPhoto")?.value.trim()||"",clues=($("gwClues")?.value||"").split("\n").map(x=>x.trim()).filter(Boolean),options=($("gwOptions")?.value||"").split(",").map(x=>x.trim()).filter(Boolean);
+ if(!name)return toast("Nama jawaban wajib diisi.");
+ if(clues.length<3||clues.length>5)return toast("Petunjuk harus berjumlah 3 sampai 5.");
+ if(options.length<4||new Set(options.map(x=>x.toLowerCase())).size!==options.length)return toast("Isi minimal 4 pilihan jawaban yang unik.");
+ if(!options.some(x=>x.toLowerCase()===name.toLowerCase()))return toast("Nama jawaban benar harus ada di daftar pilihan.");
+ if(photo&&!/^https:\/\/|^data:image\//i.test(photo))return toast("Foto harus berupa URL HTTPS atau gambar lokal data:image.");
+ let q=id?db.gameQuestions.find(x=>x.id===id):null;
+ if(id&&!q)return toast("Pertanyaan tidak ditemukan.");
+ if(q){Object.assign(q,{name,category,photo,clues,options});}
+ else db.gameQuestions.push({id:"GW-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),name,category,photo,clues,options,active:true,sample:false});
+ saveDB();renderPage();toast(id?"Pertanyaan diperbarui.":"Pertanyaan baru ditambahkan.");
+}
+function guessWhoEdit(id){if(!guessWhoIsManager())return toast("Akses ditolak.");const q=db.gameQuestions.find(x=>x.id===id);if(!q)return;const host=$("guessWhoFormHost");if(host)host.innerHTML=guessWhoForm(q);$("gwName")?.focus()}
+function guessWhoToggle(id){if(!guessWhoIsManager())return toast("Akses ditolak.");const q=db.gameQuestions.find(x=>x.id===id);if(!q)return;q.active=!q.active;saveDB();renderPage()}
+function guessWhoDelete(id){if(!guessWhoIsManager())return toast("Akses ditolak.");const q=db.gameQuestions.find(x=>x.id===id);if(!q)return;if(!confirm("Hapus pertanyaan "+q.name+"?"))return;db.gameQuestions=db.gameQuestions.filter(x=>x.id!==id);saveDB();renderPage();toast("Pertanyaan dihapus.")}
+function guessWhoStart(){
+ const pool=db.gameQuestions.filter(q=>q.active&&q.clues.length>=3&&q.options.length>=4);
+ if(!pool.length)return toast("Belum ada pertanyaan aktif yang memenuhi syarat.");
+ guessWhoState={questions:pool.sort(()=>Math.random()-.5).slice(0,Math.min(5,pool.length)),index:0,score:0,correct:0,wrong:0,hints:0,seconds:25,timer:null,locked:false,runId:"GW-RUN-"+Date.now()+"-"+Math.random().toString(36).slice(2,8),finished:false};
+ guessWhoRenderQuestion();
+}
+function guessWhoStopTimer(){if(guessWhoState.timer){clearInterval(guessWhoState.timer);guessWhoState.timer=null}}
+function guessWhoRenderQuestion(){
+ guessWhoStopTimer();const q=guessWhoState.questions[guessWhoState.index];if(!q)return guessWhoFinish();
+ guessWhoState.seconds=25;guessWhoState.locked=false;
+ const clues=q.clues.slice(0,5),visible=clues.slice(0,Math.min(3,clues.length));
+ $("pageContent").innerHTML=pageHead("MYSTERY MEMBER","Siapakah Aku?","Baca petunjuk dan pilih jawaban yang paling tepat.")+
+ `<div class="game-question"><div class="game-meta"><span>SOAL ${guessWhoState.index+1} / ${guessWhoState.questions.length}</span><span>⭐ Skor: ${guessWhoState.score}</span><span>⏱️ <b id="gwTimer">25</b> detik</span></div><div class="game-meter"><span id="gwTimerBar" style="width:100%"></span></div><div style="text-align:center;padding:10px">${q.photo?`<img src="${escapeHTML(q.photo)}" alt="Foto petunjuk" style="width:92px;height:92px;border-radius:50%;object-fit:cover;border:2px solid var(--gold)">`:'<div style="font-size:56px">❔🐝</div>'}<div class="eyebrow">${escapeHTML(q.category||"MYSTERY")}</div><h2>Siapakah anggota ini?</h2></div><div id="gwClueList">${visible.map((c,i)=>`<div class="game-clue"><b>Petunjuk ${i+1}</b><br>${escapeHTML(c)}</div>`).join("")}</div><div class="toolbar"><button class="btn ghost small" id="gwHintBtn" onclick="guessWhoHint()" ${visible.length>=clues.length?"disabled":""}>💡 Buka Petunjuk Berikutnya (-5 poin)</button></div><div class="game-options">${q.options.map(o=>`<button class="btn game-option" onclick="guessWhoAnswer('${encodeURIComponent(o)}')">${escapeHTML(o)}</button>`).join("")}</div><div id="gwFeedback"></div><div class="toolbar" style="margin-top:16px"><button class="btn ghost" onclick="guessWhoExit()">Keluar dari permainan</button></div></div>`;
+ guessWhoState.visibleClues=visible.length;guessWhoState.timer=setInterval(()=>{if(guessWhoState.locked)return;guessWhoState.seconds--;const t=$("gwTimer"),bar=$("gwTimerBar");if(t)t.textContent=guessWhoState.seconds;if(bar)bar.style.width=Math.max(0,guessWhoState.seconds/25*100)+"%";if(guessWhoState.seconds<=0)guessWhoAnswer("");},1000);
+}
+function guessWhoHint(){
+ if(guessWhoState.locked)return;const q=guessWhoState.questions[guessWhoState.index];if(guessWhoState.visibleClues>=q.clues.length)return;
+ guessWhoState.visibleClues++;guessWhoState.hints++;guessWhoState.score=Math.max(0,guessWhoState.score-5);
+ const list=$("gwClueList");if(list)list.innerHTML=q.clues.slice(0,guessWhoState.visibleClues).map((c,i)=>`<div class="game-clue"><b>Petunjuk ${i+1}</b><br>${escapeHTML(c)}</div>`).join("");
+ const b=$("gwHintBtn");if(b)b.disabled=guessWhoState.visibleClues>=q.clues.length;
+}
+function guessWhoAnswer(encoded){
+ if(guessWhoState.locked)return;guessWhoState.locked=true;guessWhoStopTimer();
+ const q=guessWhoState.questions[guessWhoState.index],answer=decodeURIComponent(encoded||""),correct=answer.toLowerCase()===q.name.toLowerCase();
+ const earned=correct?Math.max(5,Math.round(10+guessWhoState.seconds/3)-guessWhoState.hints*5):0;
+ if(correct){guessWhoState.correct++;guessWhoState.score+=earned}else guessWhoState.wrong++;
+ document.querySelectorAll(".game-option").forEach(b=>b.disabled=true);
+ const feedback=$("gwFeedback");if(feedback)feedback.innerHTML=`<div class="game-feedback ${correct?"good":"bad"}">${correct?"✓ Tepat!":"✕ Belum tepat."} Jawaban: <b>${escapeHTML(q.name)}</b>${correct?` · +${earned} poin`:""}</div><div class="toolbar" style="margin-top:12px"><button class="btn primary" onclick="guessWhoNext()">${guessWhoState.index+1<guessWhoState.questions.length?"Soal Berikutnya →":"Lihat Hasil"}</button></div>`;
+}
+function guessWhoNext(){guessWhoState.index++;guessWhoRenderQuestion()}
+function guessWhoExit(){guessWhoStopTimer();renderPage()}
+function guessWhoFinish(){
+ guessWhoStopTimer();guessWhoState.finished=true;
+ const total=guessWhoState.questions.length,coins=Math.min(10,guessWhoState.correct*2),xp=guessWhoState.correct*5;
+ let rewardText="Hadiah tidak diberikan karena akun ini belum terdaftar sebagai member.";
+ const m=memberRecord(session.name);
+ if(m){
+  const op=guessWhoState.runId+"-REWARD";
+  if(coins>0&&walletCommit(op,[{member:session.name,currency:"coins",delta:coins}],{kind:"GAME_REWARD",detail:"GUESS WHO? — "+guessWhoState.correct+" jawaban benar",actor:session.name,source:"Mini Game Center",destination:session.name})){
+   const before=Number(m.xp)||0;m.xp=before+xp;m.level=levelFromXP(m.xp);
+   if(xp>0)db.economy.transactions.unshift({id:op+"_XP",operationId:op,member:session.name,kind:"XP_IN",currency:"xp",amount:xp,detail:"GUESS WHO? reward",actor:session.name,source:"Mini Game Center",destination:session.name,balanceBefore:before,balanceAfter:m.xp,at:new Date().toLocaleString("id-ID"),createdAt:new Date().toISOString()});
+   saveDB();rewardText=`Hadiah tersimpan: +${coins} Coins dan +${xp} XP.`;
+  }else if(coins===0){rewardText="Belum ada jawaban benar, jadi tidak ada hadiah Coins."; }
+  else rewardText="Hadiah gagal disimpan. Saldo tidak diubah.";
+  recordMissionEvent("game_play","Menyelesaikan GUESS WHO?");
+ }else rewardText="Skor tercatat pada sesi ini. Hadiah Wallet hanya untuk akun member terdaftar.";
+ $("pageContent").innerHTML=pageHead("SESSION COMPLETE","Hasil GUESS WHO?","Terima kasih sudah bermain di Royal Game Center.")+
+ `<div class="game-hero"><div style="font-size:48px">🏆</div><h2>${guessWhoState.score} Poin</h2><div class="game-meta"><span>Benar: ${guessWhoState.correct}</span><span>Salah / habis waktu: ${guessWhoState.wrong}</span><span>Petunjuk dipakai: ${guessWhoState.hints}</span></div><div class="notice" style="margin-top:14px">${rewardText}</div><div class="toolbar" style="margin-top:16px"><button class="btn primary" onclick="guessWhoStart()">Main Lagi</button><button class="btn ghost" onclick="renderPage()">Kembali ke Game Center</button></div></div>`;
+}
+// ================= END GUESS WHO =================
 
 
-func get_member_profile() -> Dictionary:
-	return _current_member.duplicate(true)
+// ================= TAHAP 20 — GAME 02: ROYAL BOMB — HONEY BLAST =================
+const RB_CARD_INFO={
+ safe:{name:"HONEY DROP",icon:"🍯",desc:"Kartu aman. Tidak ada efek khusus."},
+ bomb:{name:"ROYAL BOMB",icon:"💣",desc:"Bom! Gunakan Honey Defuse atau tereliminasi."},
+ defuse:{name:"HONEY DEFUSE",icon:"🛡️",desc:"Menjinakkan satu bom secara otomatis."},
+ skip:{name:"ROYAL SKIP",icon:"⏭️",desc:"Akhiri giliran tanpa mengambil kartu."},
+ attack:{name:"ROYAL ATTACK",icon:"⚔️",desc:"Pemain berikutnya mendapat dua giliran."},
+ shuffle:{name:"HIVE SHUFFLE",icon:"🔀",desc:"Acak ulang tumpukan kartu."},
+ peek:{name:"ROYAL VISION",icon:"👁️",desc:"Intip tiga kartu teratas."}
+};
+let rbGame=null,rbBotTimer=null;
+function rbShuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function rbCard(type){return {id:"RB-"+Date.now()+"-"+Math.random().toString(36).slice(2,8),type}}
+function rbMakeDeck(playerCount){
+ const cards=[];
+ for(let i=0;i<18;i++)cards.push(rbCard("safe"));
+ for(let i=0;i<Math.max(5,playerCount+2);i++)cards.push(rbCard("defuse"));
+ for(let i=0;i<4;i++)cards.push(rbCard("skip"));
+ for(let i=0;i<3;i++)cards.push(rbCard("attack"));
+ for(let i=0;i<3;i++)cards.push(rbCard("shuffle"));
+ for(let i=0;i<3;i++)cards.push(rbCard("peek"));
+ return rbShuffle(cards);
+}
+function royalBombLobby(){
+ rbClearTimer();
+ $("pageContent").innerHTML=pageHead("ROYAL GAME CENTER","💣 ROYAL BOMB: HONEY BLAST","Permainan kartu strategi — bertahan dari bom dan kalahkan semua lawan.")+
+ `<div class="rb-shell"><div class="rb-title"><div><div class="eyebrow">5D ROYAL CARD ARENA</div><h2>ROYAL BOMB</h2><div class="muted">The last bee standing wins the crown.</div></div><div style="font-size:58px;filter:drop-shadow(0 4px 15px #dca64b88)">💣</div></div><div class="rb-mode-grid"><div class="rb-mode"><div style="font-size:38px">🤖</div><h3>MODE BOT</h3><p class="muted">Bertarung melawan 1–5 karakter AI. Cocok untuk latihan dan bermain kapan saja.</p><label class="tiny" for="rbBotCount">Jumlah lawan bot</label><select class="field" id="rbBotCount"><option value="1">1 Bot · 2 pemain</option><option value="2" selected>2 Bot · 3 pemain</option><option value="3">3 Bot · 4 pemain</option><option value="4">4 Bot · 5 pemain</option><option value="5">5 Bot · 6 pemain</option></select><button class="btn primary" style="width:100%;margin-top:10px" onclick="rbStart('bot')">Mulai Mode Bot</button></div><div class="rb-mode"><div style="font-size:38px">👑</div><h3>MODE BERGANTIAN</h3><p class="muted">Main bersama 2–6 orang memakai satu perangkat. Layar disamarkan saat berpindah pemain.</p><label class="tiny" for="rbLocalCount">Jumlah pemain</label><select class="field" id="rbLocalCount"><option value="2">2 Pemain</option><option value="3" selected>3 Pemain</option><option value="4">4 Pemain</option><option value="5">5 Pemain</option><option value="6">6 Pemain</option></select><button class="btn primary" style="width:100%;margin-top:10px" onclick="rbStart('local')">Mulai Pass & Play</button></div></div><div class="notice" style="margin-top:14px">Aturan prototype: setiap pemain menerima 5 kartu. Bom disisipkan ke tumpukan setelah pembagian kartu. Kartu Honey Defuse otomatis menyelamatkan pemain saat bom tertarik. Pemain terakhir yang bertahan menang.</div><div class="toolbar" style="margin-top:14px"><button class="btn ghost" onclick="renderPage()">← Kembali ke Game Center</button></div></div>`;
+}
+function rbClearTimer(){if(rbBotTimer){clearTimeout(rbBotTimer);rbBotTimer=null}}
+function rbStart(mode){
+ rbClearTimer();const count=Number($(mode==="bot"?"rbBotCount":"rbLocalCount")?.value||2)+(mode==="bot"?1:0);
+ const names=mode==="bot"?["Kamu",...Array.from({length:count-1},(_,i)=>["RajaBot","QueenAI","MaduBot","NectarAI","HiveBot"][i])]:Array.from({length:count},(_,i)=>"Pemain "+(i+1));
+ const players=names.map((name,i)=>({name,bot:mode==="bot"&&i>0,alive:true,hand:[],isYou:i===0}));
+ const deck=rbMakeDeck(count);
+ players.forEach(p=>{for(let n=0;n<5;n++)p.hand.push(deck.pop())});
+ const bombs=Array.from({length:count-1},()=>rbCard("bomb"));rbShuffle(bombs);
+ rbGame={mode,players,deck,discard:[],current:0,turnsLeft:1,extraNext:0,log:["Permainan dimulai. Semua pemain menerima 5 kartu."],status:"Giliran pertama dimulai.",peek:null,ended:false,awaitingPass:mode==="local",turnStarted:false,sessionId:"RB-"+Date.now()+"-"+Math.random().toString(36).slice(2,8),winner:null};
+ rbGame.deck=rbShuffle([...deck,...bombs]);
+ rbRender();
+}
+function rbAlive(){return rbGame.players.filter(p=>p.alive)}
+function rbNextIndex(from){
+ for(let n=1;n<=rbGame.players.length;n++){const i=(from+n)%rbGame.players.length;if(rbGame.players[i].alive)return i}
+ return from;
+}
+function rbRender(){
+ if(!rbGame)return royalBombLobby();
+ const g=rbGame,cur=g.players[g.current],alive=rbAlive();
+ if(alive.length<=1){rbFinish(alive[0]||null);return}
+ const players=g.players.map((p,i)=>`<div class="rb-player ${!p.alive?"dead":i===g.current?"active":""}"><div class="rb-avatar">${!p.alive?"💤":p.bot?"🤖":g.mode==="local"?"👤":"🐝"}</div><strong>${escapeHTML(p.name)}</strong><small>${!p.alive?"TERELIMINASI":i===g.current?"GILIRAN AKTIF":p.bot?"BOT AI":p.isYou?"KAMU":"MENUNGGU"} · ${p.hand.length} kartu</small></div>`).join("");
+ const hand=cur.hand.map((c,i)=>{const inf=RB_CARD_INFO[c.type];const can=["skip","attack","shuffle","peek"].includes(c.type);return `<button class="rb-card ${can&&!cur.bot?"playable":""}" ${can&&!cur.bot?`onclick="rbPlayCard(${i})"`:"disabled"}><span class="rb-symbol">${inf.icon}</span><b>${inf.name}</b><small>${inf.desc}</small>${can&&!cur.bot?'<span class="tiny" style="color:#f7df9c">TAP UNTUK PAKAI</span>':""}</button>`}).join("");
+ const cover=g.awaitingPass?`<div class="rb-cover"><div class="rb-cover-card"><div style="font-size:48px">👑</div><div class="eyebrow">PRIVATE TURN</div><h3>Serahkan perangkat</h3><p class="muted">Pastikan hanya <b>${escapeHTML(cur.name)}</b> yang melihat layar. Tekan siap ketika sudah waktunya bermain.</p><button class="btn primary" onclick="rbReady()">Saya siap — buka kartu</button></div></div>`:"";
+ const human=!cur.bot&&!g.awaitingPass;
+ $("pageContent").innerHTML=pageHead("5D ROYAL CARD ARENA","💣 ROYAL BOMB","Bertahanlah. Satu bom dapat mengubah seluruh permainan.")+
+ `<div class="rb-shell"><div class="rb-title"><div><div class="eyebrow">HONEY BLAST · ${g.mode==="bot"?"BOT BATTLE":"PASS & PLAY"}</div><h2>💣 ROYAL BOMB</h2><div class="muted">Pemain bertahan: ${alive.length} · Tumpukan: ${g.deck.length} kartu</div></div><div style="font-size:42px">🐝👑</div></div><div class="rb-table"><div class="rb-players">${players}</div><div class="rb-center"><div class="rb-deck">🂠<span>HIVE DECK</span></div><div class="game-meta" style="justify-content:center"><span>Giliran: <b>${escapeHTML(cur.name)}</b></span><span>Sisa giliran: <b>${g.turnsLeft}</b></span></div></div></div><div class="rb-status ${g.status.includes("BOM")||g.status.includes("eliminasi")?"warn":"good"}">${escapeHTML(g.status)}</div>${g.peek&&human?`<div class="notice">👁️ Royal Vision: ${g.peek.map(c=>RB_CARD_INFO[c.type].icon+" "+RB_CARD_INFO[c.type].name).join(" · ")}</div>`:""}<h3 style="margin:14px 0 4px">Kartu ${human?"di tanganmu":"pemain aktif"}</h3><div class="muted tiny">${human?"Pilih kartu aksi bila diperlukan, lalu ambil satu kartu dari tumpukan.":"Giliran bot sedang berjalan."}</div><div class="rb-hand">${human?hand:'<div class="muted">Kartu pemain lain disembunyikan.</div>'}</div><div class="rb-controls">${human?`<button class="btn primary" onclick="rbDraw()">🂠 Ambil Kartu</button>`:""}<button class="btn ghost" onclick="rbShowRules()">📜 Aturan</button><button class="btn danger" onclick="rbQuit()">Keluar</button></div><h4 style="margin:16px 0 6px">Catatan pertandingan</h4><div class="rb-log">${g.log.slice(-6).reverse().map(x=>"• "+escapeHTML(x)).join("<br>")}</div></div>${cover}`;
+ if(!g.awaitingPass&&cur.bot&&!g.ended)rbScheduleBot();
+}
+function rbReady(){if(!rbGame||rbGame.mode!=="local")return;rbGame.awaitingPass=false;rbGame.status="Giliran "+rbGame.players[rbGame.current].name+". Mainkan kartu aksi atau ambil kartu.";rbRender()}
+function rbShowRules(){alert("ATURAN ROYAL BOMB\\n\\n1. Setiap pemain mulai dengan 5 kartu.\\n2. Pada giliranmu, kamu boleh memainkan kartu aksi lalu mengambil satu kartu.\\n3. Royal Skip mengakhiri giliran tanpa mengambil kartu.\\n4. Royal Attack memberi pemain berikutnya dua giliran.\\n5. Jika menarik bom, Honey Defuse otomatis dipakai bila tersedia.\\n6. Tanpa Defuse, pemain tereliminasi.\\n7. Pemain terakhir yang bertahan menang.")}
+function rbLog(msg){rbGame.log.push(msg);if(rbGame.log.length>40)rbGame.log.shift()}
+function rbAdvance(extra=0){
+ const g=rbGame;if(!g||g.ended)return;
+ const previous=g.players[g.current];
+ if(previous.alive&&g.turnsLeft>1){g.turnsLeft--;g.peek=null;g.status="Giliran tambahan untuk "+previous.name+".";g.awaitingPass=g.mode==="local";rbRender();return}
+ g.current=rbNextIndex(g.current);g.turnsLeft=extra||g.extraNext||1;g.extraNext=0;g.peek=null;
+ const p=g.players[g.current];g.status="Sekarang giliran "+p.name+".";
+ g.awaitingPass=g.mode==="local"&&!p.bot;rbRender();
+}
+function rbPlayCard(index){
+ const g=rbGame;if(!g||g.ended||g.awaitingPass)return;
+ const p=g.players[g.current];if(p.bot)return;
+ const c=p.hand[index];if(!c)return;
+ if(!["skip","attack","shuffle","peek"].includes(c.type))return;
+ p.hand.splice(index,1);g.discard.push(c);
+ if(c.type==="skip"){rbLog(p.name+" memainkan Royal Skip.");g.status=p.name+" melewati pengambilan kartu.";rbAdvance();return}
+ if(c.type==="attack"){rbLog(p.name+" memainkan Royal Attack.");g.status="Serangan! Pemain berikutnya mendapat dua giliran.";rbAdvance(2);return}
+ if(c.type==="shuffle"){rbGame.deck=rbShuffle(g.deck);g.peek=null;rbLog(p.name+" mengacak tumpukan.");g.status="Hive Shuffle berhasil. Tumpukan telah diacak.";rbRender();return}
+ if(c.type==="peek"){g.peek=g.deck.slice(-3).reverse();rbLog(p.name+" menggunakan Royal Vision.");g.status="Tiga kartu teratas berhasil diintip.";rbRender();return}
+}
+function rbDraw(){
+ const g=rbGame;if(!g||g.ended||g.awaitingPass)return;const p=g.players[g.current];if(p.bot)return;
+ rbResolveDraw(p);
+}
+function rbResolveDraw(p){
+ const g=rbGame;if(!g||g.ended)return;
+ if(!g.deck.length){g.status="Tumpukan habis. Kartu buangan dikocok menjadi tumpukan baru.";g.deck=rbShuffle(g.discard.filter(c=>c.type!=="bomb"));g.discard=[];if(!g.deck.length){rbFinish(p);return}}
+ const c=g.deck.pop();
+ if(c.type==="bomb"){
+  const d=p.hand.findIndex(x=>x.type==="defuse");
+  if(d>=0){p.hand.splice(d,1);g.discard.push(c);const insertAt=Math.floor(Math.random()*(g.deck.length+1));g.deck.splice(insertAt,0,c);g.status="🛡️ HONEY DEFUSE! "+p.name+" menjinakkan bom dan menyisipkannya kembali ke tumpukan.";rbLog(p.name+" menjinakkan bom.");}
+  else{p.alive=false;g.discard.push(c);g.status="💥 BOM! "+p.name+" tereliminasi.";rbLog(p.name+" terkena bom dan tereliminasi.");}
+ }else{p.hand.push(c);g.discard.push(c);g.status=p.name+" mengambil "+RB_CARD_INFO[c.type].name+".";rbLog(p.name+" mengambil satu kartu.");}
+ g.peek=null;rbAdvance();
+}
+function rbPassTurn(){
+ if(!rbGame||rbGame.mode!=="local")return;
+ rbGame.status="Giliran dilewati.";rbAdvance();
+}
+function rbScheduleBot(){
+ rbClearTimer();rbBotTimer=setTimeout(()=>{
+  const g=rbGame;if(!g||g.ended)return;const p=g.players[g.current];if(!p?.bot)return;
+  const actionIndex=p.hand.findIndex(c=>["skip","attack","shuffle","peek"].includes(c.type));
+  if(actionIndex>=0&&Math.random()<.58){
+   const c=p.hand.splice(actionIndex,1)[0];g.discard.push(c);
+   if(c.type==="skip"){g.status=p.name+" menggunakan Royal Skip.";rbLog(p.name+" memakai Skip.");rbAdvance();return}
+   if(c.type==="attack"){g.status=p.name+" menggunakan Royal Attack.";rbLog(p.name+" memakai Attack.");rbAdvance(2);return}
+   if(c.type==="shuffle"){g.deck=rbShuffle(g.deck);g.status=p.name+" mengacak tumpukan.";rbLog(p.name+" memakai Shuffle.");}
+   if(c.type==="peek"){g.status=p.name+" mengintip tumpukan.";rbLog(p.name+" memakai Vision.");}
+  }
+  rbResolveDraw(p);
+ },850);
+}
+function rbFinish(winner){
+ const g=rbGame;if(!g||g.ended)return;g.ended=true;rbClearTimer();g.winner=winner;
+ const humanWinner=winner&&!winner.bot&&winner.isYou;
+ let reward="Tidak ada hadiah Coins untuk sesi ini.";
+ if(humanWinner){
+  const m=memberRecord(session?.name||"");
+  if(m){const coins=8,op=g.sessionId+"-WIN";if(walletCommit(op,[{member:session.name,currency:"coins",delta:coins}],{kind:"GAME_REWARD",detail:"ROYAL BOMB: HONEY BLAST — Juara",actor:session.name,source:"Mini Game Center",destination:session.name}))reward="Hadiah kemenangan: +8 Coins masuk ke Royal Wallet.";else reward="Hadiah tidak dapat dicatat (akun belum terdaftar atau transaksi sudah diproses).";}
+  else reward="Kamu menang! Hadiah Wallet tersedia untuk akun member terdaftar.";
+ }
+ if(humanWinner||winner&&!winner.bot&&g.mode==="local")recordMissionEvent("game_play","Menyelesaikan ROYAL BOMB: HONEY BLAST");
+ $("pageContent").innerHTML=pageHead("MATCH COMPLETE","ROYAL BOMB — HASIL","Pertandingan selesai. Mahkota jatuh ke tangan yang terakhir bertahan.")+
+ `<div class="rb-shell" style="text-align:center"><div style="font-size:64px">${winner?"👑":"🐝"}</div><div class="eyebrow">LAST BEE STANDING</div><div class="rb-result">${winner?escapeHTML(winner.name):"Tidak ada pemenang"}</div><p class="muted">${humanWinner?"Kemenangan untukmu!":winner?.bot?"Bot memenangkan pertandingan.":"Pertandingan selesai."}</p><div class="notice">${reward}</div><div class="game-meta" style="justify-content:center;margin:14px 0"><span>Pemain bertahan: ${rbAlive().length}</span><span>Mode: ${g.mode==="bot"?"Bot":"Pass & Play"}</span></div><div class="toolbar" style="justify-content:center"><button class="btn primary" onclick="royalBombLobby()">Main Lagi</button><button class="btn ghost" onclick="renderPage()">Kembali ke Game Center</button></div></div>`;
+}
+function rbQuit(){if(!confirm("Keluar dari pertandingan sekarang? Progres pertandingan akan berakhir."))return;rbClearTimer();rbGame=null;renderPage()}
+function rbStopOnNavigation(){rbClearTimer();rbGame=null}
+// ================= END ROYAL BOMB =================
 
 
-func get_permission_snapshot() -> Dictionary:
-	return _current_permissions.duplicate(true)
+// ================= TAHAP 20 — GAME 03: ROYAL MURDER MYSTERY =================
+let rmGame=null,rmTalkTimer=null;
+const RM_ROLES={
+ assassin:{name:"ASSASSIN",team:"KILLER",icon:"🗡️",desc:"Eksekutor utama. Pilih satu target untuk dibunuh pada fase malam."},
+ poisoner:{name:"POISONER",team:"KILLER",icon:"☠️",desc:"Pilih satu target untuk diberi racun. Efek racun akan diperiksa pada fase malam berikutnya."},
+ mastermind:{name:"MASTERMIND",team:"KILLER",icon:"♟️",desc:"Mengacaukan penyelidikan. Pilih satu pemain untuk diblokir dari kemampuan khusus pada ronde ini."},
+ detective:{name:"ROYAL DETECTIVE",team:"KINGDOM",icon:"🔎",desc:"Periksa satu pemain untuk mengetahui apakah ia bagian dari tim Killer."},
+ doctor:{name:"ROYAL DOCTOR",team:"KINGDOM",icon:"🩺",desc:"Pilih satu pemain untuk dilindungi dari serangan malam ini."},
+ informant:{name:"INFORMAN",team:"KINGDOM",icon:"🕯️",desc:"Menerima petunjuk rahasia tentang salah satu anggota tim Killer."},
+ guard:{name:"ROYAL GUARD",team:"KINGDOM",icon:"🛡️",desc:"Lindungi satu pemain dari ancaman malam ini."},
+ citizen:{name:"WARGA BIASA",team:"KINGDOM",icon:"🐝",desc:"Tidak memiliki kemampuan malam. Gunakan diskusi, pengamatan, dan voting untuk menemukan Killer."}
+};
+function rmShuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function rmAlive(){return rmGame?.players.filter(p=>p.alive)||[]}
+function rmLobby(){rmClearTalk();rmGame=null;$("pageContent").innerHTML=pageHead("ROYAL GAME CENTER","👑 ROYAL MURDER MYSTERY","The Betrayal of Bee Kingdom — cari tiga pengkhianat di dalam istana.")+`
+ <div class="rm-shell"><div class="rm-title">🏰 THE MURDER AT ROYAL PALACE</div><p class="muted" style="text-align:center">Pass & Play · Satu perangkat · 7 sampai 10 pemain</p><div class="notice">PENTING: Role belum dibuat saat lobby. Sistem baru mengacak dan mengunci role setelah tombol MULAI PERTANDINGAN ditekan. Setiap pemain melihat kartu secara bergantian dalam layar privasi.</div><label class="field">Nama pemain — satu nama per baris<textarea id="rmNames" rows="10" placeholder="Pemain 1&#10;Pemain 2&#10;Pemain 3&#10;Pemain 4&#10;Pemain 5&#10;Pemain 6&#10;Pemain 7"></textarea></label><div class="toolbar"><button class="btn primary" onclick="rmStart()">👑 MULAI PERTANDINGAN</button><button class="btn ghost" onclick="renderPage()">Kembali</button></div><div class="tiny">Minimal 7 pemain agar tiga Killer dan seluruh peran kerajaan utama dapat dimainkan. Maksimal 10 pemain.</div></div>`}
+function rmStart(){const names=($("rmNames")?.value||"").split(/\n/).map(x=>x.trim()).filter(Boolean);if(names.length<7||names.length>10)return toast("Masukkan 7 sampai 10 nama pemain.");if(new Set(names.map(x=>x.toLowerCase())).size!==names.length)return toast("Nama pemain tidak boleh duplikat.");
+ // Roles are created only now, after the explicit start action.
+ const roles=["assassin","poisoner","mastermind","detective","doctor","informant","citizen"];if(names.length>=8)roles.push("guard");while(roles.length<names.length)roles.push("citizen");rmShuffle(roles);
+ rmGame={players:rmShuffle(names.map((name,i)=>({name,role:roles[i],alive:true}))),phase:"reveal",revealIndex:0,round:1,actions:{},votes:{},privateInfo:{},poisoned:null,log:["Pertandingan dimulai. Role diacak setelah start."],ended:false};
+ // Ensure all roles remain assigned randomly while preserving player identity.
+ rmGame.players.forEach((p,i)=>p.role=roles[i]);rmRenderReveal();}
+function rmRenderReveal(){const g=rmGame;if(!g)return;const p=g.players[g.revealIndex];if(!p){rmBeginNight();return;}
+ $("pageContent").innerHTML=pageHead("SECRET ROLE","OPEN ROLE — PLAYER "+(g.revealIndex+1),"Pastikan hanya pemain yang bersangkutan yang melihat layar ini.")+`<div class="rm-shell"><div class="rm-card"><div class="eyebrow">PRIVATE IDENTITY · ${g.revealIndex+1}/${g.players.length}</div><h2>${escapeHTML(p.name)}</h2><div class="rm-seal">🔒</div><p class="muted">Tekan tombol di bawah hanya saat perangkat berada di tangan ${escapeHTML(p.name)}.</p><button class="btn primary" onclick="rmShowRole()">LIHAT ROLE SAYA</button></div></div>`}
+function rmShowRole(){const g=rmGame,p=g?.players[g.revealIndex];if(!p)return;const r=RM_ROLES[p.role];$("pageContent").innerHTML=pageHead("SECRET ROLE","IDENTITAS RAHASIA","Jangan tunjukkan layar ini kepada pemain lain.")+`<div class="rm-shell"><div class="rm-card"><div class="rm-seal open">${r.icon}</div><div class="eyebrow">YOUR SECRET ROLE</div><div class="rm-role">${r.name}</div><span class="status ${r.team==="KILLER"?"bad":"ok"}">${r.team}</span><p>${r.desc}</p><div class="notice">Ingat kemampuanmu. Setelah selesai, layar akan ditutup sebelum perangkat diberikan ke pemain berikutnya.</div><button class="btn primary" onclick="rmHideRole()">SAYA SIAP — TUTUP ROLE</button></div></div>`}
+function rmHideRole(){rmGame.revealIndex++;rmRenderReveal()}
+function rmBeginNight(){rmGame.phase="night";rmGame.actions={};rmNightStep(0)}
+function rmNightOrder(){return ["assassin","poisoner","mastermind","doctor","guard","detective","informant"]}
+function rmNightStep(idx){const g=rmGame;if(!g||g.ended)return;const order=rmNightOrder();if(idx>=order.length){rmResolveNight();return;}const role=order[idx],actor=g.players.find(p=>p.alive&&p.role===role);if(!actor){rmNightStep(idx+1);return;}g.nightIndex=idx;g.currentRole=role;g.currentActor=actor;
+ if(g.actions.blocked===actor.name&&role!=="mastermind"){rmNightStep(idx+1);return;}
+ if(role==="informant"){const killers=rmAlive().filter(p=>RM_ROLES[p.role].team==="KILLER");const clue=killers[Math.floor(Math.random()*killers.length)];const msg="Petunjuk rahasia: "+(clue?clue.name+" termasuk tim Killer.":"Belum ada petunjuk.");g.privateInfo[actor.name]=msg;rmShowPrivate(actor,msg,idx+1);return;}
+ const targets=rmAlive().filter(p=>p!==actor);const labels={assassin:"Pilih korban yang akan diserang",poisoner:"Pilih target racun (efek ronde berikutnya)",mastermind:"Pilih pemain yang kemampuan malamnya ingin diblokir",doctor:"Pilih pemain yang ingin diselamatkan",guard:"Pilih pemain yang ingin dilindungi",detective:"Pilih pemain untuk diperiksa"};
+ $("pageContent").innerHTML=pageHead("NIGHT PHASE","GILIRAN RAHASIA — "+RM_ROLES[role].name,"Pastikan hanya pemilik role yang sedang memegang perangkat.")+`<div class="rm-shell"><div class="rm-card"><div class="rm-seal open">${RM_ROLES[role].icon}</div><h2>${escapeHTML(actor.name)}</h2><div class="rm-role">${RM_ROLES[role].name}</div><p>${labels[role]}</p><div class="field"><select id="rmTarget"><option value="">Pilih target</option>${targets.map(t=>`<option value="${escapeHTML(t.name)}">${escapeHTML(t.name)}</option>`).join("")}</select></div><div class="toolbar" style="justify-content:center"><button class="btn primary" onclick="rmSubmitNight()">KONFIRMASI RAHASIA</button><button class="btn ghost" onclick="rmNightSkip()">Lewati</button></div></div></div>`}
+function rmSubmitNight(){const g=rmGame,target=$("rmTarget")?.value;if(!target)return toast("Pilih target terlebih dahulu.");const role=g.currentRole;g.actions[role]=target;if(role==="mastermind")g.actions.blocked=target;if(role==="detective"){const t=g.players.find(p=>p.name===target);const msg=target+" "+(t&&RM_ROLES[t.role].team==="KILLER"?"TERMASUK":"BUKAN")+" tim Killer.";g.privateInfo[g.currentActor.name]=msg;rmShowPrivate(g.currentActor,msg,g.nightIndex+1);return;}rmNightStep(g.nightIndex+1)}
+function rmShowPrivate(actor,msg,nextIdx){const g=rmGame;g.privateNext=nextIdx;$("pageContent").innerHTML=pageHead("PRIVATE INTELLIGENCE","INFORMASI RAHASIA","Hanya pemain yang sedang memegang perangkat yang boleh melihat hasil ini.")+`<div class="rm-shell"><div class="rm-card"><div class="rm-seal open">🔎</div><h2>${escapeHTML(actor.name)}</h2><div class="notice">${escapeHTML(msg)}</div><button class="btn primary" onclick="rmContinuePrivate()">TUTUP INFORMASI</button></div></div>`}
+function rmContinuePrivate(){rmNightStep(rmGame.privateNext)}
+function rmNightSkip(){const g=rmGame;rmNightStep(g.nightIndex+1)}
+function rmResolveNight(){const g=rmGame;let dead=[];if(g.poisoned){const still=g.players.find(p=>p.name===g.poisoned&&p.alive);if(still)dead.push(still.name);g.poisoned=null;}const victim=g.actions.assassin;if(victim&&!([g.actions.doctor,g.actions.guard].includes(victim)))dead.push(victim);if(g.actions.poisoner)g.poisoned=g.actions.poisoner;dead=[...new Set(dead)];dead.forEach(n=>{const p=g.players.find(x=>x.name===n);if(p)p.alive=false;});g.lastDeaths=dead;g.phase="report";rmRenderReport()}
+function rmRenderReport(){const g=rmGame;$("pageContent").innerHTML=pageHead("DISCOVERY","REPORT — TEMUKAN KORBAN","Jika korban ditemukan, tekan tombol REPORT untuk membuka ruang diskusi.")+`<div class="rm-shell"><div class="rm-card"><div class="rm-seal">🚨</div><h2>ROYAL PALACE — CRIME SCENE</h2><p>${g.lastDeaths.length?"Ada korban yang ditemukan di istana.":"Tidak ada korban ditemukan malam ini."}</p><button class="btn danger" onclick="rmReport()">🚨 REPORT — LAPORKAN PEMBUNUHAN</button></div></div>`}
+function rmReport(){rmGame.log.push("Korban dilaporkan. Diskusi dimulai.");rmGame.talkIndex=0;rmDiscussionNext()}
+function rmClearTalk(){if(rmTalkTimer){clearInterval(rmTalkTimer);rmTalkTimer=null}}
+function rmDiscussionNext(){rmClearTalk();const g=rmGame;if(!g)return;const alive=rmAlive();if(g.talkIndex>=alive.length){rmStartVoting();return;}g.talkSeconds=120;rmRenderDiscussion();rmTalkTimer=setInterval(()=>{if(!rmGame){rmClearTalk();return;}rmGame.talkSeconds--;const el=$("rmTimer");if(el)el.textContent=rmFmt(rmGame.talkSeconds);if(rmGame.talkSeconds<=0){rmClearTalk();rmGame.talkIndex++;rmDiscussionNext()}},1000)}
+function rmFmt(n){return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0")}
+function rmRenderDiscussion(){const g=rmGame,p=rmAlive()[g.talkIndex];$("pageContent").innerHTML=pageHead("ROYAL COUNCIL","RUANG DISKUSI","Setiap pemain mendapat maksimal 2 menit. Tekan SKIP untuk selesai lebih cepat.")+`<div class="rm-shell"><div class="rm-card"><div class="eyebrow">GILIRAN BICARA ${g.talkIndex+1}/${rmAlive().length}</div><h2>${escapeHTML(p.name)}</h2><div class="rm-timer" id="rmTimer">${rmFmt(g.talkSeconds)}</div><p class="muted">Sampaikan alibi, bukti, atau kecurigaanmu.</p><button class="btn primary" onclick="rmSkipTalk()">⏭ SKIP / SELESAI BICARA</button></div><div class="notice">Korban ronde ini: ${g.lastDeaths.length?g.lastDeaths.map(escapeHTML).join(", "):"Tidak ada"}</div></div>`}
+function rmSkipTalk(){rmClearTalk();rmGame.talkIndex++;rmDiscussionNext()}
+function rmStartVoting(){const g=rmGame;g.phase="vote";g.votes={};g.voteIndex=0;rmVoteNext()}
+function rmVoteNext(){const g=rmGame,alive=rmAlive();if(g.voteIndex>=alive.length){rmResolveVotes();return;}const voter=alive[g.voteIndex];$("pageContent").innerHTML=pageHead("ROYAL COUNCIL","VOTING RAHASIA","Setiap pemain memilih satu tersangka secara bergantian.")+`<div class="rm-shell"><div class="rm-card"><div class="eyebrow">VOTING ${g.voteIndex+1}/${alive.length}</div><h2>${escapeHTML(voter.name)}</h2><div class="field"><select id="rmVote"><option value="">Pilih tersangka</option>${alive.filter(p=>p!==voter).map(p=>`<option value="${escapeHTML(p.name)}">${escapeHTML(p.name)}</option>`).join("")}<option value="skip">Tidak memilih</option></select></div><button class="btn primary" onclick="rmSubmitVote()">KUNCI SUARA</button></div></div>`}
+function rmSubmitVote(){const g=rmGame,voter=rmAlive()[g.voteIndex],v=$("rmVote")?.value;if(!v)return toast("Pilih tersangka atau tidak memilih.");g.votes[voter.name]=v;g.voteIndex++;rmVoteNext()}
+function rmResolveVotes(){const g=rmGame,tally={};Object.values(g.votes).forEach(v=>{if(v!=="skip")tally[v]=(tally[v]||0)+1});const sorted=Object.entries(tally).sort((a,b)=>b[1]-a[1]);let executed=null;if(sorted.length&&(!sorted[1]||sorted[0][1]>sorted[1][1])){executed=sorted[0][0];const p=g.players.find(x=>x.name===executed);if(p)p.alive=false;}const alive=rmAlive(),killers=alive.filter(p=>RM_ROLES[p.role].team==="KILLER");if(!killers.length){rmFinish("KINGDOM");return;}if(killers.length>=alive.length-killers.length){rmFinish("KILLER");return;}if(g.round>=8){rmFinish("DRAW");return;}g.lastExecuted=executed;g.round++;g.privateInfo={};rmBeginNight()}
+function rmFinish(winner){rmClearTalk();const g=rmGame;g.ended=true;g.winner=winner;const label=winner==="KINGDOM"?"TIM KERAJAAN MENANG":winner==="KILLER"?"TIM KILLER MENANG":"HASIL IMBANG";$("pageContent").innerHTML=pageHead("FINAL RESULT","👑 AKHIR PERTANDINGAN",label)+`<div class="rm-shell"><div class="rm-card"><div class="rm-seal open">${winner==="KINGDOM"?"🏰":winner==="KILLER"?"☠️":"⚖️"}</div><h2>${label}</h2><p>Ronde: ${g.round}</p><div class="section"><h3>Pengungkapan Role</h3>${g.players.map(p=>`<div class="rm-player">${escapeHTML(p.name)} — <b>${RM_ROLES[p.role].name}</b> ${p.alive?"· Bertahan":"· Tereliminasi"}</div>`).join("")}</div><button class="btn primary" onclick="rmLobby()">MAIN LAGI</button><button class="btn ghost" onclick="renderPage()">KEMBALI KE GAME CENTER</button></div></div>`}
+// ================= END GAME 03 =================
+
+// ================= TAHAP 20 — GAME 04: ROYAL DICE =================
+const RD_RARITIES=["DASAR","RARE","UNIK","SUPER RARE","SPESIAL","EPIC","LEGENDARY","MYTHIC","DIVINE","ROYAL","CELESTIAL"];
+const RD_PRICES=[100,250,500,1000,2000,4000,8000,15000,25000,40000,75000];
+const RD_ROWS=[
+["Royal Strike","ATTACK","Serangan","Mengurangi 50 Royal Coins dari satu lawan jika serangan berhasil.","damage",50],
+["Lucky Roll","MAGIC","Sihir","Memberikan satu kesempatan mengulang lemparan dadu sendiri.","reroll",0],
+["Honey Trap","TRAP","Jebakan","Memasang jebakan yang mengurangi 50 Royal Coins ketika target melakukan giliran berikutnya.","trapDamage",50],
+["Thunder Attack","ATTACK","Serangan","Mengurangi 100 Royal Coins dari satu lawan.","damage",100],
+["Fortune Blessing","MAGIC","Sihir","Menambahkan bonus 100 Royal Coins jika lemparan pada giliran ini menghasilkan total minimal 8.","conditionalBonus",100],
+["Sticky Honey","TRAP","Jebakan","Membuat target kehilangan kesempatan menggunakan satu kartu kemampuan pada giliran berikutnya.","trapBlock",0],
+["Golden Theft","ATTACK","Serangan","Mengambil hingga 150 Royal Coins dari satu lawan yang memiliki saldo mencukupi.","theft",150],
+["Dice Reversal","MAGIC","Sihir","Membalik urutan tampilan kedua angka dadu. Jumlah total tidak berubah.","reverse",0],
+["Poison Honey","TRAP","Jebakan","Mengurangi hingga 150 Royal Coins dari target ketika ia menyelesaikan giliran berikutnya.","trapDamage",150],
+["Royal Thunder","ATTACK","Serangan","Mengurangi 200 Royal Coins dari satu lawan.","damage",200],
+["Double Fortune","MAGIC","Sihir","Menggandakan keuntungan bersih dari satu hasil strategi yang berhasil.","doubleProfit",0],
+["Shadow Snare","TRAP","Jebakan","Membatalkan satu kartu kemampuan yang digunakan target pada giliran berikutnya.","trapBlock",0],
+["King's Punishment","ATTACK","Serangan","Mengambil hingga 250 Royal Coins dari target jika saldo target mencukupi.","theft",250],
+["Royal Protection","MAGIC","Sihir","Melindungi diri dari satu serangan kartu atau pencurian koin.","shield",0],
+["Golden Prison","TRAP","Jebakan","Mengunci satu kartu kemampuan milik target selama satu giliran.","trapBlock",0],
+["Dragon Strike","ATTACK","Serangan","Mengurangi 300 Royal Coins dari target.","damage",300],
+["Phoenix Revival","MAGIC","Sihir","Memulihkan hingga 200 Royal Coins kepada diri sendiri, tanpa melewati batas saldo aman.","heal",200],
+["Royal Minefield","TRAP","Jebakan","Mengurangi hingga 250 Royal Coins dari target saat jebakan terpicu.","trapDamage",250],
+["King's Execution","ATTACK","Serangan","Mengurangi hingga 400 Royal Coins dari target, dibatasi saldo dan perlindungan serangan.","damage",400],
+["Dragon Destiny","MAGIC","Sihir","Menggandakan keuntungan bersih dari satu kemenangan strategi.","doubleProfit",0],
+["Dark Dominion","TRAP","Jebakan","Menonaktifkan satu kartu kemampuan target sampai giliran berikutnya selesai.","trapBlock",0],
+["Mythic Destroyer","ATTACK","Serangan","Mengurangi hingga 500 Royal Coins dari satu target.","damage",500],
+["Time Reversal","MAGIC","Sihir","Membatalkan hasil lemparan sendiri dan mengulangnya satu kali.","reroll",0],
+["Cursed Kingdom","TRAP","Jebakan","Mengurangi hingga 350 Royal Coins dari target ketika ia menggunakan kartu kemampuan berikutnya.","trapDamage",350],
+["Divine Judgment","ATTACK","Serangan","Mengurangi hingga 600 Royal Coins dari target, selama saldo mencukupi.","damage",600],
+["Divine Fortune","MAGIC","Sihir","Memberikan bonus 500 Royal Coins jika pemain mendapatkan angka kembar pada lemparan pada giliran ini.","pairBonus",500],
+["Sacred Trap","TRAP","Jebakan","Membatalkan satu serangan terhadap pemasang jebakan dan menghabiskan jebakan tersebut.","trapShield",0],
+["Royal Annihilator","ATTACK","Serangan","Mengurangi hingga 750 Royal Coins dari target.","damage",750],
+["Royal Resurrection","MAGIC","Sihir","Memulihkan hingga 500 Royal Coins kepada diri sendiri.","heal",500],
+["King's Ambush","TRAP","Jebakan","Mengurangi hingga 500 Royal Coins dari target ketika ia melakukan Royal Attack.","trapDuel",500],
+["Celestial Execution","ATTACK","Serangan","Mengurangi hingga 1.000 Royal Coins dari satu target, maksimal sebesar saldo yang tersedia.","damage",1000],
+["Celestial Dominion","MAGIC","Sihir","Mengubah hasil dua dadu sendiri menjadi 6 dan 6 sebelum hasil disahkan. Bonus event tidak dapat digandakan.","celestial",0],
+["Eternal Curse","TRAP","Jebakan","Mengurangi hingga 750 Royal Coins dari target dan menonaktifkan satu kartu kemampuannya pada giliran berikutnya.","trapCurse",750]
+];
+const RD_CARDS=RD_ROWS.map((r,i)=>({id:"rdc_"+(i+1),name:r[0],category:r[1],categoryID:r[2],description:r[3],effect:r[4],value:r[5],rarity:RD_RARITIES[Math.floor(i/3)],rarityIndex:Math.floor(i/3),price:RD_PRICES[Math.floor(i/3)]}));
+let rdGame=null,rdPendingNext=false;
+function rdEnsureData(){if(!db.royalDice||typeof db.royalDice!=="object")db.royalDice={inventories:{},dailyClaims:{},matches:[],settings:{maxCardLossPercent:10,maxBet:500,minBet:50,maxBonus:2000}};const r=db.royalDice;if(!r.inventories)r.inventories={};if(!r.dailyClaims)r.dailyClaims={};if(!Array.isArray(r.matches))r.matches=[];if(!r.settings)r.settings={maxCardLossPercent:10,maxBet:500,minBet:50,maxBonus:2000}}
+function rdInv(name){rdEnsureData();if(!db.royalDice.inventories[name])db.royalDice.inventories[name]={owned:{},deck:[],fragments:{}};const x=db.royalDice.inventories[name];if(!x.owned)x.owned={};if(!Array.isArray(x.deck))x.deck=[];if(!x.fragments)x.fragments={};return x}
+function rdCard(id){return RD_CARDS.find(c=>c.id===id)}
+function rdColor(i){return ["#c9d1dc","#79b9ee","#c89bff","#62d5d1","#f4d16e","#e7a0ff","#ffb65c","#f17eae","#9ee5ff","#f6d77e","#fff4b0"][i]||"#f5d98e"}
+function rdCardHTML(c,count=0){return `<div class="rd-card" style="border-color:${rdColor(c.rarityIndex)}88"><div class="rd-rarity" style="color:${rdColor(c.rarityIndex)}">${c.rarity} · ${c.categoryID.toUpperCase()}</div><div style="font-size:30px;margin:7px 0">${c.category==="ATTACK"?"⚔️":c.category==="MAGIC"?"✨":"🪤"}</div><h4>${escapeHTML(c.name)}</h4><p><b>Kemampuan:</b> ${escapeHTML(c.description)}</p><div class="rd-muted">Harga ${c.price.toLocaleString("id-ID")} RC · Dimiliki ${count}</div></div>`}
+function rdHome(){return pageHead("ROYAL GAME CENTER","🎲 ROYAL DICE","The Kingdom of Fortune — strategi dadu, duel, dan koleksi kartu kerajaan.")+`<div class="rd-shell"><div class="rm-title" style="font-size:1.5rem">🎲 ROYAL DICE</div><p class="muted" style="text-align:center">Lima ronde. Sepuluh pemain maksimal. Satu kerajaan keberuntungan.</p><div class="rd-grid"><div class="rd-panel"><h3>⚔️ FULL BATTLE</h3><p class="muted">Safe Roll, Double Chance, Jackpot Roll, Royal Attack, dan Royal Shield.</p></div><div class="rd-panel"><h3>🃏 CARD COLLECTION</h3><p class="muted">Kartu Serangan, Sihir, dan Jebakan dengan 11 tingkat kelangkaan.</p></div><div class="rd-panel"><h3>🪙 ROYAL ECONOMY</h3><p class="muted">Gunakan Royal Coins Family Colony dengan transaksi tercatat di ledger.</p></div></div><div class="toolbar" style="justify-content:center;margin-top:15px"><button class="btn primary" onclick="rdLobby()">▶ MULAI PERTANDINGAN</button><button class="btn" onclick="rdCollection()">🃏 KOLEKSI SAYA</button><button class="btn" onclick="rdStore()">🏪 CARD STORE</button><button class="btn" onclick="rdEvent()">✨ CARD EVENT</button><button class="btn" onclick="rdLeaderboard()">🏆 LEADERBOARD</button><button class="btn" onclick="rdHistory()">📜 RIWAYAT</button><button class="btn" onclick="rdStats()">📊 STATISTIK SAYA</button><button class="btn ghost" onclick="renderPage()">KEMBALI</button></div></div>`}
+function rdLobby(){rdEnsureData();rdGame=null;const approved=db.members.filter(m=>m.status==="approved"&&String(m.role||"").toLowerCase()!=="developer");const preset=approved.some(m=>m.name===session.name)?session.name:"";$("pageContent").innerHTML=pageHead("GAME 04 · LOBBY","ROYAL DICE — LOBBY","Masukkan nama anggota terdaftar, satu nama per baris. Pertandingan dimainkan bergantian menggunakan satu perangkat.")+`<div class="rd-shell"><div class="rd-panel"><div class="field"><label>Daftar pemain (2–10 anggota)</label><textarea id="rdNames" rows="7" placeholder="Nama pemain 1&#10;Nama pemain 2">${escapeHTML(preset)}</textarea></div><div class="notice">Semua pemain harus memiliki akun anggota yang disetujui. Kartu yang dipakai mengikuti Deck pribadi masing-masing akun.</div><div class="toolbar"><button class="btn primary" onclick="rdStart()">MULAI PERTANDINGAN</button><button class="btn ghost" onclick="rdHome()">KEMBALI</button></div></div></div>`}
+function rdStart(){const names=($("rdNames")?.value||"").split(/\n|,/).map(x=>x.trim()).filter(Boolean);if(names.length<2||names.length>10)return toast("Royal Dice membutuhkan 2–10 pemain.");if(new Set(names.map(x=>x.toLowerCase())).size!==names.length)return toast("Nama pemain tidak boleh duplikat.");const players=[];for(const n of names){const m=memberRecord(n);if(!m||m.status!=="approved"||String(m.role||"").toLowerCase()==="developer")return toast("Akun "+n+" tidak ditemukan atau belum disetujui.");if(!Number.isSafeInteger(Number(m.coins))||Number(m.coins)<0)return toast("Saldo Royal Coins "+n+" tidak valid.");rdInv(m.name);players.push({name:m.name,startCoins:Number(m.coins),cardLoss:0,shield:0,deck:rdInv(m.name).deck.slice(0,5),usedCards:[],traps:[]})}rdGame={id:"RD-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),players,order:players.map((_,i)=>i).sort(()=>Math.random()-.5),round:1,turn:0,phase:"pass",log:[],ended:false};rdLog("Pertandingan dimulai dengan "+players.length+" pemain.");rdPass()}
+function rdLog(msg){if(!rdGame)return;rdGame.log.unshift(msg);rdGame.log=rdGame.log.slice(0,40)}
+function rdCurrent(){return rdGame?.players[rdGame.order[rdGame.turn]]}
+function rdAlive(){return rdGame?.players||[]}
+function rdMin(){return Number(db.royalDice.settings.minBet)||50}
+function rdPass(){if(!rdGame)return;const p=rdCurrent();if(!p){rdFinish();return}const bal=Number(memberRecord(p.name)?.coins)||0;if(bal<rdMin()){rdLog(p.name+" tidak memiliki saldo minimum; giliran dilewati.");rdNext();return}$("pageContent").innerHTML=pageHead("PASS & PLAY","GILIRAN BERIKUTNYA","Serahkan perangkat kepada pemain yang namanya tampil.")+`<div class="rd-shell rd-pass"><div class="seal">👑</div><div class="eyebrow">PLAYER ${rdGame.turn+1} · ROUND ${rdGame.round}/5</div><h2>${escapeHTML(p.name)}</h2><div class="rd-balance">${bal.toLocaleString("id-ID")} Royal Coins</div><p class="muted">Pastikan pemain lain tidak melihat layar pilihan rahasia.</p><button class="btn primary" onclick="rdTurn()">SAYA SIAP — LANJUTKAN</button><div class="rd-muted" style="margin-top:12px">Layar pilihan akan ditutup sebelum giliran berikutnya.</div></div>`}
+function rdTurn(){const p=rdCurrent();if(!p||!rdGame)return;rdGame.phase="turn";const inv=rdInv(p.name),cards=inv.deck.filter(id=>!(p.usedCards||[]).includes(id)).map(rdCard).filter(Boolean);const targets=rdGame.players.filter(x=>x.name!==p.name);$("pageContent").innerHTML=pageHead("ROYAL DICE · RONDE "+rdGame.round,"GILIRAN "+escapeHTML(p.name),"Pilih strategi, taruhan, lawan, dan maksimal satu kartu kemampuan.")+`<div class="rd-shell"><div class="rd-grid">${rdGame.players.map(x=>`<div class="rd-player ${x.name===p.name?"active":""}"><b>${escapeHTML(x.name)}</b><div class="rd-balance">${(Number(memberRecord(x.name)?.coins)||0).toLocaleString("id-ID")}</div><div class="rd-muted">${Number(memberRecord(x.name)?.coins)>=rdMin()?"AKTIF":"SALDO RENDAH"}</div></div>`).join("")}</div><div class="rd-panel"><div class="field"><label>Strategi</label><select id="rdStrategy" onchange="rdStrategyChange()"><option value="safe">SAFE ROLL — Total minimal 6</option><option value="double">DOUBLE CHANCE — Angka kembar</option><option value="jackpot">JACKPOT ROLL — Total 12</option><option value="attack">ROYAL ATTACK — Duel dengan lawan</option><option value="shield">ROYAL SHIELD — Perlindungan</option></select></div><div class="field" id="rdStakeWrap"><label>Taruhan Royal Coins (50–500)</label><input id="rdStake" type="number" min="50" max="500" step="50" value="50"></div><div class="field" id="rdTargetWrap"><label>Target kartu / lawan duel</label><select id="rdTarget"><option value="">Pilih target</option>${targets.map(x=>`<option value="${escapeHTML(x.name)}">${escapeHTML(x.name)}</option>`).join("")}</select></div><div class="field"><label>Kartu kemampuan (opsional)</label><select id="rdCard"><option value="">Tidak menggunakan kartu</option>${cards.map(c=>`<option value="${c.id}">${escapeHTML(c.name)} — ${c.rarity} / ${c.categoryID}</option>`).join("")}</select><div class="rd-muted">Kartu yang digunakan tidak dapat dipakai lagi pada pertandingan ini, tetapi tetap tersimpan di koleksi dan Deck akun.</div></div><div class="toolbar"><button class="btn primary" onclick="rdResolve()">🎲 LEMPAR DADU</button><button class="btn ghost" onclick="rdHome()">KELUAR KE GAME CENTER</button></div></div><div class="rd-panel"><b>Riwayat pertandingan</b><div class="rd-log">${rdGame.log.map(x=>`<div>${escapeHTML(x)}</div>`).join("")}</div></div></div>`}
+function rdStrategyChange(){const v=$("rdStrategy")?.value;$("rdStakeWrap")?.classList.toggle("hidden",v==="shield");}
+function rdCommit(entries,detail,kind="ROYAL_DICE"){const op=rdGame.id+"-"+Date.now()+"-"+Math.random().toString(36).slice(2,7);return walletCommit(op,entries.map(e=>({member:e.name,currency:"coins",delta:e.delta})),{kind,detail,actor:"Royal Dice",source:"Royal Dice Game 04",destination:"Royal Dice"})}
+function rdCardApply(p,c,target){const out={reroll:false,double:false,forced:null,conditional:0,pairBonus:0};if(!c)return out;const inv=rdInv(p.name);if(!inv.deck.includes(c.id)||(p.usedCards||[]).includes(c.id))return {error:"Kartu tidak tersedia atau sudah digunakan dalam pertandingan ini."};const targetP=rdGame.players.find(x=>x.name===target);if(["damage","theft","trapDamage","trapBlock","trapShield","trapDuel","trapCurse"].includes(c.effect)&&(!targetP||targetP.name===p.name))return {error:"Pilih target kartu yang valid."};
+ if(["damage","theft"].includes(c.effect)){const trapShieldIndex=targetP.traps.findIndex(tr=>tr.effect==="trapShield");if(targetP.shield>0){targetP.shield--;rdLog("Perlindungan membatalkan "+c.name+" terhadap "+targetP.name+".")}else if(trapShieldIndex>=0){const usedTrap=targetP.traps.splice(trapShieldIndex,1)[0];rdLog(usedTrap.name+" membatalkan serangan terhadap "+targetP.name+".")}else{const cap=Math.floor(targetP.startCoins*(db.royalDice.settings.maxCardLossPercent||10)/100),remain=Math.max(0,cap-targetP.cardLoss),amount=Math.min(c.value,Number(memberRecord(targetP.name)?.coins)||0,remain);if(amount){const entries=[{name:targetP.name,delta:-amount}];if(c.effect==="theft")entries.push({name:p.name,delta:amount});if(!rdCommit(entries,c.name+" dari "+p.name+" kepada "+targetP.name,"ROYAL_CARD"))return {error:"Transaksi kartu gagal; efek dibatalkan."};targetP.cardLoss+=amount;rdLog(c.name+" mengenai "+targetP.name+" sebesar "+amount+" RC.")}else rdLog("Batas perlindungan membatalkan pengurangan saldo dari "+c.name+".")}}
+ else if(c.effect==="reroll")out.reroll=true;else if(c.effect==="doubleProfit")out.double=true;else if(c.effect==="shield")p.shield++;else if(c.effect==="heal"){const amount=Math.min(c.value,Math.max(0,p.startCoins*2-(Number(memberRecord(p.name)?.coins)||0)));if(amount&&!rdCommit([{name:p.name,delta:amount}],"Pemulihan "+c.name,"ROYAL_CARD_REWARD"))return {error:"Pemulihan gagal disimpan."};rdLog(p.name+" memulihkan "+amount+" RC.")}else if(c.effect==="celestial")out.forced=[6,6];else if(c.effect==="conditionalBonus")out.conditional=c.value;else if(c.effect==="pairBonus")out.pairBonus=c.value;else if(c.effect==="reverse")out.reverse=true;else if(c.effect.startsWith("trap")){if(targetP.traps.length>=2)return {error:"Target sudah memiliki dua jebakan aktif."};targetP.traps.push({effect:c.effect,value:c.value,owner:p.name,name:c.name,expires:rdGame.round+2});rdLog(p.name+" memasang jebakan rahasia pada "+targetP.name+".")}
+ p.usedCards.push(c.id);return out}
+function rdTriggerTraps(p,strategy,hasCard){let blocked=false,cancel=false;for(const tr of [...p.traps]){if(tr.expires<rdGame.round){p.traps=p.traps.filter(x=>x!==tr);continue}let trigger=false;if(tr.effect==="trapDamage")trigger=true;else if(tr.effect==="trapCurse"&&hasCard){trigger=true;blocked=true}else if(tr.effect==="trapBlock"&&hasCard){trigger=true;blocked=true}else if(tr.effect==="trapDuel"&&strategy==="attack"){trigger=true}if(!trigger)continue;if(tr.effect==="trapDamage"||tr.effect==="trapCurse"){const cap=Math.floor(p.startCoins*(db.royalDice.settings.maxCardLossPercent||10)/100),remain=Math.max(0,cap-p.cardLoss),amount=Math.min(tr.value,Number(memberRecord(p.name)?.coins)||0,remain);if(amount&&!rdCommit([{name:p.name,delta:-amount}],"Jebakan "+tr.name,"ROYAL_TRAP"))return {error:"Efek jebakan gagal disimpan."};p.cardLoss+=amount;rdLog(p.name+" terkena "+tr.name+" (-"+amount+" RC).")};if(tr.effect==="trapBlock"||tr.effect==="trapCurse")rdLog(tr.name+" memblokir kartu kemampuan giliran ini.");if(tr.effect==="trapDuel"){const cap=Math.floor(p.startCoins*(db.royalDice.settings.maxCardLossPercent||10)/100),remain=Math.max(0,cap-p.cardLoss),penalty=Math.min(tr.value,Number(memberRecord(p.name)?.coins)||0,remain);if(penalty&&!rdCommit([{name:p.name,delta:-penalty}],"Jebakan "+tr.name,"ROYAL_TRAP"))return {error:"Efek jebakan duel gagal disimpan."};p.cardLoss+=penalty;rdLog(p.name+" terkena "+tr.name+" (-"+penalty+" RC) saat menantang duel.");}p.traps=p.traps.filter(x=>x!==tr)}return {blocked,cancel}}
+
+function rdResolve(){if(!rdGame||rdGame.phase!=="turn")return;const p=rdCurrent(),strategy=$("rdStrategy")?.value,stake=strategy==="shield"?0:Number($("rdStake")?.value),target=$("rdTarget")?.value||"",cid=$("rdCard")?.value||"",c=cid?rdCard(cid):null,bal=Number(memberRecord(p.name)?.coins)||0;if(!["safe","double","jackpot","attack","shield"].includes(strategy))return toast("Pilih strategi.");if(strategy!=="shield"&&(!Number.isSafeInteger(stake)||stake<rdMin()||stake>(db.royalDice.settings.maxBet||500)||stake>bal))return toast("Taruhan tidak valid atau saldo tidak mencukupi.");if(strategy==="attack"){const t=memberRecord(target);if(!t||target===p.name||Number(t.coins)<stake)return toast("Target duel tidak valid atau saldo lawan tidak mencukupi.")}
+ const trap=rdTriggerTraps(p,strategy,!!cid);if(trap.error)return toast(trap.error);if(trap.cancel){rdShow(["🛡️","🛡️"],"Royal Attack dibatalkan oleh jebakan.");return}if(strategy!=="shield"&&(Number(memberRecord(p.name)?.coins)||0)<stake){rdLog("Giliran dibatalkan karena jebakan mengurangi saldo di bawah taruhan minimum.");rdShow(["⚠️","🪙"],"Giliran dibatalkan: saldo tidak cukup setelah efek jebakan.");return}
+ let fx={reroll:false,double:false,forced:null,conditional:0,pairBonus:0};if(c&&!trap.blocked){const applied=rdCardApply(p,c,target);if(applied.error)return toast(applied.error);fx=Object.assign(fx,applied);rdLog(p.name+" menggunakan "+c.name+".")}else if(c&&trap.blocked){rdLog(c.name+" diblokir jebakan; kartu tidak terpakai.")}
+ if(strategy==="shield"){p.shield++;rdLog(p.name+" mengaktifkan Royal Shield.");rdShow(["🛡️","👑"],"Perlindungan aktif.");return}
+ let dice=fx.forced||[1+Math.floor(Math.random()*6),1+Math.floor(Math.random()*6)];if(fx.reverse)dice.reverse();if(fx.reroll){dice=[1+Math.floor(Math.random()*6),1+Math.floor(Math.random()*6)];rdLog("Kartu mengulang lemparan; hasil pertama dibatalkan.")}let sum=dice[0]+dice[1],pair=dice[0]===dice[1],success=false,profit=0,loss=0;
+ if(strategy==="safe"){success=sum>=6;if(success)profit=Math.floor(stake*.25);else loss=stake}else if(strategy==="double"){success=pair;if(success)profit=stake*4;else loss=stake}else if(strategy==="jackpot"){success=sum===12;if(success)profit=stake*19;else loss=stake}else if(strategy==="attack"){if((Number(memberRecord(p.name)?.coins)||0)<stake){rdLog("Duel dibatalkan karena saldo tidak cukup setelah jebakan.");rdShow(dice,"Royal Attack dibatalkan karena saldo tidak mencukupi.");return}const opponent=rdGame.players.find(x=>x.name===target);const trapShieldIndex=opponent?.traps.findIndex(tr=>tr.effect==="trapShield")??-1;if(opponent?.shield>0){opponent.shield--;rdLog("Royal Shield "+target+" membatalkan duel.")}else if(trapShieldIndex>=0){const usedTrap=opponent.traps.splice(trapShieldIndex,1)[0];rdLog(usedTrap.name+" membatalkan duel terhadap "+target+".")}else{const d2=[1+Math.floor(Math.random()*6),1+Math.floor(Math.random()*6)],their=d2[0]+d2[1];success=sum>their;if(sum===their){rdShow(dice,"Seri melawan "+target+" ("+d2.join(" + ")+"). Tidak ada saldo yang berubah.");return}const delta=success?stake:-stake;if(!rdCommit([{name:p.name,delta},{name:target,delta:-delta}],"Royal Attack "+p.name+" vs "+target,"ROYAL_DUEL"))return toast("Transaksi duel gagal; saldo tidak diubah.");rdLog(p.name+" duel melawan "+target+" ("+sum+" vs "+their+"). "+(success?"Menang.":"Kalah."))}}
+ if(strategy!=="attack"){if(loss&&!rdCommit([{name:p.name,delta:-loss}],"Taruhan Royal Dice ronde "+rdGame.round,"ROYAL_DICE_BET"))return toast("Taruhan gagal diproses.")}
+ let eventBonus=0,cursedPair=false;if(pair){const eventNames={1:"Curse of Bee",2:"Lucky Bee",3:"Golden Honey",4:"Royal Blessing",5:"King's Fortune",6:"Royal Jackpot"};rdLog("ROYAL EVENT: "+eventNames[dice[0]]+".");if(dice[0]===1)cursedPair=true;else if(dice[0]===2)eventBonus=50;else if(dice[0]===3)eventBonus=100;else if(dice[0]===4)p.shield++;else if(dice[0]===5)eventBonus=250;else if(dice[0]===6)eventBonus=500}
+ let reward=0;if(strategy!=="attack"&&success&&!cursedPair){reward=profit;if(fx.double)reward*=2;if(fx.conditional&&sum>=8)reward+=fx.conditional;if(fx.pairBonus&&pair)reward+=fx.pairBonus}reward=Math.min(reward+eventBonus,db.royalDice.settings.maxBonus||2000);if(reward&&!rdCommit([{name:p.name,delta:reward}],"Hadiah dan Royal Event ronde "+rdGame.round,"ROYAL_DICE_REWARD"))return toast("Hadiah gagal disimpan.");rdGame.lastRoll={player:p.name,dice,sum,pair,strategy,success};rdLog(p.name+" melempar "+dice.join(" + ")+" = "+sum+". "+(success?"Strategi berhasil.":"Strategi gagal."));rdShow(dice,(success?"BERHASIL":"BELUM BERHASIL")+" · Total "+sum)}
+
+function rdShow(dice,msg){$("pageContent").innerHTML=pageHead("ROYAL DICE · HASIL","🎲 HASIL LEMPARAN",msg)+`<div class="rd-shell" style="text-align:center"><div class="rd-dice"><div class="rd-die">${dice[0]}</div><div class="rd-die">${dice[1]}</div></div><h2 class="gold">${escapeHTML(msg)}</h2><button class="btn primary" onclick="rdNext()">LANJUTKAN</button></div>`}
+function rdNext(){if(!rdGame)return;rdGame.turn++;if(rdGame.turn>=rdGame.order.length){rdGame.turn=0;rdGame.round++}if(rdGame.round>5){rdFinish();return}let guard=0;while(guard++<rdGame.order.length&&((Number(memberRecord(rdCurrent().name)?.coins)||0)<rdMin())){rdLog(rdCurrent().name+" dilewati karena saldo di bawah taruhan minimum.");rdGame.turn++;if(rdGame.turn>=rdGame.order.length){rdGame.turn=0;rdGame.round++}if(rdGame.round>5){rdFinish();return}}rdPass()}
+function rdFinish(){if(!rdGame||rdGame.ended)return;rdGame.ended=true;const rows=rdGame.players.map(p=>({name:p.name,balance:Number(memberRecord(p.name)?.coins)||0,start:p.startCoins,delta:(Number(memberRecord(p.name)?.coins)||0)-p.startCoins})).sort((a,b)=>b.balance-a.balance);rdGame.winner=rows[0]?.name;rdEnsureData();db.royalDice.matches.unshift({id:rdGame.id,date:new Date().toISOString(),winner:rdGame.winner,rounds:Math.min(rdGame.round,5),players:rows});db.royalDice.matches=db.royalDice.matches.slice(0,100);saveDB();if(typeof recordMissionEvent==="function")recordMissionEvent("game_play","Menyelesaikan Royal Dice");$("pageContent").innerHTML=pageHead("FINAL RESULT","👑 ROYAL DICE CHAMPION","Pertandingan lima ronde selesai.")+`<div class="rd-shell"><div class="rd-pass"><div class="seal">🏆</div><h2>${escapeHTML(rows[0]?.name||"Tidak ada pemenang")}</h2><div class="gold">JUARA ROYAL DICE</div></div><div class="rd-panel">${rows.map((r,i)=>`<div class="track"><span><b>#${i+1} ${escapeHTML(r.name)}</b><div class="rd-muted">Perubahan: ${r.delta>=0?"+":""}${r.delta.toLocaleString("id-ID")} RC</div></span><strong>${r.balance.toLocaleString("id-ID")} RC</strong></div>`).join("")}</div><div class="toolbar"><button class="btn primary" onclick="rdLobby()">MAIN LAGI</button><button class="btn" onclick="rdHome()">MENU ROYAL DICE</button><button class="btn ghost" onclick="renderPage()">GAME CENTER</button></div></div>`}
+function rdCollection(){rdEnsureData();const inv=rdInv(session.name);const owned=RD_CARDS.filter(c=>Number(inv.owned[c.id]||0)>0);const deck=inv.deck;$("pageContent").innerHTML=pageHead("ROYAL CARD COLLECTION","🃏 KOLEKSI SAYA","Inventaris kartu pribadi akun "+escapeHTML(session.name)+". Pilih maksimal lima kartu untuk Deck pertandingan.")+`<div class="rd-shell"><div class="rowline"><b>Deck aktif: ${deck.length}/5 kartu</b><span class="rd-balance">${(Number(memberRecord(session.name)?.coins)||0).toLocaleString("id-ID")} RC</span></div><div class="rd-grid">${owned.map(c=>`<div>${rdCardHTML(c,inv.owned[c.id])}<button class="btn small ${deck.includes(c.id)?"danger":"primary"}" style="width:100%;margin-top:6px" onclick="rdToggleDeck('${c.id}')">${deck.includes(c.id)?"KELUARKAN DARI DECK":"MASUKKAN KE DECK"}</button></div>`).join("")||'<div class="empty">Belum ada kartu. Kunjungi Card Store atau Card Event untuk mulai mengumpulkan.</div>'}</div><div class="rd-panel"><b>Deck pertandingan</b><p class="rd-muted">${deck.map(id=>escapeHTML(rdCard(id)?.name||id)).join(" · ")||"Belum ada kartu dipilih."}</p><p class="rd-muted">Card Fragment: ${RD_RARITIES.map(r=>Number(inv.fragments[r]||0)?r+" × "+inv.fragments[r]:"").filter(Boolean).join(" · ")||"Belum ada fragment."}</p><button class="btn small" onclick="rdCraft()">TUKAR 5 FRAGMENT</button></div><div class="toolbar"><button class="btn" onclick="rdStore()">CARD STORE</button><button class="btn" onclick="rdEvent()">CARD EVENT</button><button class="btn ghost" onclick="rdHome()">KEMBALI</button></div></div>`}
+function rdToggleDeck(id){const inv=rdInv(session.name);if(!rdOwnedCount(session.name,id))return toast("Kartu belum dimiliki.");if(inv.deck.includes(id))inv.deck=inv.deck.filter(x=>x!==id);else{if(inv.deck.length>=5)return toast("Deck maksimal lima kartu.");inv.deck.push(id)}saveDB();rdCollection()}
+function rdStore(){rdEnsureData();const bal=Number(memberRecord(session.name)?.coins)||0;$("pageContent").innerHTML=pageHead("ROYAL CARD STORE","🏪 TOKO KARTU","Beli kartu menggunakan Royal Coins. Nama kartu boleh berbahasa Inggris; semua kemampuan dijelaskan dalam bahasa Indonesia.")+`<div class="rd-shell"><div class="rowline"><b>Saldo: ${bal.toLocaleString("id-ID")} Royal Coins</b><span class="status">33 KARTU AWAL</span></div><div class="rd-grid">${RD_CARDS.map(c=>`<div>${rdCardHTML(c,rdOwnedCount(session.name,c.id))}<button class="btn small primary" style="width:100%;margin-top:6px" onclick="rdBuy('${c.id}')">BELI ${c.price.toLocaleString("id-ID")} RC</button></div>`).join("")}</div><div class="toolbar"><button class="btn" onclick="rdCollection()">KOLEKSI SAYA</button><button class="btn" onclick="rdEvent()">CARD EVENT</button><button class="btn ghost" onclick="rdHome()">KEMBALI</button></div></div>`}
+function rdBuy(id){const c=rdCard(id),m=memberRecord(session.name);if(!c||!m)return toast("Kartu atau akun tidak ditemukan.");if(Number(m.coins)<c.price)return toast("Royal Coins tidak mencukupi.");if(!confirm("Beli "+c.name+" seharga "+c.price.toLocaleString("id-ID")+" Royal Coins?"))return;const op="RDC-BUY-"+session.name+"-"+id+"-"+Date.now();if(!walletCommit(op,[{member:session.name,currency:"coins",delta:-c.price}],{kind:"CARD_PURCHASE",detail:"Membeli kartu "+c.name,actor:session.name,source:"Royal Card Store",destination:session.name}))return toast("Pembelian gagal. Saldo tidak berubah.");const inv=rdInv(session.name);inv.owned[id]=(inv.owned[id]||0)+1;saveDB();toast("Kartu berhasil dibeli dan masuk koleksi.");rdStore()}
+function rdEvent(){rdEnsureData();const today=localDateKey(),claimed=db.royalDice.dailyClaims[session.name]===today;$("pageContent").innerHTML=pageHead("ROYAL CARD EVENT","✨ EVENT HARIAN","Selesaikan tantangan harian untuk memperoleh kartu. Hadiah satu kali per akun setiap hari.")+`<div class="rd-shell rd-pass"><div class="seal">🎁</div><h2>DAILY CARD DROP</h2><p class="muted">Klaim satu kartu acak dari tingkat Dasar sampai Spesial. Kartu duplikat dikonversi menjadi Card Fragment.</p><span class="status ${claimed?"wait":"ok"}">${claimed?"SUDAH DIKLAIM HARI INI":"HADIAH TERSEDIA"}</span><div class="toolbar" style="justify-content:center;margin-top:14px"><button class="btn primary" ${claimed?"disabled":""} onclick="rdClaimEvent()">KLAIM HADIAH</button><button class="btn" onclick="rdCollection()">KOLEKSI SAYA</button><button class="btn ghost" onclick="rdHome()">KEMBALI</button></div></div>`}
+function rdClaimEvent(){const today=localDateKey();if(db.royalDice.dailyClaims[session.name]===today)return toast("Hadiah hari ini sudah diklaim.");const weights=[40,22,14,8,6,4,2.5,1.5,1,0.7,0.3],roll=Math.random()*weights.reduce((a,b)=>a+b,0);let sum=0,rarity=0;for(let i=0;i<weights.length;i++){sum+=weights[i];if(roll<sum){rarity=i;break}}const options=RD_CARDS.filter(c=>c.rarityIndex===rarity),c=options[Math.floor(Math.random()*options.length)],inv=rdInv(session.name);db.royalDice.dailyClaims[session.name]=today;let reward="Kartu baru: "+c.name;if(inv.owned[c.id]){inv.fragments[c.rarity]=(inv.fragments[c.rarity]||0)+1;reward="Duplikat "+c.name+" dikonversi menjadi 1 Card Fragment "+c.rarity}else inv.owned[c.id]=(inv.owned[c.id]||0)+1;saveDB();log("Royal Card Event: "+reward,session.name);$("pageContent").innerHTML=pageHead("EVENT REWARD","🎉 HADIAH BERHASIL DIKLAIM",reward)+`<div class="rd-shell rd-pass">${rdCardHTML(c,inv.owned[c.id]||0)}<div class="notice">${escapeHTML(reward)}</div><button class="btn primary" onclick="rdCollection()">LIHAT KOLEKSI</button></div>`}
+function rdLeaderboard(){rdEnsureData();const agg={};db.royalDice.matches.forEach(m=>(m.players||[]).forEach(p=>{if(!agg[p.name])agg[p.name]={name:p.name,played:0,wins:0,balance:0};agg[p.name].played++;agg[p.name].balance+=Number(p.balance)||0;if(m.winner===p.name)agg[p.name].wins++}));const rows=Object.values(agg).sort((a,b)=>b.wins-a.wins||b.balance-a.balance);$("pageContent").innerHTML=pageHead("ROYAL DICE HONORS","🏆 LEADERBOARD","Peringkat berdasarkan jumlah gelar juara, kemudian total saldo pada catatan pertandingan.")+`<div class="rd-shell"><div class="rd-panel">${rows.map((r,i)=>`<div class="track"><span><b>#${i+1} ${escapeHTML(r.name)}</b><div class="rd-muted">${r.played} pertandingan · ${r.wins} gelar juara</div></span><strong>${r.balance.toLocaleString("id-ID")} RC</strong></div>`).join("")||'<div class="empty">Belum ada pertandingan yang selesai.</div>'}</div><button class="btn ghost" onclick="rdHome()">KEMBALI</button></div>`}
+function rdHistory(){rdEnsureData();$("pageContent").innerHTML=pageHead("ROYAL DICE RECORD","📜 RIWAYAT PERTANDINGAN","Hasil pertandingan yang telah selesai pada perangkat ini.")+`<div class="rd-shell">${db.royalDice.matches.slice(0,30).map(m=>`<div class="rd-panel"><div class="rowline"><b>${escapeHTML(m.winner||"Tanpa pemenang")} — JUARA</b><span class="rd-muted">${new Date(m.date).toLocaleString("id-ID")}</span></div><div class="rd-muted">${m.players.length} pemain · ${m.rounds} ronde · ID ${escapeHTML(m.id)}</div>${m.players.map(p=>`<div class="track"><span>${escapeHTML(p.name)}</span><strong>${Number(p.balance).toLocaleString("id-ID")} RC (${p.delta>=0?"+":""}${Number(p.delta).toLocaleString("id-ID")})</strong></div>`).join("")}</div>`).join("")||'<div class="empty">Belum ada riwayat pertandingan.</div>'}<button class="btn ghost" onclick="rdHome()">KEMBALI</button></div>`}
+function rdStats(){rdEnsureData();const rows=db.royalDice.matches.flatMap(m=>(m.players||[]).filter(p=>p.name===session.name).map(p=>({match:m,player:p})));const wins=rows.filter(x=>x.match.winner===session.name).length,net=rows.reduce((a,x)=>a+Number(x.player.delta||0),0);const inv=rdInv(session.name),owned=Object.values(inv.owned).reduce((a,b)=>a+Number(b||0),0);$("pageContent").innerHTML=pageHead("PLAYER PROFILE","📊 STATISTIK ROYAL DICE","Ringkasan statistik akun "+escapeHTML(session.name)+".")+`<div class="rd-shell"><div class="rd-grid"><div class="rd-panel"><div class="rd-muted">Pertandingan</div><div class="rd-balance">${rows.length}</div></div><div class="rd-panel"><div class="rd-muted">Gelar juara</div><div class="rd-balance">${wins}</div></div><div class="rd-panel"><div class="rd-muted">Kartu dimiliki</div><div class="rd-balance">${owned}</div></div><div class="rd-panel"><div class="rd-muted">Perubahan saldo tercatat</div><div class="rd-balance">${net>=0?"+":""}${net.toLocaleString("id-ID")}</div></div></div><button class="btn ghost" onclick="rdHome()">KEMBALI</button></div>`}
+function rdCraft(){const inv=rdInv(session.name),available=RD_RARITIES.filter(r=>Number(inv.fragments[r]||0)>=5);if(!available.length)return toast("Butuh minimal 5 Card Fragment dari rarity yang sama.");const rarity=prompt("Pilih rarity untuk ditukar: "+available.join(", "),available[0]);if(!rarity||!available.includes(rarity))return;const cands=RD_CARDS.filter(c=>c.rarity===rarity),c=cands[Math.floor(Math.random()*cands.length)];inv.fragments[rarity]-=5;inv.owned[c.id]=(inv.owned[c.id]||0)+1;saveDB();toast("Berhasil membuat kartu "+c.name+".");rdCollection()}
+// ================= END ROYAL DICE =================
+
+// ================= COLONY CHAT + SOCIAL FEATURES =================
+let chatRecorder=null,chatRecordChunks=[],chatRecordStarted=0;
+let roomMusicObjectUrl=null,roomMusicFileName='',roomMusicQueue=[],roomMusicIndex=0,roomMusicRoomId='';
+function roomMusicChoose(){const el=$('roomMusicFile');if(el)el.click()}
+function roomMusicSelected(input){const files=[...(input?.files||[])];if(!files.length)return;const valid=files.filter(f=>f.type.startsWith('audio/'));if(!valid.length){input.value='';return toast('Pilih file musik/audio dari perangkat.')}if(valid.some(f=>f.size>30*1024*1024)){input.value='';return toast('Setiap file musik maksimal 30 MB.')}roomMusicQueue=valid.map(f=>({name:f.name,file:f}));roomMusicIndex=0;roomMusicPlayIndex(0);toast(roomMusicQueue.length+' lagu ditambahkan ke playlist lokal room.');if(input)input.value=''}
+function roomMusicPlayIndex(index){if(index<0||index>=roomMusicQueue.length)return;roomMusicIndex=index;const item=roomMusicQueue[index];if(roomMusicObjectUrl)URL.revokeObjectURL(roomMusicObjectUrl);roomMusicObjectUrl=URL.createObjectURL(item.file);roomMusicFileName=item.name;roomMusicRender();const player=$('roomMusicPlayer');if(player){player.src=roomMusicObjectUrl;player.load();player.play().catch(()=>{});}}
+function roomMusicNext(){if(roomMusicQueue.length)roomMusicPlayIndex((roomMusicIndex+1)%roomMusicQueue.length)}
+function roomMusicPrev(){if(roomMusicQueue.length)roomMusicPlayIndex((roomMusicIndex-1+roomMusicQueue.length)%roomMusicQueue.length)}
+function roomMusicRender(){const host=$('roomMusicPanel');if(!host)return;host.innerHTML=`<div class="room-music-title">🎵 PLAYLIST MUSIK ROOM</div><div class="tiny">${escapeHTML(roomMusicFileName||'Belum ada musik dipilih')} · ${roomMusicQueue.length} lagu dalam antrean</div><div class="room-music-controls"><button class="btn small primary" onclick="roomMusicChoose()">📂 TAMBAH MUSIK</button><button class="btn small ghost" onclick="roomMusicPrev()" ${roomMusicQueue.length?'':'disabled'}>⏮</button><button class="btn small ghost" onclick="roomMusicNext()" ${roomMusicQueue.length?'':'disabled'}>⏭</button><button class="btn small ghost" onclick="roomMusicStop()" ${roomMusicQueue.length?'':'disabled'}>BERSIHKAN</button></div><input type="file" id="roomMusicFile" accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac" multiple style="display:none" onchange="roomMusicSelected(this)">${roomMusicObjectUrl?'<audio id="roomMusicPlayer" controls preload="metadata" style="width:100%;margin-top:10px" onended="roomMusicNext()"></audio>':'<div class="tiny">Pilih beberapa file musik sekaligus untuk membuat playlist pada perangkat ini.</div>'}<div class="room-music-queue">${roomMusicQueue.map((x,i)=>`<button class="btn small ${i===roomMusicIndex?'primary':'ghost'}" onclick="roomMusicPlayIndex(${i})">${i+1}. ${escapeHTML(x.name)}</button>`).join('')}</div><div class="tiny" style="margin-top:8px;color:var(--gold,#e7c45b)">Playlist ini masih lokal pada perangkat pemilih. Agar semua anggota mendengar musik yang sama dan sinkron, aplikasi harus terhubung ke server penyimpanan audio dan sinkronisasi realtime.</div>`;const player=$('roomMusicPlayer');if(player&&roomMusicObjectUrl)player.src=roomMusicObjectUrl}
+function roomMusicStop(){if(roomMusicObjectUrl){URL.revokeObjectURL(roomMusicObjectUrl);roomMusicObjectUrl=null;}roomMusicFileName='';roomMusicQueue=[];roomMusicIndex=0;roomMusicRender();toast('Playlist lokal dibersihkan.')}
 
 
-func _on_request_completed(
-	result: int,
-	response_code: int,
-	_response_headers: PackedStringArray,
-	body: PackedByteArray
-) -> void:
-	if not _request_pending:
-		return
-	_request_pending = false
+const CHAT_GIFTS=[{id:'rose',name:'Mawar Koloni',emoji:'🌹',price:10},{id:'honey',name:'Madu Emas',emoji:'🍯',price:25},{id:'teddy',name:'Boneka Lebah',emoji:'🧸',price:50},{id:'crown',name:'Mahkota Mini',emoji:'👑',price:100},{id:'diamond',name:'Permata Royal',emoji:'💎',price:250},{id:'castle',name:'Istana Lebah',emoji:'🏰',price:500}];
+function chatInitial(name){return (String(name||"🐝").trim()[0]||"🐝").toUpperCase()}
+function chatFormatTime(v){try{return new Date(v).toLocaleString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}catch(e){return ""}}
+function chatUnreadCount(){return 0}
+function chatEscapeAttr(v){return escapeHTML(String(v||''))}
+function chatMessagesHTML(messages){
+ const rows=(messages||[]).slice(-150);if(!rows.length)return '<div class="empty">Belum ada pesan. Jadilah yang pertama memulai percakapan.</div>';
+ return '<div class="chat-stream">'+rows.map(m=>{let content='';if(m.type==='image'&&m.image){content=`${m.text?`<div class=\"chat-text\">${escapeHTML(m.text)}</div>`:''}<a href=\"${chatEscapeAttr(m.image)}\" target=\"_blank\" rel=\"noopener\"><img class=\"chat-image\" loading=\"lazy\" src=\"${chatEscapeAttr(m.image)}\" alt=\"Gambar dari ${escapeHTML(m.sender||'anggota')}\"></a>`}else if(m.type==='audio'&&m.audio){content=`<div>🎙️ Pesan suara <audio class="chat-audio" controls preload="none" src="${chatEscapeAttr(m.audio)}"></audio></div>`}else if(m.type==='transfer'){content=`<div class=\"chat-gift-card\"><span class=\"gift-icon\">🪙</span><div><b>Transfer Royal Coins</b><div>${escapeHTML(m.sender||'Anggota')} mengirim kepada ${escapeHTML(m.recipient||'anggota')}</div><div class=\"chat-message-note\">${Number(m.amount||0).toLocaleString('id-ID')} RC · ${escapeHTML(m.text||'')}</div></div></div>`}else if(m.type==='gift'){content=`<div class="chat-gift-card"><span class="gift-icon">${chatEscapeAttr(m.giftEmoji||'🎁')}</span><div><b>${escapeHTML(m.sender||'Anggota')} mengirim hadiah</b><div>${escapeHTML(m.giftName||'Gift')} untuk <b>${escapeHTML(m.recipient||'anggota')}</b></div><div class="chat-message-note">${Number(m.giftPrice||0).toLocaleString('id-ID')} RC</div></div></div>`}else{content=`<div class="chat-text">${escapeHTML(m.text||'').replace(/\n/g,'<br>')}</div>`}return `<div class="chat-line ${m.sender===session.name?'mine':''}"><div class="chat-avatar">${escapeHTML(chatInitial(m.sender))}</div><div class="chat-bubble"><div class="chat-meta"><b>${escapeHTML(m.sender||'Anggota')}</b><span>${escapeHTML(chatFormatTime(m.at))}</span></div>${content}</div></div>`}).join('')+'</div>';
+}
+function chatComposer(kind,id){const key=kind+'-'+id;return `<div class="chat-image-tools"><button class="btn" onclick="chatChooseImage('${kind}','${id}')">🖼️ Gambar dari Galeri</button><input type="file" id="chatImage-${key}" accept="image/*" onchange="chatImageSelected(this,'${kind}','${id}')"><span class="tiny">JPG / PNG / WEBP · Maks. 180 KB setelah kompresi</span></div><div class="chat-compose"><textarea id="chatInput-${key}" rows="2" maxlength="1000" placeholder="Tulis pesan..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend('${kind}','${id}')}"></textarea><button class="btn primary" onclick="chatSend('${kind}','${id}')">KIRIM ➤</button></div><div class="tiny">Enter untuk mengirim · Shift + Enter untuk baris baru · Maksimal 1.000 karakter</div>`}
+function chatGroupComposer(){return `<div class="chat-actionbar"><button class="btn" onclick="chatToggleEmoji()">😊 Emoji</button><button class="btn" onclick="chatStartVoice()">🎙️ Rekam suara</button><button class="btn" id="chatStopVoiceBtn" style="display:none" onclick="chatStopVoice()">⏹ Selesai rekam</button><button class="btn" onclick="chatOpenGift()">🎁 Kirim Gift</button><button class="btn" onclick="chatToggleTransfer()">🪙 Transfer RC</button></div><div class="chat-emoji-panel" id="chatEmojiPanel">${'😀 😁 😂 🤣 😊 😍 🥰 😎 😭 😡 👍 👎 👏 🙏 ❤️ 💛 💚 💙 💜 💯 🔥 ✨ 🎉 🎊 🐝 👑 🍯 🎁 🏆 💎 🌹'.split(' ').map(e=>`<button type="button" onclick="chatInsertEmoji('${e}')">${e}</button>`).join('')}</div><div class="chat-transfer-panel" id="chatTransferPanel"><b>🪙 Kirim Royal Coins</b><div class="chat-transfer-grid" style="margin-top:8px"><div class="field"><label>Penerima</label><select id="chatRcRecipient">${db.members.filter(m=>m.status==='approved'&&m.name!==session.name&&String(m.role||'').toLowerCase()!=='developer').map(m=>`<option value="${chatEscapeAttr(m.name)}">${escapeHTML(m.name)}</option>`).join('')}</select></div><div class="field"><label>Jumlah RC</label><input id="chatRcAmount" type="number" min="1" step="1" placeholder="Contoh: 100"></div></div><div class="field" style="margin-top:8px"><label>Pesan (opsional)</label><input id="chatRcNote" maxlength="100" placeholder="Hadiah / dukungan / pembayaran"></div><div class="toolbar"><button class="btn primary" onclick="chatTransferRC()">KONFIRMASI TRANSFER</button><button class="btn ghost" onclick="chatToggleTransfer()">BATAL</button></div><div class="tiny">Saldo pengirim dan penerima akan diperbarui melalui ledger Royal Wallet.</div></div><div class="chat-image-tools"><button class="btn" onclick="chatChooseImage('group','main')">🖼️ Gambar dari Galeri</button><input type="file" id="chatImage-group-main" accept="image/*" onchange="chatImageSelected(this,'group','main')"><span class="tiny">JPG / PNG / WEBP · Maks. 180 KB setelah kompresi</span></div><div class="chat-horizontal-compose"><textarea id="chatInput-group-main" rows="2" maxlength="1000" placeholder="Tulis pesan ke seluruh koloni..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend('group','main')}"></textarea><button class="btn primary" onclick="chatSend('group','main')">KIRIM ➤</button></div><div class="tiny">Fitur suara berupa pesan suara singkat. Rekaman tersimpan lokal di perangkat demo ini.</div>`}
+function chatChooseImage(kind,id){const el=$('chatImage-'+kind+'-'+id);if(el)el.click()}
+async function chatImageSelected(input,kind,id){const file=input?.files?.[0];if(!file)return;if(!file.type.startsWith('image/')){input.value='';return toast('Pilih file gambar dari galeri.')}if(file.size>12*1024*1024){input.value='';return toast('Ukuran gambar asli maksimal 12 MB.')}try{const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file)});const img=await new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=data});const scale=Math.min(1,960/Math.max(img.width,img.height));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);let quality=.82,blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',quality));while(blob&&blob.size>180000&&quality>.32){quality-=.08;blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',quality))}if(!blob||blob.size>180000){input.value='';return toast('Gambar masih terlalu besar setelah kompresi. Pilih gambar lain.')}const image=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(blob)});const target=kind==='group'?db.chat.group:kind==='room'?db.chat.rooms.find(r=>r.id===id):db.chat.privateChats[id];if(!target)return toast('Percakapan tidak ditemukan.');const caption=String($('chatInput-'+kind+'-'+id)?.value||'').trim();target.messages.push({id:'IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),sender:session.name,type:'image',image,text:caption,at:new Date().toISOString()});target.messages=target.messages.slice(-150);saveDB();log('Mengirim gambar '+(kind==='group'?'Group Chat':kind==='room'?'Room Chat':'Chat Pribadi'),session.name);toast('Gambar berhasil dikirim.');if(kind==='group')groupChatPage();else if(kind==='room')roomChatOpen(id);else privateChatOpen(chatPeerFromKey(id));}catch(e){toast('Gambar tidak dapat diproses. Coba file lain.')}finally{if(input)input.value=''}}
+function chatPeerFromKey(key){try{return decodeURIComponent(String(key)).split('::').find(n=>n!==session.name)||''}catch(e){return ''}}
+function chatToggleEmoji(){$('chatEmojiPanel')?.classList.toggle('open')}
+function chatInsertEmoji(e){const el=$('chatInput-group-main');if(!el)return;const a=el.selectionStart??el.value.length,b=el.selectionEnd??el.value.length;el.value=el.value.slice(0,a)+e+el.value.slice(b);el.focus();el.selectionStart=el.selectionEnd=a+e.length}
+function chatToggleTransfer(){$('chatTransferPanel')?.classList.toggle('open')}
+function chatSend(kind,id){const el=$('chatInput-'+kind+'-'+id),text=String(el?.value||'').trim();if(!text)return toast('Pesan tidak boleh kosong.');if(text.length>1000)return toast('Pesan maksimal 1.000 karakter.');let target=kind==='group'?db.chat.group:kind==='private'?db.chat.privateChats[id]:db.chat.rooms.find(r=>r.id===id);if(!target)return toast('Ruang chat tidak ditemukan.');if(kind==='room'&&!target.members.includes(session.name))target.members.push(session.name);target.messages.push({id:'MSG-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),sender:session.name,text,at:new Date().toISOString(),type:'text'});target.messages=target.messages.slice(-150);if(kind==='room'){target.xp=Number(target.xp||0)+1;const oldLevel=Number(target.level||1);target.level=roomLevelForXP(target.xp);if(target.level>oldLevel)target.messages.push({id:'SYS-'+Date.now(),sender:'SYSTEM ROOM',type:'text',text:'🎉 Room naik ke Level '+target.level+'! Kapasitas sekarang '+roomSeatLimit(target)+' kursi dan kuota Admin '+roomAdminLimit(target)+'.',at:new Date().toISOString()});}saveDB();log(kind==='group'?'Mengirim pesan Group Chat':kind==='private'?'Mengirim pesan Chat Pribadi':'Mengirim pesan Room Chat',session.name);if(kind==='group')groupChatPage();else if(kind==='private')privateChatOpen(id);else roomChatOpen(id)}
+function chatTransferRC(){const recipient=$('chatRcRecipient')?.value,amount=Number($('chatRcAmount')?.value),note=String($('chatRcNote')?.value||'').trim()||'Transfer Royal Coins melalui Group Chat';if(!db.economy.settings.transfersEnabled)return toast('Fitur transfer sedang dinonaktifkan pengurus.');if(!recipient||recipient===session.name)return toast('Pilih penerima yang valid.');if(!Number.isSafeInteger(amount)||amount<1)return toast('Jumlah RC minimal 1 dan harus bilangan bulat.');const sender=memberRecord(session.name),target=memberRecord(recipient);if(!sender||!target||target.status!=='approved')return toast('Akun penerima tidak aktif atau tidak ditemukan.');if(Number(sender.coins||0)<amount)return toast('Saldo RC tidak mencukupi.');if(!confirm(`Transfer ${amount.toLocaleString('id-ID')} RC kepada ${recipient}?`))return;const id='CHAT-TRF-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);if(!walletCommit(id,[{member:sender.name,currency:'coins',delta:-amount},{member:target.name,currency:'coins',delta:amount}],{kind:'TRANSFER',detail:note,actor:session.name,fromMember:sender.name,toMember:target.name,source:'Group Chat',destination:target.name}))return toast('Transfer gagal. Saldo tidak berubah.');db.chat.group.messages.push({id,sender:session.name,text:note,recipient,type:'transfer',at:new Date().toISOString(),amount});db.chat.group.messages=db.chat.group.messages.slice(-150);saveDB();log('Transfer '+amount+' RC kepada '+recipient,session.name);toast('Transfer RC berhasil dicatat pada ledger.');groupChatPage()}
+function chatOpenGift(){const members=db.members.filter(m=>m.status==='approved'&&m.name!==session.name&&String(m.role||'').toLowerCase()!=='developer');if(!members.length)return toast('Belum ada anggota lain yang aktif.');const recipient=prompt('Masukkan nama penerima gift:\n'+members.map(m=>m.name).join(', '),members[0].name);if(!recipient)return;const target=members.find(m=>m.name.toLowerCase()===recipient.trim().toLowerCase());if(!target)return toast('Nama penerima tidak ditemukan.');const pick=prompt('Pilih nomor gift:\n'+CHAT_GIFTS.map((g,i)=>`${i+1}. ${g.emoji} ${g.name} — ${g.price} RC`).join('\n'),'1');if(!pick)return;const gift=CHAT_GIFTS[Number(pick)-1];if(!gift)return toast('Pilihan gift tidak valid.');const sender=memberRecord(session.name);if(!sender||Number(sender.coins||0)<gift.price)return toast('Saldo RC tidak mencukupi untuk gift ini.');if(!confirm(`Kirim ${gift.emoji} ${gift.name} kepada ${target.name} seharga ${gift.price} RC?`))return;const op='CHAT-GIFT-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);if(!walletCommit(op,[{member:sender.name,currency:'coins',delta:-gift.price}],{kind:'GIFT_SENT',detail:'Mengirim '+gift.name+' kepada '+target.name,actor:session.name,fromMember:session.name,toMember:target.name,source:'Group Chat Gift',destination:target.name}))return toast('Gift gagal dikirim.');if(!db.chat.giftInventory)db.chat.giftInventory={};if(!Array.isArray(db.chat.giftInventory[target.name]))db.chat.giftInventory[target.name]=[];db.chat.giftInventory[target.name].push({id:op,giftId:gift.id,name:gift.name,emoji:gift.emoji,from:session.name,at:new Date().toISOString()});db.chat.group.messages.push({id:op,sender:session.name,type:'gift',giftName:gift.name,giftEmoji:gift.emoji,giftPrice:gift.price,recipient:target.name,at:new Date().toISOString()});db.chat.group.messages=db.chat.group.messages.slice(-150);saveDB();log('Mengirim gift '+gift.name+' kepada '+target.name,session.name);toast('Gift berhasil dikirim kepada '+target.name+'.');groupChatPage()}
+let chatVoiceStopTimer=null;
+async function chatStartVoice(){
+ if(chatRecorder&&chatRecorder.state==='recording')return toast('Perekaman suara sedang berlangsung.');
+ if(!navigator.mediaDevices||typeof navigator.mediaDevices.getUserMedia!=='function'||typeof MediaRecorder==='undefined')return toast('Mikrofon tidak tersedia pada WebView ini. Perbarui Android System WebView/Chrome lalu coba lagi.');
+ let stream=null;
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  const mimeCandidates=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
+  const mimeType=mimeCandidates.find(type=>MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(type));
+  const recorder=mimeType?new MediaRecorder(stream,{mimeType}):new MediaRecorder(stream);
+  chatRecordChunks=[];chatRecordStarted=Date.now();chatRecorder=recorder;
+  recorder.ondataavailable=e=>{if(e.data&&e.data.size)chatRecordChunks.push(e.data)};
+  recorder.onerror=()=>{stream.getTracks().forEach(track=>track.stop());if(chatVoiceStopTimer)clearTimeout(chatVoiceStopTimer);chatVoiceStopTimer=null;$('chatStopVoiceBtn')&&($('chatStopVoiceBtn').style.display='none');toast('Terjadi kesalahan saat merekam suara.')};
+  recorder.onstop=()=>{
+   stream.getTracks().forEach(track=>track.stop());
+   if(chatVoiceStopTimer)clearTimeout(chatVoiceStopTimer);chatVoiceStopTimer=null;
+   $('chatStopVoiceBtn')&&($('chatStopVoiceBtn').style.display='none');
+   const blob=new Blob(chatRecordChunks,{type:recorder.mimeType||'audio/webm'});
+   chatRecordChunks=[];
+   if(!blob.size)return toast('Tidak ada suara yang terekam. Periksa mikrofon lalu coba lagi.');
+   if(blob.size>1000000)return toast('Ukuran pesan suara melebihi 1 MB. Silakan rekam lebih singkat.');
+   const reader=new FileReader();
+   reader.onerror=()=>toast('Rekaman gagal diproses. Silakan coba lagi.');
+   reader.onload=()=>{
+    const audioData=String(reader.result||'');
+    if(!audioData.startsWith('data:audio/'))return toast('Format rekaman tidak didukung perangkat ini.');
+    db.chat.group.messages.push({id:'VOICE-'+Date.now(),sender:session.name,type:'audio',audio:audioData,at:new Date().toISOString()});
+    db.chat.group.messages=db.chat.group.messages.slice(-150);saveDB();log('Mengirim pesan suara Group Chat',session.name);toast('Pesan suara berhasil dikirim.');groupChatPage();
+   };
+   reader.readAsDataURL(blob);
+  };
+  recorder.start(250);
+  $('chatStopVoiceBtn')&&($('chatStopVoiceBtn').style.display='inline-flex');
+  toast('Mikrofon aktif. Maksimal 15 detik; tekan Selesai Rekam setelah berbicara.');
+  chatVoiceStopTimer=setTimeout(()=>{if(recorder.state==='recording')recorder.stop()},15000);
+ }catch(e){
+  if(stream)stream.getTracks().forEach(track=>track.stop());
+  const name=e&&e.name?e.name:'UnknownError';
+  const detail=e&&e.message?e.message:'tanpa detail';
+  let androidPermission='BRIDGE_TIDAK_TERSEDIA';
+  try{if(window.FCAndroid&&typeof FCAndroid.getMicrophonePermissionStatus==='function')androidPermission=FCAndroid.getMicrophonePermissionStatus()}catch(_){}
+  console.error('[FAMILY_COLONY_MIC]',{name,detail,origin:location.origin,isSecureContext:window.isSecureContext,androidPermission});
+  toast('Diagnostik mikrofon: '+name+'; Android='+androidPermission+'; Web='+location.origin+'; '+detail);
+ }
+}
+function chatStopVoice(){if(chatVoiceStopTimer)clearTimeout(chatVoiceStopTimer);chatVoiceStopTimer=null;if(chatRecorder&&chatRecorder.state==='recording'){chatRecorder.stop();$('chatStopVoiceBtn')&&($('chatStopVoiceBtn').style.display='none')}}
+function chatStopVoice(){if(chatRecorder&&chatRecorder.state==='recording'){chatRecorder.stop();$('chatStopVoiceBtn')&&($('chatStopVoiceBtn').style.display='none')}}
+function groupChatPage(){ensureChatData();const count=db.chat.group.messages.length,active=db.members.filter(m=>m.status==='approved'&&String(m.role||'').toLowerCase()!=='developer').length,bal=Number(memberRecord(session.name)?.coins||0);$('pageContent').innerHTML=pageHead('COLONY COMMUNICATION','💬 GROUP CHAT','Grup utama Family Colony untuk percakapan bersama seluruh anggota.')+`<div class="chat-shell"><div class="chat-horizontal-head"><div class="chat-room-icon">🐝</div><div class="chat-head-info"><b>Family Colony — Official Group</b><div class="tiny">${active} anggota aktif · ${count} pesan · Saldo ${bal.toLocaleString('id-ID')} RC</div></div><div class="chat-head-actions"><span class="status ok">OFFICIAL</span><button class="btn ghost" onclick="roomChatPage()">▣ ROOM CHAT</button></div></div><div class="chat-notice">Grup utama untuk seluruh anggota koloni. Jaga kesopanan dan jangan membagikan kata sandi atau informasi pribadi.</div>${chatMessagesHTML(db.chat.group.messages)}${chatGroupComposer()}</div><div class="tiny" style="margin-top:10px">Mode demo lokal: pesan, gift, dan transaksi hanya tersimpan pada perangkat ini. Belum realtime lintas perangkat.</div>`;const stream=document.querySelector('.chat-stream');if(stream)stream.scrollTop=stream.scrollHeight}
+function roomLevelForXP(xp){const thresholds=[0,50,150,300,500,800,1200,1700,2300,3000];let level=1;for(let i=1;i<thresholds.length;i++)if(xp>=thresholds[i])level=i+1;return level}
+function roomSeatLimit(r){return 10+Math.max(0,Number(r.level||1)-1)*5}
+function roomAdminLimit(r){return Math.min(5,Math.max(1,Number(r.level||1)))}
+function roomIsOwner(r){return r.owner===session.name||r.createdBy===session.name}
+function roomIsAdmin(r){return roomIsOwner(r)||(r.admins||[]).includes(session.name)}
+function roomManage(id){const r=db.chat.rooms.find(x=>x.id===id);if(!r)return; if(!roomIsOwner(r))return toast('Hanya Owner Room yang dapat mengatur room dan admin.');const name=prompt('Nama room baru:',r.name);if(name===null)return;const clean=name.trim();if(clean.length<3)return toast('Nama room minimal 3 karakter.');const topic=prompt('Keterangan / deskripsi room:',r.topic||'');if(topic===null)return;r.name=clean;r.topic=topic.trim().slice(0,160)||'Ruang obrolan komunitas';saveDB();roomChatOpen(id);toast('Informasi room diperbarui.')}
+function roomPromoteAdmin(id){const r=db.chat.rooms.find(x=>x.id===id);if(!r||!roomIsOwner(r))return toast('Hanya Owner Room yang dapat mengangkat admin.');if((r.admins||[]).length>=roomAdminLimit(r))return toast('Kuota admin level '+r.level+' sudah penuh ('+roomAdminLimit(r)+').');const candidates=r.members.filter(n=>n!==r.owner&&!(r.admins||[]).includes(n));if(!candidates.length)return toast('Belum ada anggota yang bisa dijadikan admin.');const pick=prompt('Masukkan nama anggota yang akan dijadikan Admin:\n'+candidates.join('\n'));if(!pick)return;if(!candidates.includes(pick))return toast('Nama anggota tidak ditemukan di room.');r.admins.push(pick);saveDB();roomChatOpen(id);toast(pick+' sekarang menjadi Admin Room.')}
+function roomRemoveAdmin(id,name){const r=db.chat.rooms.find(x=>x.id===id);if(!r||!roomIsOwner(r))return toast('Hanya Owner Room yang dapat mengatur admin.');r.admins=(r.admins||[]).filter(n=>n!==name);saveDB();roomChatOpen(id);toast('Hak Admin '+name+' telah dicabut.')}
+function roomLeave(id){const r=db.chat.rooms.find(x=>x.id===id);if(!r)return;if(roomIsOwner(r))return toast('Owner harus memindahkan kepemilikan sebelum keluar dari room.');r.members=r.members.filter(n=>n!==session.name);r.admins=(r.admins||[]).filter(n=>n!==session.name);saveDB();roomChatPage();toast('Kamu keluar dari room.')}
+function roomChatPage(){ensureChatData();const rooms=db.chat.rooms;$('pageContent').innerHTML=pageHead('COLONY COMMUNICATION','▣ ROOM CHAT','Buat atau masuki ruang obrolan berdasarkan topik, permainan, dan kegiatan koloni.')+`<div class="panel"><h3>✉️ Chat Pribadi</h3><p class="tiny">Pilih anggota untuk memulai percakapan pribadi.</p><button class="btn primary" onclick="privateChatPage()">BUKA DAFTAR CHAT PRIBADI</button></div><div class="chat-create panel"><h3>＋ Buat Room Chat</h3><div class="chat-create-grid"><div class="field"><label>Nama room</label><input id="newRoomName" maxlength="32" placeholder="Contoh: Nongkrong Malam"></div><div class="field"><label>Kategori</label><select id="newRoomCategory"><option>Santai</option><option>Diskusi</option><option>Game & Event</option><option>Pengumuman</option><option>Komunitas</option></select></div></div><div class="field"><label>Topik / deskripsi</label><input id="newRoomTopic" maxlength="90" placeholder="Room ini membahas apa?"></div><button class="btn primary" onclick="chatCreateRoom()">BUAT ROOM</button><div class="tiny">Room baru langsung tersedia untuk anggota yang menggunakan perangkat demo ini.</div></div><div class="section"><h2>Room tersedia</h2><div class="cards">${rooms.map(r=>`<div class="module-card chat-room-card"><div class="rowline"><span class="bigico">${r.category==='Game & Event'?'🎮':r.category==='Diskusi'?'💡':r.category==='Pengumuman'?'📢':'💬'}</span><span class="status">${r.system?'OFFICIAL':'COMMUNITY'}</span></div><div><h3>${escapeHTML(r.name)}</h3><p>${escapeHTML(r.topic||'Ruang obrolan Family Colony')}</p></div><div class="rowline"><span class="tiny">Level ${Number(r.level||1)} · ${r.members.length}/${roomSeatLimit(r)} kursi · Owner: ${escapeHTML(r.owner||r.createdBy||'System')}</span><button class="btn small primary" onclick="roomChatOpen('${r.id}')">MASUK ROOM</button></div></div>`).join('')}</div></div><div class="tiny">Room Chat tetap menggunakan obrolan teks pada versi demo ini.</div>`}
+function chatCreateRoom(){const name=String($('newRoomName')?.value||'').trim(),topic=String($('newRoomTopic')?.value||'').trim(),category=$('newRoomCategory')?.value||'Santai';if(name.length<3)return toast('Nama room minimal 3 karakter.');if(db.chat.rooms.some(r=>r.name.toLowerCase()===name.toLowerCase()))return toast('Nama room sudah digunakan.');const id='room-'+Date.now().toString(36);db.chat.rooms.unshift({id,name,topic:topic||'Ruang obrolan komunitas',category,createdBy:session.name,owner:session.name,admins:[],level:1,xp:0,playlist:[],createdAt:new Date().toISOString(),members:[session.name],messages:[],system:false});saveDB();log('Membuat Room Chat: '+name,session.name);roomChatOpen(id)}
+function privateChatKey(a,b){return encodeURIComponent([a,b].sort((x,y)=>x.localeCompare(y)).join('::'))}
+function privateChatPage(){ensureChatData();const members=db.members.filter(m=>m.status==='approved'&&m.name!==session.name&&String(m.role||'').toLowerCase()!=='developer');$('pageContent').innerHTML=pageHead('PRIVATE MESSAGES','✉️ CHAT PRIBADI','Percakapan langsung antaranggota Family Colony.')+`<div class="chat-shell"><div class="chat-private-list">${members.map(m=>`<button class="chat-private-user" onclick="privateChatOpen('${privateChatKey(session.name,m.name)}')"><span class="chat-avatar">${escapeHTML(chatInitial(m.name))}</span><span><b>${escapeHTML(m.name)}</b><div class="tiny">Buka percakapan pribadi</div></span></button>`).join('')||'<div class="empty">Belum ada anggota lain yang aktif.</div>'}</div><button class="btn ghost" onclick="roomChatPage()">← KEMBALI KE ROOM CHAT</button></div>`}
+function privateChatOpen(key){ensureChatData();const peer=chatPeerFromKey(key);if(!peer||!db.members.some(m=>m.name===peer&&m.status==='approved'))return toast('Anggota tidak ditemukan atau tidak aktif.');if(!db.chat.privateChats[key])db.chat.privateChats[key]={members:decodeURIComponent(key).split('::'),messages:[]};const c=db.chat.privateChats[key];if(!Array.isArray(c.messages))c.messages=[];$('pageContent').innerHTML=pageHead('PRIVATE MESSAGES','✉️ '+escapeHTML(peer),'Percakapan pribadi antara '+escapeHTML(session.name)+' dan '+escapeHTML(peer)+'.')+`<div class="chat-shell"><div class="chat-room-head"><div class="chat-room-icon">✉️</div><div><b>${escapeHTML(peer)}</b><div class="tiny">CHAT PRIBADI</div></div></div>${chatMessagesHTML(c.messages)}${chatComposer('private',key)}</div><div class="toolbar" style="margin-top:12px"><button class="btn ghost" onclick="privateChatPage()">← DAFTAR CHAT PRIBADI</button><button class="btn ghost" onclick="roomChatPage()">ROOM CHAT</button></div><div class="tiny">Mode demo lokal: percakapan hanya tersimpan pada perangkat ini, belum tersinkron lintas perangkat.</div>`;const stream=document.querySelector('.chat-stream');if(stream)stream.scrollTop=stream.scrollHeight}
+function roomChatOpen(id){ensureChatData();const r=db.chat.rooms.find(x=>x.id===id);if(!r)return toast('Room tidak ditemukan.');if(!r.members.includes(session.name)){if(r.members.length>=roomSeatLimit(r))return toast('Kursi room penuh. Kapasitas level '+r.level+' adalah '+roomSeatLimit(r)+' orang.');r.members.push(session.name)}saveDB();const owner=roomIsOwner(r),admin=roomIsAdmin(r);$('pageContent').innerHTML=pageHead('ROOM CHAT','💬 '+escapeHTML(r.name),escapeHTML(r.topic||'Ruang obrolan komunitas'))+`<div class="chat-shell"><div class="chat-room-head"><div class="chat-room-icon">${r.category==='Game & Event'?'🎮':'💬'}</div><div style="flex:1"><b>${escapeHTML(r.name)}</b><div class="tiny">${escapeHTML(r.category)} · ${escapeHTML(r.topic||'Tanpa keterangan')}</div><div class="tiny">Level ${Number(r.level||1)} · ${r.members.length}/${roomSeatLimit(r)} kursi · Admin ${r.admins.length}/${roomAdminLimit(r)}</div><div class="tiny">Owner: ${escapeHTML(r.owner||r.createdBy||'System')}</div></div><span class="status ok">ROOM ACTIVE</span></div><div class="panel" style="margin:10px 0"><b>👥 Pengelolaan Room</b><div class="tiny">Anggota: ${r.members.map(n=>escapeHTML(n)+(n===(r.owner||r.createdBy)?' 👑 Owner':(r.admins||[]).includes(n)?' 🛡️ Admin':'')).join(' · ')}</div><div class="room-music-controls">${owner?`<button class="btn small" onclick="roomManage('${r.id}')">✏️ EDIT NAMA & KETERANGAN</button><button class="btn small" onclick="roomPromoteAdmin('${r.id}')">🛡️ TAMBAH ADMIN</button>`:''}${admin&&!owner?'<span class="tiny">Kamu adalah Admin Room</span>':''}${!owner?`<button class="btn small ghost" onclick="roomLeave('${r.id}')">KELUAR ROOM</button>`:''}</div>${owner&&r.admins.length?`<div class="tiny" style="margin-top:8px">Kelola admin: ${r.admins.map(n=>`<button class="btn small ghost" onclick="roomRemoveAdmin('${r.id}','${String(n).replace(/'/g,"\\'")}')">Cabut ${escapeHTML(n)}</button>`).join(' ')}</div>`:''}<div class="tiny" style="margin-top:8px">Kapasitas bertambah 5 kursi setiap naik level. Kuota admin mengikuti level room (maksimal 5 admin).</div></div><div class="room-music-panel" id="roomMusicPanel"><div class="room-music-title">🎵 PLAYLIST MUSIK ROOM</div><div class="tiny">Belum ada musik dipilih</div><div class="room-music-controls"><button class="btn small primary" onclick="roomMusicChoose()">📂 TAMBAH MUSIK DARI PERANGKAT</button></div><input type="file" id="roomMusicFile" accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac" multiple style="display:none" onchange="roomMusicSelected(this)"><div class="tiny" style="margin-top:8px">Maksimal 30 MB per lagu. Playlist lokal untuk uji tampilan; pemutaran bersama memerlukan server audio.</div></div>${chatMessagesHTML(r.messages)}${chatComposer('room',r.id)}</div><div class="toolbar" style="margin-top:12px"><button class="btn ghost" onclick="roomChatPage()">← DAFTAR ROOM</button><button class="btn ghost" onclick="groupChatPage()">BUKA GROUP CHAT</button></div><div class="tiny" style="margin-top:8px">Mode demo lokal: pesan, anggota, owner, admin, dan level room tersimpan pada perangkat ini; belum tersinkron lintas perangkat.</div>`;roomMusicRoomId=id;roomMusicRender();const stream=document.querySelector('.chat-stream');if(stream)stream.scrollTop=stream.scrollHeight}
 
-	if result != HTTPRequest.RESULT_SUCCESS:
-		_access_denied("session_network_unavailable")
-		return
+const fcWorldState={x:6,z:6,canvas:null,ctx:null};
+function fcIso(x,z,h=0){const c=fcWorldState.canvas,w=c.clientWidth;return {x:w/2+(x-z)*28,y:38+(x+z)*15-h}}
+function fcPoly(ctx,pts,fill,stroke){ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke()}}
+function fcIsoBox(ctx,x,z,w,d,h,color){const p=fcIso(x,z),a=fcIso(x+w,z),b=fcIso(x+w,z+d),top=[fcIso(x,z,h),fcIso(x+w,z,h),fcIso(x+w,z+d,h),fcIso(x,z+d,h)];fcPoly(ctx,[p,a,top[1],top[0]],"#315b50");fcPoly(ctx,[a,b,top[2],top[1]],"#24483f");fcPoly(ctx,top,color,"#f2d48a66")}
+function drawColonyWorld(){const c=fcWorldState.canvas,ctx=fcWorldState.ctx;if(!c||!ctx)return;const w=c.clientWidth,h=c.clientHeight,dpr=Math.max(1,window.devicePixelRatio||1);if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,"#8bc3d0");sky.addColorStop(.55,"#c4d9ad");sky.addColorStop(1,"#547d62");ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);ctx.fillStyle="#fff2b0";ctx.beginPath();ctx.arc(w-58,48,23,0,Math.PI*2);ctx.fill();for(let z=0;z<13;z++)for(let x=0;x<13;x++){const p=fcIso(x,z),q=fcIso(x+1,z),r=fcIso(x+1,z+1),t=fcIso(x,z+1);fcPoly(ctx,[p,q,r,t],(x+z)%2?"#77a86e":"#6e9d67","#ffffff18")}const trees=[[1,2],[3,9],[10,2],[11,8],[2,11],[9,10],[4,3],[8,5]];trees.forEach(([x,z])=>{const p=fcIso(x+.5,z+.5);ctx.fillStyle="#684c32";ctx.fillRect(p.x-3,p.y-26,6,28);ctx.fillStyle="#2e704b";ctx.beginPath();ctx.arc(p.x,p.y-33,17,0,Math.PI*2);ctx.fill();ctx.fillStyle="#63a96a";ctx.beginPath();ctx.arc(p.x-7,p.y-40,10,0,Math.PI*2);ctx.fill()});fcIsoBox(ctx,5,2,3,2,42,"#d9b45e");fcIsoBox(ctx,5.7,2.5,1.6,1,62,"#f1d78d");fcIsoBox(ctx,1,5,2,2,24,"#86c9d0");const fountain=fcIso(9,5,16);ctx.fillStyle="#9be7ed";ctx.beginPath();ctx.ellipse(fountain.x,fountain.y+2,25,13,0,0,Math.PI*2);ctx.fill();ctx.fillStyle="#e4f8ff";ctx.beginPath();ctx.ellipse(fountain.x,fountain.y-8,12,7,0,0,Math.PI*2);ctx.fill();const av=fcIso(fcWorldState.x+.5,fcWorldState.z+.5,15);ctx.fillStyle="#0005";ctx.beginPath();ctx.ellipse(av.x,av.y+9,13,6,0,0,Math.PI*2);ctx.fill();ctx.font="26px system-ui";ctx.textAlign="center";ctx.fillText("🐝",av.x,av.y+7);ctx.font="bold 11px system-ui";ctx.fillStyle="#10243a";ctx.fillText("Kamu",av.x,av.y+22);ctx.fillStyle="#17344a";ctx.font="bold 12px system-ui";ctx.textAlign="left";ctx.fillText("COLONY PLAZA",14,22);ctx.font="11px system-ui";ctx.fillText("Posisi: "+(fcWorldState.x+1)+", "+(fcWorldState.z+1),14,39)}
+function initColonyWorld(){const c=$("fcWorldCanvas");if(!c)return;fcWorldState.canvas=c;fcWorldState.ctx=c.getContext("2d");if(!fcWorldState.ctx){c.insertAdjacentHTML("afterend","<p class='notice'>Canvas grafis tidak tersedia pada perangkat ini.</p>");return}drawColonyWorld();if(!window.fcWorldResizeBound){window.addEventListener("resize",()=>{if(fcWorldState.canvas&&document.body.contains(fcWorldState.canvas))drawColonyWorld()});window.fcWorldResizeBound=true}if(!window.fcWorldKeysBound){window.addEventListener("keydown",e=>{if(currentPage!=="world")return;const k=e.key.toLowerCase(),m={arrowup:[0,-1],w:[0,-1],arrowdown:[0,1],s:[0,1],arrowleft:[-1,0],a:[-1,0],arrowright:[1,0],d:[1,0]};if(m[k]){e.preventDefault();moveColonyAvatar(m[k][0],m[k][1])}});window.fcWorldKeysBound=true}}
+function launchGodotWorld(){
+ if(!session||session.role!=="Developer"){toast("Akses uji dunia 3D saat ini hanya untuk Developer.");return}
+ const token=typeof session.accessToken==="string"?session.accessToken:"";
+ if(!token){toast("Sesi login tidak memiliki token aktif. Silakan masuk kembali.");return}
+ if(!window.FCAndroid||typeof window.FCAndroid.openGodotWorld!=="function"){toast("Penghubung dunia 3D belum tersedia pada build ini.");return}
+ window.FCAndroid.openGodotWorld(token);
+}
+function moveColonyAvatar(dx,dz){fcWorldState.x=Math.max(0,Math.min(11,fcWorldState.x+dx));fcWorldState.z=Math.max(0,Math.min(11,fcWorldState.z+dz));drawColonyWorld()}
+function worldAreaInfo(area){toast("Kamu melihat area "+area+". Interaksi multiplayer menyusul pada tahap 3D berikutnya.")}
+function renderPage(){const p=$("pageContent");if(!session)return;const name=escapeHTML(session.name);let html="";
+switch(currentPage){
+case "overview":html=pageHead("ROYAL DASHBOARD","Welcome to the Colony",`Salam, ${name}. Peran aktif: ${session.role}.`)+`<div class="stats"><div class="stat"><span>Anggota terdaftar lokal</span><strong>${db.members.filter(m=>session?.role==="Developer"||String(m.role||"").toLowerCase()!=="developer").length}</strong></div><div class="stat"><span>Pengajuan menunggu</span><strong>${db.requests.filter(r=>r.status==="pending").length}</strong></div><div class="stat"><span>Pengumuman</span><strong>${db.announcements.length}</strong></div><div class="stat"><span>Status sistem</span><strong style="font-size:1rem">DEMO</strong></div></div><div class="section"><h2>Explore the Kingdom</h2><div class="cards">${card("♙","Member Profile","Lihat profil anggota.","navigate('profile')")}${card("♛","Colony Kingdom","Pengumuman dan identitas koloni.","navigate('kingdom')")}${card("♫","Music Hall","Putar MP3 dari perangkat atau video YouTube.","navigate('music')")}${card("💬","Group Chat","Percakapan utama anggota koloni.","navigate('groupChat')")}${card("▣","Room Chat","Masuk ke ruang obrolan bertopik.","navigate('roomChat')")}${card("♜","Mini Games","Main GUESS WHO? — Mystery Member.","navigate('games')")}${card("🎯","Mission Center","Misi, streak, dan pencapaian anggota.","navigate('missionCenter')")}${card("★","Achievement","Ringkasan pencapaian anggota.","navigate('achievementCenter')")}${card("ⓘ","Member Information","Panduan dan status data.","navigate('information')")}</div></div><div class="notice">Mode demonstrasi aktif. Data yang dibuat di halaman ini hanya tersimpan pada browser/perangkat ini.</div>`;break;
+case "profile":html=memberProfilePage();break;
+case "kingdom":html=kingdomPage();break;
+case "avatar":html=pageHead("PERSONALIZATION","Avatar & Character","Pilih simbol karakter untuk profil lokal.")+`<div class="panel"><h3>Choose your colony emblem</h3><div class="toolbar" style="gap:12px">${["🐝","👑","🛡️","⚔️","🌟","🦋","🐻","🦊"].map(x=>`<button class="btn" style="font-size:27px;padding:16px" onclick="setAvatar('${x}')">${x}</button>`).join("")}</div><div class="notice">Avatar aktif: <b id="avatarNow">${db.avatar[session.name]||"🐝"}</b>. Pilihan hanya disimpan secara lokal.</div></div>`;break;
+case "world":html=pageHead("IMMERSIVE REALM","3D World","Dunia 3D FAMILY COLONY terhubung ke sesi akun anggota.")+`<div class="panel"><div class="rowline"><div><span class="status ok">GODOT 3D WORLD</span><p class="tiny">Colony Plaza • Android native 3D engine</p></div><span class="status">Session protected</span></div><h3>Masuki Colony Plaza</h3><p class="muted">Dunia 3D berjalan di dalam aplikasi FAMILY COLONY yang sama. Akses hanya diberikan setelah sesi anggota diverifikasi oleh server.</p>`+(session.role==="Developer"?'<button class="btn primary" onclick="launchGodotWorld()">MASUK KE DUNIA 3D</button>':'<div class="notice">Dunia 3D sedang disiapkan untuk peluncuran anggota setelah pengujian final.</div>')+`<div class="notice">Selama pengembangan, akses masuk dibatasi untuk Developer. Akun anggota lain tetap menggunakan fitur aplikasi seperti biasa.</div></div>`;break;
+case "store":html=pageHead("COLONY MARKET","Colony Store","Bingkai avatar dan kosmetik profil.")+`<div class="notice">Bingkai dibeli menggunakan Coins. Setelah dibeli, bingkai masuk ke koleksi kosmetik profil dan tidak bercampur dengan Inventory hadiah game/event.</div><div class="cards">${PROFILE_FRAMES.filter(fr=>fr.cost>0).map(fr=>`<div class="module-card"><div class="profile-badge ${frameClass(fr.id)}" style="margin-bottom:10px">🐝</div><h3>${escapeHTML(fr.name)}</h3><p>${fr.cost} Royal Coin</p><button class="btn small primary" onclick="buyProfileFrame('${fr.id}')">${getOwnedFrames(session.name).includes(fr.id)?"Sudah dimiliki":"Beli bingkai"}</button></div>`).join("")}</div><div class="section"><h3>Hadiah Event</h3><div class="notice">Event Celebration Frame disiapkan sebagai item hadiah event. Saat sistem event memberikan hadiah, bingkai akan otomatis masuk ke koleksi bingkai profil.</div></div>`;break;
+case "games":html=guessWhoHomePage();break;
+case "music":html=musicPage();break;
+case "groupChat":groupChatPage();return;
+case "roomChat":roomChatPage();return;
+case "achievement":html=pageHead("COLONY HONORS","Achievement","Pencapaian demo akun.")+`<div class="cards">${card("🌱","First Arrival","Bergabung ke dalam koloni.","toast('Achievement: First Arrival')","Lihat")}${card("♫","Music Explorer","Mengunjungi Music Hall.","navigate('music')")}${card("♛","Royal Identity","Identitas kerajaan koloni.","navigate('kingdom')")}</div>`;break;
+case "economy":html=economyPage();break;
+case "missionCenter":html=missionCenterPage();break;
+case "dailyMission":html=missionPage("daily");break;
+case "weeklyMission":html=missionPage("weekly");break;
+case "specialMission":html=missionPage("special");break;
+case "achievementCenter":html=achievementPage();break;
+case "missionHistory":html=missionHistoryPage();break;
+case "honeyChallenge":html=honeyChallengePage();break;
+case "dailyMission":html=missionPage("daily");break;
+case "weeklyMission":html=missionPage("weekly");break;
+case "specialMission":html=missionPage("special");break;
+case "achievementCenter":html=achievementPage();break;
+case "missionHistory":html=missionHistoryPage();break;
+case "information":html=pageHead("MEMBER GUIDE","Member Information","Informasi akun dan batasan layanan.")+`<div class="panel"><h3>Informasi penting</h3><ul class="muted" style="line-height:2"><li>Role akun ditentukan oleh data akun, bukan pilihan member saat login.</li><li>Pengajuan dan persetujuan pada versi demo hanya tersimpan di browser ini.</li><li>MP3 pilihan perangkat tidak otomatis tersedia untuk anggota lain.</li><li>Video YouTube membutuhkan internet dan mengikuti izin embed pemilik video.</li><li>Database online, sinkronisasi antarperangkat, dan keamanan produksi membutuhkan backend.</li></ul></div>`;break;
+case "notifications":html=pageHead("COLONY MESSAGES","Notification Center","Pemberitahuan dan aktivitas lokal.")+`<div class="panel">${db.activity.filter(a=>a.who===session.name||session.role==="Developer"||isStaff()).slice(0,15).map(a=>`<div class="track"><span>${escapeHTML(a.action)} <span class="muted">· ${escapeHTML(a.who)}</span></span><span class="tiny">${escapeHTML(a.at)}</span></div>`).join("")||'<div class="empty">Belum ada notifikasi.</div>'}</div>`;break;
+case "management":html=managementPage();break;
+case "developer":html=developerPage();break;
+case "finance":html=financePage();break;
+case "cloudIntegration":html=cloudIntegrationPage();break;
+default:html=pageHead("MODULE","Not available","Modul tidak ditemukan.");
+}p.innerHTML=html;if(currentPage==="world")initColonyWorld()}
+function memberProfilePage(){
+ const m=memberRecord(session.name)||{}, avatar=db.avatar[session.name]||m.avatar||"🐝";
+ const username=m.username||m.legacyUsername||session.name.toLowerCase().replace(/[^a-z0-9._-]/g,"");
+ const status=String(m.status||"approved"), memberId=m.legacyMemberId||m.memberId||m.id||"Belum ditetapkan";
+ const joined=m.joined||m.joinedAt||m.createdAt||"Belum tercatat";
+ const photos=profilePhotoList(session.name), activePhoto=photos.find(x=>x.id===getActiveProfilePhotoId(session.name));
+ const owned=getOwnedFrames(session.name), equipped=getEquippedFrame(session.name);
+ const preview=activePhoto?`<img src="${activePhoto.data}" alt="Foto profil">`:escapeHTML(avatar);
+ return pageHead("MEMBER IDENTITY","Member Profile","Kelola identitas, foto profil, dan kosmetik akun sendiri.")+
+ `<div class="panel"><div class="rowline" style="align-items:center;gap:14px"><div class="profile-badge ${frameClass(equipped)}" id="profileAvatarPreview">${preview}</div><div><h2 style="margin:0">${escapeHTML(m.name||session.name)}</h2><span class="status ok">${escapeHTML(session.role)}</span><div class="tiny" style="margin-top:5px">ID: ${escapeHTML(memberId)}</div></div><span class="status">LOCAL PROFILE</span></div>
+ <div class="section"><h3>Avatar Profil</h3><div class="toolbar" style="gap:8px">${["🐝","👑","🛡️","⚔️","🌟","🦋","🐻","🦊","🌻","💎"].map(v=>`<button type="button" class="btn" style="font-size:22px;padding:10px 13px" onclick="setProfileAvatar('${v}')">${v}</button>`).join("")}</div></div>
+ <div class="section"><div class="rowline"><h3>📷 Foto Profil dari Galeri HP</h3><span class="status">${photos.length}/${PROFILE_PHOTO_SLOTS} SLOT</span></div>
+ <div class="notice">Pilih foto dari galeri perangkat. Foto akan diperkecil otomatis agar hemat ruang dan disimpan pada penyimpanan foto profil yang terpisah dari Inventory hadiah game/event. Maksimal ${PROFILE_PHOTO_SLOTS} foto per anggota.</div>
+ <div class="toolbar"><input id="profilePhotoPicker" type="file" accept="image/*" class="field" style="display:none" onchange="importProfilePhoto(this)"><button type="button" class="btn primary" onclick="document.getElementById('profilePhotoPicker').click()">🖼️ Pilih dari Galeri</button><button type="button" class="btn ghost small" onclick="clearActiveProfilePhoto()" ${activePhoto?"":"disabled"}>Gunakan avatar emoji</button></div><div class="tiny" style="margin-top:7px">Tombol ini membuka pemilih file/foto perangkat. Pilih Galeri, Foto, atau Files sesuai pilihan yang tersedia di HP.</div>
+ <div class="toolbar" style="margin-top:12px">${photos.map(ph=>`<div style="display:grid;gap:6px;justify-items:center"><img class="photo-thumb" src="${ph.data}" alt="Foto tersimpan"><button class="btn small" onclick="useProfilePhoto('${ph.id}')">${activePhoto&&activePhoto.id===ph.id?"Aktif":"Pakai"}</button><button class="btn danger small" onclick="deleteProfilePhoto('${ph.id}')">Hapus</button></div>`).join("")||'<div class="empty" style="width:100%">Belum ada foto tersimpan di Profile Photo Storage.</div>'}</div></div>
+ <div class="section"><div class="rowline"><h3>🖼️ Bingkai Avatar</h3><span class="status">${owned.length} DIMILIKI</span></div>
+ <div class="toolbar"><span class="frame-chip">Bingkai aktif: <b>${equipped?escapeHTML(frameName(equipped)):"Default"}</b></span><button class="btn small ghost" onclick="equipProfileFrame('')">Tanpa bingkai khusus</button></div>
+ <div class="toolbar" style="margin-top:10px">${PROFILE_FRAMES.map(fr=>`<div class="panel" style="padding:12px;min-width:145px;flex:1"><div class="profile-badge ${frameClass(fr.id)}" style="margin:0 auto 9px">${activePhoto?`<img src="${activePhoto.data}" alt="">`:escapeHTML(avatar)}</div><b>${escapeHTML(fr.name)}</b><div class="tiny">${escapeHTML(fr.source)}</div><div style="margin-top:8px">${owned.includes(fr.id)?`<button class="btn small ${equipped===fr.id?"primary":""}" onclick="equipProfileFrame('${fr.id}')">${equipped===fr.id?"Dipakai":"Pakai"}</button>`:`<span class="status wait">Belum dimiliki</span>`}</div></div>`).join("")}</div>
+ <div class="notice">Bingkai bisa dibeli di Colony Store atau diberikan sebagai hadiah event. Item bingkai yang dimiliki dicatat pada koleksi kosmetik profil, bukan pada Inventory hadiah umum.</div></div>
+ <form class="section" onsubmit="return false"><div class="two-col"><div class="field"><label>Nama anggota</label><input value="${escapeHTML(m.name||session.name)}" disabled></div><div class="field"><label>Username</label><input id="profileUsername" maxlength="30" value="${escapeHTML(username)}" placeholder="username"></div><div class="field"><label>Email (opsional)</label><input id="profileEmail" type="email" maxlength="120" value="${escapeHTML(m.email||"")}" placeholder="nama@email.com"></div><div class="field"><label>Nomor kontak (opsional)</label><input id="profilePhone" type="tel" maxlength="30" value="${escapeHTML(m.phone||"")}" placeholder="Nomor kontak"></div></div><div class="field"><label>Deskripsi singkat</label><textarea id="profileBio" maxlength="240" rows="3" placeholder="Ceritakan sedikit tentang dirimu...">${escapeHTML(m.bio||"")}</textarea></div><div class="toolbar"><button type="button" class="btn primary" onclick="saveMemberProfile()">Simpan Profil</button><button type="button" class="btn ghost" onclick="renderPage()">Batalkan</button></div></form>
+ <div class="section"><h3>Informasi Keanggotaan</h3><div class="two-col"><div><div class="tiny">JABATAN</div><b>${escapeHTML(session.role)}</b></div><div><div class="tiny">STATUS AKUN</div><b>${escapeHTML(status)}</b></div><div><div class="tiny">TANGGAL BERGABUNG</div><b>${escapeHTML(joined)}</b></div><div><div class="tiny">PENYIMPANAN</div><b>Browser lokal perangkat ini</b></div></div></div>
+ <div class="notice">Profil ini hanya mengubah informasi pribadi. Nama akun utama, jabatan, status keanggotaan, saldo Royal Coin, XP, Level, transaksi, dan riwayat tidak dapat diubah dari formulir profil.</div></div>`;
+}
+const PROFILE_PHOTO_SLOTS=5;
+const PROFILE_FRAMES=[{id:"royal",name:"Royal Gold",source:"Colony Store",cost:250},{id:"guardian",name:"Guardian Blue",source:"Colony Store",cost:180},{id:"flora",name:"Flora Bloom",source:"Colony Store",cost:150},{id:"event",name:"Event Celebration",source:"Hadiah event",cost:0}];
+function profilePhotoList(name){if(!db.profilePhotos||typeof db.profilePhotos!=="object")db.profilePhotos={};if(!Array.isArray(db.profilePhotos[name]))db.profilePhotos[name]=[];return db.profilePhotos[name]}
+function getActiveProfilePhotoId(name){return db.profilePhotoActive?.[name]||""}
+function getOwnedFrames(name){if(!db.profileFrames||typeof db.profileFrames!=="object")db.profileFrames={};if(!Array.isArray(db.profileFrames[name]))db.profileFrames[name]=[];return db.profileFrames[name]}
+function getEquippedFrame(name){return db.profileFrameEquipped?.[name]||""}
+function frameClass(id){return id?"frame-"+id:""}
+function frameName(id){return PROFILE_FRAMES.find(x=>x.id===id)?.name||id}
+function refreshProfilePreview(){const el=$("profileAvatarPreview");if(!el)return;const photo=profilePhotoList(session.name).find(x=>x.id===getActiveProfilePhotoId(session.name));el.innerHTML=photo?`<img src="${photo.data}" alt="Foto profil">`:escapeHTML(db.avatar[session.name]||"🐝");el.className="profile-badge "+frameClass(getEquippedFrame(session.name))}
+function importProfilePhoto(input){const file=input.files&&input.files[0];if(!file)return;if(!file.type.startsWith("image/")){toast("Pilih file gambar dari galeri.");input.value="";return}const photos=profilePhotoList(session.name);if(photos.length>=PROFILE_PHOTO_SLOTS){toast("Slot foto penuh. Hapus salah satu foto sebelum menyimpan foto baru.");input.value="";return}if(file.size>12*1024*1024){toast("Ukuran foto asli maksimal 12 MB.");input.value="";return}const reader=new FileReader();reader.onerror=()=>toast("Foto gagal dibaca dari perangkat.");reader.onload=()=>{const img=new Image();img.onerror=()=>toast("File gambar tidak dapat diproses.");img.onload=()=>{const max=640,scale=Math.min(1,max/Math.max(img.width,img.height)),w=Math.max(1,Math.round(img.width*scale)),h=Math.max(1,Math.round(img.height*scale));const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;const ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,w,h);const data=canvas.toDataURL("image/jpeg",.72);if(data.length>650000){toast("Foto masih terlalu besar. Coba gambar lain.");return}const id="photo_"+Date.now()+"_"+Math.random().toString(36).slice(2,7);photos.push({id,data,createdAt:new Date().toISOString(),name:file.name.slice(0,80)});if(!db.profilePhotoActive)db.profilePhotoActive={};db.profilePhotoActive[session.name]=id;try{localStorage.setItem(STORE,JSON.stringify(db));toast("Foto disimpan ke Profile Photo Storage.");renderPage()}catch(e){photos.pop();toast("Penyimpanan perangkat penuh. Hapus foto lama atau kosongkan ruang browser.")}};img.src=reader.result};reader.readAsDataURL(file)}
+function useProfilePhoto(id){const p=profilePhotoList(session.name).find(x=>x.id===id);if(!p)return;db.profilePhotoActive=db.profilePhotoActive||{};db.profilePhotoActive[session.name]=id;saveDB();renderPage();toast("Foto profil diganti.")}
+function deleteProfilePhoto(id){if(!confirm("Hapus foto ini dari penyimpanan foto profil?"))return;const arr=profilePhotoList(session.name),i=arr.findIndex(x=>x.id===id);if(i<0)return;arr.splice(i,1);if(getActiveProfilePhotoId(session.name)===id){db.profilePhotoActive=db.profilePhotoActive||{};db.profilePhotoActive[session.name]=arr[0]?.id||""}saveDB();renderPage();toast("Foto dihapus dari penyimpanan profil.")}
+function clearActiveProfilePhoto(){db.profilePhotoActive=db.profilePhotoActive||{};db.profilePhotoActive[session.name]="";saveDB();renderPage();toast("Avatar emoji digunakan kembali.")}
+function equipProfileFrame(id){if(id&&!getOwnedFrames(session.name).includes(id)){toast("Bingkai belum dimiliki. Dapatkan di Store atau event.");return}db.profileFrameEquipped=db.profileFrameEquipped||{};db.profileFrameEquipped[session.name]=id;saveDB();renderPage();toast(id?"Bingkai avatar dipasang.":"Bingkai avatar dilepas.")}
+function buyProfileFrame(id){const fr=PROFILE_FRAMES.find(x=>x.id===id);if(!fr||fr.cost<=0)return;const owned=getOwnedFrames(session.name);if(owned.includes(id)){toast("Bingkai sudah dimiliki.");return}const m=memberRecord(session.name);if(!m||Number(m.coins||0)<fr.cost){toast("Coins tidak mencukupi.");return}if(!changeWallet(session.name,-fr.cost,0,"Membeli bingkai avatar: "+fr.name,session.name)){toast("Pembelian tidak dapat diproses.");return}owned.push(id);saveDB();log("Membeli bingkai avatar: "+fr.name,session.name);toast("Bingkai berhasil dibeli dan masuk koleksi profil.");renderPage()}
+// Dipanggil oleh sistem event saat hadiah kosmetik diberikan; tidak menambah item ke Inventory umum.
+function grantProfileFrame(memberName,frameId){if(!PROFILE_FRAMES.some(x=>x.id===frameId))return false;const owned=getOwnedFrames(memberName);if(owned.includes(frameId))return false;owned.push(frameId);saveDB();log("Hadiah event bingkai avatar: "+frameName(frameId),memberName);return true}
+function setProfileAvatar(v){db.avatar[session.name]=v;const m=memberRecord(session.name);if(m)m.avatar=v;saveDB();const preview=$("profileAvatarPreview");if(preview)preview.textContent=v;toast("Avatar profil diperbarui.")}
+function saveMemberProfile(){
+ const m=memberRecord(session.name);if(!m){toast("Data anggota akun ini tidak ditemukan.");return}
+ const username=$("profileUsername").value.trim().replace(/^@/,"");
+ const email=$("profileEmail").value.trim();const phone=$("profilePhone").value.trim();const bio=$("profileBio").value.trim();
+ if(!/^[a-zA-Z0-9._-]{3,30}$/.test(username)){toast("Username harus 3–30 karakter: huruf, angka, titik, garis bawah, atau strip.");return}
+ const conflict=db.members.find(x=>x!==m&&String(x.username||x.legacyUsername||"").toLowerCase()===username.toLowerCase());
+ if(conflict){toast("Username sudah digunakan anggota lain.");return}
+ if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast("Format email belum valid.");return}
+ m.username=username;m.email=email;m.phone=phone;m.bio=bio;m.profileUpdatedAt=new Date().toISOString();
+ saveDB();log("Memperbarui profil pribadi",session.name);toast("Profil berhasil disimpan di perangkat ini.");renderPage();
+}
+function setAvatar(v){db.avatar[session.name]=v;const m=memberRecord(session.name);if(m)m.avatar=v;saveDB();const a=$("avatarNow");if(a)a.textContent=v;const p=$("profileAvatarPreview");if(p)p.textContent=v;toast("Avatar diperbarui.")}
+function kingdomPage(){
+ const k=db.config.kingdom||defaultKingdom();
+ const rank={Kepsuk:0,Deputi:1,Admin:2};
+ const leaders=db.members.filter(m=>m.status==="approved"&&Object.prototype.hasOwnProperty.call(rank,m.role)&& (session?.role==="Developer"||String(m.role).toLowerCase()!=="developer")).sort((a,b)=>rank[a.role]-rank[b.role]||String(a.name).localeCompare(String(b.name)));
+ const identityAction=canManage()?'<button class="btn small" onclick="editKingdomIdentity()">✎ Edit Identitas</button>':"";
+ const announcementAction=canManage()?'<button class="btn small primary" onclick="addAnnouncement()">+ Pengumuman</button>':"";
+ return pageHead("THE COLONY","Colony Kingdom","Pusat identitas, sejarah, kepemimpinan, dan informasi koloni.",identityAction+announcementAction)+
+ `<section class="panel"><div class="hero" style="padding:8px 0 18px;grid-template-columns:1fr auto"><div><div class="eyebrow">ONE COLONY • ONE KINGDOM</div><h2 style="font-size:1.8rem;margin:9px 0">${escapeHTML(k.name)}</h2><h3 style="margin:0 0 9px">${escapeHTML(k.slogan)}</h3><p class="muted">${escapeHTML(k.description)}</p></div><div style="font-size:65px">${escapeHTML(k.logo)}</div></div><div class="toolbar" style="gap:8px;margin-top:12px">${(k.values||[]).map(v=>`<span class="status">✦ ${escapeHTML(v)}</span>`).join("")}</div></section>
+ <div class="two-col section"><section class="panel"><h2>📜 Sejarah & Asal-usul</h2><p class="muted" style="line-height:1.8;white-space:pre-wrap">${escapeHTML(k.history)}</p>${k.foundedAt?`<div class="tiny">Berdiri sejak: ${escapeHTML(k.foundedAt)}</div>`:""}</section><section class="panel"><h2>👑 Struktur Kepemimpinan</h2><p class="muted tiny">Daftar ini mengikuti role dan status anggota yang tersimpan.</p>${leaders.length?leaders.map(m=>`<div class="track"><div><b>${escapeHTML(m.name)}</b><div class="tiny">${escapeHTML(m.role)}</div></div><span class="status ok">AKTIF</span></div>`).join(""):'<div class="empty">Belum ada pengurus koloni yang disetujui.</div>'}</section></div>
+ <section class="panel section"><div class="rowline"><h2>📢 Pengumuman Koloni</h2><span class="status">${db.announcements.length} INFORMASI</span></div>${db.announcements.map((a,i)=>`<div class="notice" style="margin-top:10px">${escapeHTML(a)}${canManage()?`<div class="toolbar" style="margin-top:8px"><button class="btn small" onclick="editAnnouncement(${i})">Edit</button><button class="btn danger small" onclick="deleteAnnouncement(${i})">Hapus</button></div>`:""}</div>`).join("")||'<div class="empty">Belum ada pengumuman koloni.</div>'}</section>`;
+}
+function editKingdomIdentity(){if(!canManage())return toast("Akses pengurus diperlukan.");ensureKingdomData();const k=db.config.kingdom;const name=prompt("Nama koloni:",k.name);if(name===null)return;const slogan=prompt("Slogan koloni:",k.slogan);if(slogan===null)return;const description=prompt("Deskripsi koloni:",k.description);if(description===null)return;const logo=prompt("Logo/emoji koloni:",k.logo);if(logo===null)return;const history=prompt("Sejarah dan asal-usul koloni:",k.history);if(history===null)return;const foundedAt=prompt("Tahun/tanggal berdiri (opsional):",k.foundedAt||"");if(foundedAt===null)return;const values=prompt("Nilai utama koloni (pisahkan dengan koma):",(k.values||[]).join(", "));if(values===null)return;k.name=name.trim()||k.name;k.slogan=slogan.trim();k.description=description.trim();k.logo=logo.trim()||"🐝";k.history=history.trim();k.foundedAt=foundedAt.trim();k.values=values.split(",").map(x=>x.trim()).filter(Boolean).slice(0,8);saveDB();log("Memperbarui identitas Colony Kingdom",session.name);renderPage();toast("Identitas koloni berhasil diperbarui.")}
+function editAnnouncement(i){if(!canManage())return toast("Akses pengurus diperlukan.");if(!Number.isInteger(i)||!db.announcements[i])return;const a=prompt("Ubah pengumuman koloni:",db.announcements[i]);if(a===null)return;if(!a.trim())return toast("Pengumuman tidak boleh kosong.");db.announcements[i]=a.trim();saveDB();log("Mengubah pengumuman koloni",session.name);renderPage()}
+function addAnnouncement(){if(!canManage())return toast("Akses pengurus diperlukan.");const a=prompt("Tulis pengumuman koloni:");if(a&&a.trim()){db.announcements.unshift(a.trim());saveDB();log("Menambahkan pengumuman",session.name);renderPage()}}
+function deleteAnnouncement(i){if(!canManage())return toast("Akses pengurus diperlukan.");if(!confirm("Hapus pengumuman ini?"))return;db.announcements.splice(i,1);saveDB();log("Menghapus pengumuman",session.name);renderPage()}
+function economyPage(){
+ const m=memberRecord(session.name),today=localDateKey(),claimed=db.economy.claims[session.name]===today;
+ const ranked=[...db.members].filter(x=>x.status==="approved"&&String(x.role||"").toLowerCase()!=="developer").sort((a,b)=>(b.coins||0)-(a.coins||0)||(b.honey||0)-(a.honey||0));
+ const xp=m?m.xp||0:0,level=m?levelFromXP(xp):1,progress=xp%100;
+ const ledger=db.economy.transactions.filter(t=>t.member===session.name||t.fromMember===session.name||t.toMember===session.name).slice(0,25);
+ const eligible=db.members.filter(x=>x.status==="approved"&&x.name!==session.name&&String(x.role||"").toLowerCase()!=="developer");
+ const staffWallet=["Kepsuk","Deputi","Admin","Developer"].includes(session.role);
+ const totalCoins=db.members.reduce((a,x)=>a+(Number(x.coins)||0),0),totalHoney=db.members.reduce((a,x)=>a+(Number(x.honey)||0),0);
+ return pageHead("TAHAP 17 • ROYAL WALLET","Royal Wallet & Economy","Dua mata uang koloni, transfer, ledger transaksi, dan pengelolaan saldo.")+
+ `<div class="stats">
+ <div class="stat"><span>Coins</span><strong>🪙 ${(m?.coins||0).toLocaleString("id-ID")}</strong></div>
+ <div class="stat"><span>Honey</span><strong>🍯 ${(m?.honey||0).toLocaleString("id-ID")}</strong></div>
+ <div class="stat"><span>XP & Level</span><strong>LV. ${level}</strong><span>${xp.toLocaleString("id-ID")} XP</span></div>
+ <div class="stat"><span>Transaksi tercatat</span><strong>${db.economy.transactions.filter(t=>t.member===session.name||t.fromMember===session.name||t.toMember===session.name).length}</strong></div>
+ </div>
+ <div class="two-col">
+ <section class="panel"><div class="rowline"><h2>🌟 Daily Colony Reward</h2><span class="status ${claimed?"ok":"wait"}">${claimed?"SUDAH DIKLAIM":"TERSEDIA"}</span></div>
+ <p class="muted">Check-in harian memberikan hadiah sesuai sistem lama.</p><div class="notice">Hadiah: <b>+10 Coins</b> dan <b>+20 XP</b>. Satu kali setiap tanggal lokal.</div>
+ <button class="btn primary" ${claimed||!m?"disabled":""} onclick="claimDailyReward()">${claimed?"Check-in selesai":"KLAIM HADIAH HARIAN"}</button>
+ <div class="section"><h3>Level Progress</h3><div class="rowline"><b>Level ${level}</b><span class="tiny">${progress}/100 XP</span></div><div class="mission-progress"><span style="width:${progress}%"></span></div></div></section>
+ <section class="panel"><h2>↗ Transfer Antaranggota</h2><p class="muted tiny">Transfer lokal antaranggota aktif. Saldo pengirim dan penerima diperbarui dalam satu operasi.</p>
+ <div class="field"><label for="walletRecipient">Penerima</label><select id="walletRecipient">${eligible.map(x=>`<option value="${escapeHTML(x.name)}">${escapeHTML(x.name)}</option>`).join("")||'<option value="">Belum ada penerima tersedia</option>'}</select></div>
+ <div class="field"><label for="walletCurrency">Mata uang</label><select id="walletCurrency"><option value="coins">Coins</option><option value="honey">Honey</option></select></div>
+ <div class="field"><label for="walletTransferAmount">Jumlah</label><input id="walletTransferAmount" type="number" min="1" step="1" placeholder="Masukkan jumlah"></div>
+ <div class="field"><label for="walletTransferNote">Catatan (opsional)</label><input id="walletTransferNote" maxlength="100" placeholder="Contoh: hadiah untuk teman"></div>
+ <button class="btn primary" ${!eligible.length||!db.economy.settings.transfersEnabled?"disabled":""} onclick="transferWallet()">KIRIM TRANSFER</button>
+ ${db.economy.settings.transfersEnabled?"":'<div class="notice">Transfer sedang dinonaktifkan oleh pengurus.</div>'}</section>
+ </div>
+ <div class="section panel"><div class="rowline"><h2>🎁 Reward Center</h2><span class="status">COINS</span></div><p class="muted tiny">Penukaran hadiah yang sudah tersedia tetap menggunakan Coins.</p>
+ ${db.economy.rewards.map((r,i)=>`<div class="track"><div><b>${escapeHTML(r.name)}</b><div class="tiny">${escapeHTML(r.description||"Hadiah koloni")}</div><span class="gold">${Number(r.cost).toLocaleString("id-ID")} 🪙</span></div><button class="btn small" ${!m||(m.coins||0)<r.cost?"disabled":""} onclick="redeemReward(${i})">Tukar</button></div>`).join("")||'<div class="empty">Belum ada hadiah tersedia.</div>'}</div>
+ <div class="section panel"><div class="rowline"><h2>🏆 Colony Wallet Leaderboard</h2><span class="status">ANGGOTA AKTIF</span></div>
+ ${ranked.length?`<div class="table-wrap"><table><thead><tr><th>Rank</th><th>Member</th><th>Coins</th><th>Honey</th><th>Level</th></tr></thead><tbody>${ranked.map((x,i)=>`<tr><td>${i===0?"👑":i+1}</td><td>${escapeHTML(x.name)}${x.name===session.name?" (Kamu)":""}</td><td>${(x.coins||0).toLocaleString("id-ID")} 🪙</td><td>${(x.honey||0).toLocaleString("id-ID")} 🍯</td><td>LV. ${levelFromXP(x.xp)}</td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">Belum ada anggota aktif.</div>'}</div>
+ ${staffWallet?`<section class="panel section"><h2>⚖️ Pengelolaan Royal Treasury</h2><p class="muted tiny">Kepsuk, Deputi, Admin, dan Developer dapat mencatat penyesuaian saldo. Setiap perubahan wajib memiliki alasan dan masuk ledger.</p>
+ <div class="field"><label for="treasuryMember">Anggota</label><select id="treasuryMember">${db.members.filter(x=>String(x.role||"").toLowerCase()!=="developer").map(x=>`<option value="${escapeHTML(x.name)}">${escapeHTML(x.name)} — ${escapeHTML(x.role||"Member")}</option>`).join("")}</select></div>
+ <div class="two-col"><div class="field"><label for="treasuryCurrency">Mata uang</label><select id="treasuryCurrency"><option value="coins">Coins</option><option value="honey">Honey</option></select></div><div class="field"><label for="treasuryDirection">Aksi</label><select id="treasuryDirection"><option value="credit">Tambah saldo</option><option value="debit">Kurangi saldo</option></select></div></div>
+ <div class="field"><label for="treasuryAmount">Jumlah</label><input id="treasuryAmount" type="number" min="1" step="1" placeholder="Jumlah"></div>
+ <div class="field"><label for="treasuryReason">Alasan wajib</label><input id="treasuryReason" maxlength="120" placeholder="Hadiah event / koreksi saldo / penalti"></div>
+ <button class="btn primary" onclick="treasuryAdjust()">PROSES PENYESUAIAN</button>
+ <div class="toolbar section"><button class="btn small ${db.economy.settings.transfersEnabled?"":"primary"}" onclick="setWalletTransfers(${!db.economy.settings.transfersEnabled})">${db.economy.settings.transfersEnabled?"Nonaktifkan transfer":"Aktifkan transfer"}</button></div>
+ <div class="stats"><div class="stat"><span>Total Coins beredar (lokal)</span><strong>${totalCoins.toLocaleString("id-ID")}</strong></div><div class="stat"><span>Total Honey beredar (lokal)</span><strong>${totalHoney.toLocaleString("id-ID")}</strong></div></div>
+ </section>`:""}
+ <div class="section panel"><div class="rowline"><h2>📜 Ledger & Riwayat Transaksi</h2><span class="status">${ledger.length} TERBARU</span></div>
+ ${ledger.map(t=>`<div class="track"><span><b>${escapeHTML(t.detail||t.kind||"Transaksi")}</b><div class="tiny">${escapeHTML(t.kind||"")} · ${escapeHTML(t.currency||"Coins")} · ${escapeHTML(t.actor||"System")}</div><div class="tiny">${t.fromMember?"Dari: "+escapeHTML(t.fromMember)+" · ":""}${t.toMember?"Ke: "+escapeHTML(t.toMember):""}</div></span><span class="gold">${t.member===session.name&&t.amount>0?"+":""}${Number(t.amount||0).toLocaleString("id-ID")} ${t.currency==="honey"?"🍯":t.currency==="xp"?"XP":"🪙"}</span><span class="tiny">${escapeHTML(t.at||"")}</span></div>`).join("")||'<div class="empty">Belum ada transaksi wallet.</div>'}</div>
+ <div class="notice">Mode demo lokal: transaksi tersimpan pada browser/perangkat ini, belum sinkron antar-HP. Ledger mencatat ID transaksi, mata uang, jumlah, sumber, tujuan, aktor, waktu, dan saldo sebelum/sesudah. Validasi keamanan produksi memerlukan backend Tahap 24.</div>`;
+}
+function walletCommit(operationId, entries, meta={}){
+ if(!operationId||db.economy.processedOperations[operationId])return false;
+ const snapshots=[];
+ for(const e of entries){
+  const m=memberRecord(e.member);if(!m)return false;
+  const field=e.currency==="honey"?"honey":"coins",before=Number(m[field]||0),after=before+Number(e.delta);
+  if(!Number.isSafeInteger(e.delta)||!Number.isSafeInteger(after)||after<0)return false;
+  snapshots.push({m,field,before,after,e});
+ }
+ const createdAt=new Date().toISOString(),at=new Date().toLocaleString("id-ID");
+ snapshots.forEach(({m,field,before,after,e},i)=>{
+  m[field]=after;
+  db.economy.transactions.unshift({id:operationId+"_"+i,operationId,member:m.name,kind:meta.kind|| (e.delta>=0?"CREDIT":"DEBIT"),currency:e.currency,amount:e.delta,detail:meta.detail||"Wallet transaction",actor:meta.actor||"System",fromMember:meta.fromMember||"",toMember:meta.toMember||"",source:meta.source||"Royal Wallet",destination:meta.destination||m.name,balanceBefore:before,balanceAfter:after,at,createdAt});
+ });
+ db.economy.transactions=db.economy.transactions.slice(0,1500);
+ db.economy.processedOperations[operationId]=createdAt;
+ const keys=Object.keys(db.economy.processedOperations);if(keys.length>3000)keys.slice(0,keys.length-3000).forEach(k=>delete db.economy.processedOperations[k]);
+ try{localStorage.setItem(STORE,JSON.stringify(db));return true}catch(err){
+  snapshots.forEach(({m,field,before})=>m[field]=before);
+  db.economy.transactions=db.economy.transactions.filter(t=>t.operationId!==operationId);
+  delete db.economy.processedOperations[operationId];
+  toast("Transaksi dibatalkan: penyimpanan perangkat gagal atau penuh.");return false;
+ }
+}
+function transferWallet(){
+ if(!session||!db.economy.settings.transfersEnabled)return toast("Transfer tidak tersedia.");
+ const recipient=$("walletRecipient")?.value,currency=$("walletCurrency")?.value,amount=Number($("walletTransferAmount")?.value),note=$("walletTransferNote")?.value.trim()||"Transfer antaranggota";
+ if(!recipient||recipient===session.name)return toast("Pilih penerima yang valid.");
+ if(!Number.isSafeInteger(amount)||amount<1)return toast("Jumlah transfer harus bilangan bulat minimal 1.");
+ const sender=memberRecord(session.name),target=memberRecord(recipient);if(!sender||!target||target.status!=="approved")return toast("Akun pengirim atau penerima tidak aktif.");
+ if(Number(sender[currency]||0)<amount)return toast("Saldo tidak mencukupi.");
+ const id="TRF-"+Date.now()+"-"+Math.random().toString(36).slice(2,9);
+ if(!walletCommit(id,[{member:sender.name,currency,delta:-amount},{member:target.name,currency,delta:amount}],{kind:"TRANSFER",detail:note,actor:session.name,fromMember:sender.name,toMember:target.name,source:sender.name,destination:target.name}))return toast("Transfer gagal. Saldo tidak diubah.");
+ log("Transfer "+amount+" "+currency+" kepada "+target.name,session.name);renderPage();toast("Transfer berhasil dicatat pada ledger.");
+}
+function treasuryAdjust(){
+ if(!["Kepsuk","Deputi","Admin","Developer"].includes(session?.role))return toast("Akses pengurus ditolak.");
+ const member=$("treasuryMember")?.value,currency=$("treasuryCurrency")?.value,direction=$("treasuryDirection")?.value,amount=Number($("treasuryAmount")?.value),reason=$("treasuryReason")?.value.trim();
+ if(!member||!reason)return toast("Pilih anggota dan isi alasan transaksi.");
+ if(!Number.isSafeInteger(amount)||amount<1)return toast("Jumlah harus bilangan bulat minimal 1.");
+ const delta=direction==="debit"?-amount:amount;
+ const id="ADJ-"+Date.now()+"-"+Math.random().toString(36).slice(2,9);
+ if(!walletCommit(id,[{member,currency,delta}],{kind:direction==="debit"?"ADMIN_DEBIT":"ADMIN_CREDIT",detail:reason,actor:session.name,source:"Royal Treasury",destination:member}))return toast("Penyesuaian gagal. Periksa saldo dan kapasitas penyimpanan.");
+ log("Treasury "+(delta>0?"menambah":"mengurangi")+" "+currency+" "+member,session.name);renderPage();toast("Penyesuaian saldo dan ledger berhasil disimpan.");
+}
+function setWalletTransfers(enabled){
+ if(!["Kepsuk","Deputi","Admin","Developer"].includes(session?.role))return toast("Akses pengurus ditolak.");
+ db.economy.settings.transfersEnabled=!!enabled;saveDB();log("Pengaturan transfer "+(enabled?"diaktifkan":"dinonaktifkan"),session.name);renderPage();toast("Pengaturan transfer diperbarui.");
+}
+function claimDailyReward(){
+ const m=memberRecord(session.name);if(!m)return toast("Wallet hanya tersedia untuk akun member terdaftar.");
+ const today=localDateKey();if(db.economy.claims[session.name]===today)return toast("Hadiah harian sudah diklaim hari ini.");
+ const op="DAILY-"+session.name+"-"+today;
+ if(!walletCommit(op,[{member:session.name,currency:"coins",delta:10}],{kind:"MISSION_REWARD",detail:"Hadiah check-in harian",actor:session.name,source:"Daily Check-in",destination:session.name}))return toast("Hadiah tidak dapat disimpan.");
+ db.economy.claims[session.name]=today;
+ const xpBefore=Number(m.xp)||0;m.xp=xpBefore+20;m.level=levelFromXP(m.xp);
+ db.economy.transactions.unshift({id:op+"_XP",operationId:op,member:session.name,kind:"XP_IN",currency:"xp",amount:20,detail:"XP check-in harian",actor:session.name,source:"Daily Check-in",destination:session.name,balanceBefore:xpBefore,balanceAfter:m.xp,at:new Date().toLocaleString("id-ID")});
+ recordMissionEvent("checkin","Daily Check-in");log("Mengklaim hadiah harian",session.name);saveDB();renderPage();toast("Berhasil: +10 Coins dan +20 XP.");
+}
+function redeemReward(i){const m=memberRecord(session.name),r=db.economy.rewards[i];if(!m||!r)return toast("Hadiah tidak ditemukan.");if((m.coins||0)<Number(r.cost))return toast("Royal Coin belum mencukupi.");if(!changeWallet(session.name,-Number(r.cost),0,"Penukaran hadiah: "+r.name,session.name))return toast("Transaksi tidak dapat diproses.");db.economy.redemptions.unshift({member:session.name,reward:r.name,cost:r.cost,status:"requested",at:new Date().toLocaleString("id-ID")});saveDB();log("Menukar hadiah "+r.name,session.name);renderPage();toast("Permintaan hadiah tercatat.")}
+async function issueMemberActivation(){
+ const username=$("activationTarget")?.value||"";
+ if(!username){toast("Pilih anggota terlebih dahulu.");return}
+ if(!session?.accessToken||!fcConfigReady()){toast("Sesi pengurus tidak valid.");return}
+ const button=$("issueActivationBtn");if(button){button.disabled=true;button.textContent="MEMBUAT KODE..."}
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Authorization":"Bearer "+session.accessToken,"Content-Type":"application/json"},body:JSON.stringify({action:"issue_activation",username})});
+  const result=await response.json();
+  if(!response.ok||!result.ok)throw new Error(result.error||"activation_issue_failed");
+  $("activationCodeResult").innerHTML="Kode aktivasi untuk <strong>"+escapeHTML(result.name)+" (@"+escapeHTML(result.username)+")</strong>:<br><strong style='font-size:1.2rem;letter-spacing:.12em'>"+escapeHTML(result.activation_code)+"</strong><br><span class='tiny'>Berlaku 24 jam. Kirim secara pribadi kepada anggota dan jangan bagikan di grup umum.</span>";
+  $("activationCodeResult").classList.remove("hidden");
+ }catch(err){toast(fcFriendlyError(String(err.message||"").split(":")[0]))}
+ finally{if(button){button.disabled=false;button.textContent="BUAT KODE AKTIVASI"}}
+}
+function managementPage(){
+ const roster=Array.isArray(FC13_ROSTER.members)?FC13_ROSTER.members:[];
+ const options=roster.map(m=>'<option value="'+escapeHTML(m.username)+'">'+escapeHTML(m.displayName)+' — @'+escapeHTML(m.username)+' ('+escapeHTML(m.role)+')</option>').join("");
+ const rows=db.members.filter(m=>String(m.role||"").toLowerCase()!=="developer").map(m=>'<tr><td>'+escapeHTML(m.name)+'</td><td>'+escapeHTML(m.role||"Member")+'</td><td>'+escapeHTML(m.status||"Aktif")+'</td></tr>').join("");
+ return pageHead("COLONY ADMINISTRATION","Pengurus Colony","Pengelolaan aktivasi akun online hanya untuk Kepsuk, Deputi, dan Admin.")+
+ '<div class="section panel"><h2>Aktivasi Akun Anggota</h2><p class="muted tiny">Pilih anggota yang belum memiliki akun. Kode sekali pakai berlaku 24 jam. Berikan kode melalui pesan pribadi.</p><div class="field"><label for="activationTarget">Anggota</label><select id="activationTarget">'+options+'</select></div><button id="issueActivationBtn" class="btn primary" onclick="issueMemberActivation()">BUAT KODE AKTIVASI</button><div id="activationCodeResult" class="notice hidden" style="margin-top:14px"></div></div>'+
+ '<div class="section panel"><h2>Daftar Anggota</h2><div class="table-wrap"><table><thead><tr><th>Nama</th><th>Jabatan</th><th>Status roster</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'+
+ '<div class="notice">Developer hanya memantau teknis. Kepsuk, Deputi, dan Admin mengurus akses anggota serta tamu. Perubahan roster baru dan data ekonomi harus melalui server agar tersimpan lintas perangkat.</div>';
+}
+function memberRoleRank(role){const r=String(role||"").toLowerCase();if(r==="developer")return -1;if(r==="kepsuk")return 0;if(r==="deputi")return 1;if(r==="admin")return 2;if(r==="member")return 3;return 4}
+function membersTable(){const visible=db.members.map((m,index)=>({m,index})).filter(x=>session?.role==="Developer"||String(x.m.role||"").toLowerCase()!=="developer");if(!visible.length)return '<div class="empty">Belum ada anggota terdaftar.</div>';const ordered=visible.sort((a,b)=>memberRoleRank(a.m.role)-memberRoleRank(b.m.role)||String(a.m.name||"").localeCompare(String(b.m.name||""),"id"));return `<div class="table-wrap"><table><thead><tr><th>No.</th><th>Nama</th><th>Role</th><th>Status</th><th>Bergabung</th>${canManage()?'<th>Aksi</th>':''}</tr></thead><tbody>${ordered.map(({m,index},i)=>`<tr><td>${i+1}</td><td>${escapeHTML(m.name)}</td><td>${escapeHTML(m.role||"Pengunjung/Tamu")}</td><td>${m.status==="approved"||String(m.status).toLowerCase()==="aktif"?'<span class="status ok">Aktif</span>':`<span class="status wait">${escapeHTML(m.status||"Nonaktif")}</span>`}</td><td>${escapeHTML(m.joined||"-")}</td>${canManage()?`<td><button class="btn small" onclick="editColonyMember(${index})">Edit</button> <button class="btn danger small" onclick="deleteColonyMember(${index})">Hapus</button></td>`:''}</tr>`).join("")}</tbody></table></div>`}
+function addColonyMember(){if(!canManage())return toast("Akses hanya untuk Kepsuk, Deputi, dan Admin.");const name=prompt("Nama anggota baru:");if(name===null)return;const clean=name.trim();if(clean.length<2)return toast("Nama minimal 2 karakter.");if(db.members.some(m=>String(m.name).toLowerCase()===clean.toLowerCase()))return toast("Nama sudah terdaftar.");const role=(prompt("Jabatan: Kepsuk / Deputi / Admin / Member / Pengunjung/Tamu","Member")||"Member").trim();const allowed=["Kepsuk","Deputi","Admin","Member","Pengunjung/Tamu"];if(!allowed.includes(role))return toast("Jabatan tidak valid.");const status=(prompt("Status: Aktif atau Nonaktif","Aktif")||"Aktif").trim().toLowerCase();if(!["aktif","nonaktif"].includes(status))return toast("Status tidak valid.");db.members.push({name:clean,role,status:status==="aktif"?"approved":"inactive",joined:new Date().toLocaleDateString("id-ID"),coins:0,xp:0,level:1,createdBy:session.name});saveDB();log("Menambahkan anggota "+clean,session.name);renderPage();toast("Anggota berhasil ditambahkan.")}
+function editColonyMember(index){if(!canManage())return toast("Akses hanya untuk Kepsuk, Deputi, dan Admin.");const m=db.members[index];if(!m)return toast("Anggota tidak ditemukan.");if(m.name===session.name)return toast("Akun yang sedang digunakan tidak dapat diedit dari menu ini.");const name=prompt("Ubah nama anggota:",m.name);if(name===null)return;const clean=name.trim();if(clean.length<2)return toast("Nama minimal 2 karakter.");if(db.members.some((x,i)=>i!==index&&String(x.name).toLowerCase()===clean.toLowerCase()))return toast("Nama tersebut sudah digunakan.");const role=(prompt("Jabatan: Kepsuk / Deputi / Admin / Member / Pengunjung/Tamu",m.role||"Member")||m.role||"Member").trim();if(!["Kepsuk","Deputi","Admin","Member","Pengunjung/Tamu"].includes(role))return toast("Jabatan tidak valid.");const st=(prompt("Status: Aktif atau Nonaktif",m.status==="approved"?"Aktif":"Nonaktif")||"").trim().toLowerCase();if(!["aktif","nonaktif"].includes(st))return toast("Status tidak valid.");const before={name:m.name,role:m.role,status:m.status};m.name=clean;m.role=role;m.status=st==="aktif"?"approved":"inactive";if(m.username&&clean!==before.name)m.username=m.username;saveDB();log("Mengedit anggota "+before.name+" menjadi "+clean,session.name);renderPage();toast("Data anggota diperbarui.")}
+function deleteColonyMember(index){if(!canManage())return toast("Akses hanya untuk Kepsuk, Deputi, dan Admin.");const m=db.members[index];if(!m)return toast("Anggota tidak ditemukan.");if(m.name===session.name)return toast("Akun yang sedang digunakan tidak dapat dihapus.");if(!confirm("Hapus akun "+m.name+" dari daftar anggota? Riwayat transaksi dan misi akan tetap tersimpan."))return;db.members.splice(index,1);saveDB();log("Menghapus anggota "+m.name,session.name);renderPage();toast("Anggota dihapus dari daftar.")}
+function manageRequest(i,approve){if(!canManage())return;const r=db.requests[i];if(!r||r.status!=="pending")return;r.status=approve?"approved":"rejected";if(approve)db.members.push({name:r.name,role:"Member",status:"approved",joined:new Date().toLocaleDateString("id-ID"),coins:0,xp:0,level:1});saveDB();log(approve?"Menyetujui anggota":"Menolak pengajuan",session.name);toast(approve?"Anggota disetujui.":"Pengajuan ditolak.");renderPage()}
+let financeReportCache={accounts:[],transactions:[],loadedAt:null};
+function financeHeaders(){return {"apikey":session?.anonKey||window.FC_SUPABASE_ANON_KEY||"","Authorization":"Bearer "+(session?.accessToken||""),"Content-Type":"application/json"}}
+function financePage(){
+ if(session?.role!=="Developer")return pageHead("FINANCIAL CENTER","Akses ditolak","Modul ini hanya untuk Developer.");
+ return pageHead("DEVELOPER FINANCE","Financial Center","Pembukuan operasional IDR terpisah dari Coins dan Honey. Data dibaca dari backend FAMILY COLONY.")+
+ `<div class="stats"><div class="stat"><span>Saldo operasional</span><strong id="financeBalance">Belum dimuat</strong></div><div class="stat"><span>Total pemasukan</span><strong id="financeIncome">—</strong></div><div class="stat"><span>Total pengeluaran</span><strong id="financeExpense">—</strong></div><div class="stat"><span>Transaksi termuat</span><strong id="financeCount">0</strong></div></div>
+ <section class="panel"><div class="rowline"><h2>Catat transaksi operasional</h2><span class="status">IDR</span></div>
+ <div class="two-col"><div class="field"><label for="financeType">Jenis transaksi</label><select id="financeType"><option value="income">Pemasukan</option><option value="expense">Pengeluaran</option></select></div><div class="field"><label for="financeAmount">Nominal (Rupiah)</label><input id="financeAmount" type="number" min="1" step="1" placeholder="Contoh 150000"></div></div>
+ <div class="two-col"><div class="field"><label for="financeCategory">Kategori</label><input id="financeCategory" maxlength="80" placeholder="Operasional / donasi / layanan"></div><div class="field"><label for="financeReference">Kode referensi (opsional)</label><input id="financeReference" maxlength="100" placeholder="Nomor bukti"></div></div>
+ <div class="field"><label for="financeDescription">Keterangan</label><textarea id="financeDescription" maxlength="500" rows="2" placeholder="Penjelasan transaksi"></textarea></div>
+ <div class="toolbar"><button class="btn primary" onclick="financeSubmit()">SIMPAN TRANSAKSI</button><button class="btn" onclick="financeLoad()">MUAT ULANG DATA</button><button class="btn" onclick="financeExportCsv()">EKSPOR UNTUK WPS</button></div>
+ <div id="financeFeedback" class="notice">Data transaksi hanya disimpan setelah server menyetujui. Setiap transaksi memiliki ID unik dan catatan audit.</div></section>
+ <section class="panel section"><div class="rowline"><h2>Riwayat transaksi operasional</h2><span id="financeUpdated" class="tiny">Belum disinkronkan</span></div><div id="financeTable" class="empty">Tekan MUAT ULANG DATA untuk mengambil data dari server.</div></section>
+ <div class="notice">Laporan ini khusus keuangan operasional dalam Rupiah. Coins dan Honey tetap berada di buku besar ekonomi game yang terpisah. Ekspor saat ini berupa CSV UTF-8 yang dapat dibuka di WPS Office; belum merupakan file .xlsx.</div>`;
+}
+function financeMessage(message,isError=false){const el=$("financeFeedback");if(el){el.textContent=message;el.className=isError?"notice error":"notice"}}
+async function financeLoad(){
+ if(session?.role!=="Developer"||!session?.accessToken||!window.FC_SUPABASE_URL)return financeMessage("Sesi Developer atau konfigurasi server tidak tersedia.",true);
+ const table=$("financeTable");if(table)table.textContent="Mengambil laporan dari server...";
+ try{
+  const base=window.FC_SUPABASE_URL+"/rest/v1/";
+  const headers=financeHeaders();
+  const [ar,tr]=await Promise.all([
+   fetch(base+"fc_finance_accounts?select=id,account_code,account_name,currency_code,opening_balance",{headers}),
+   fetch(base+"fc_finance_transactions?select=id,account_id,transaction_type,amount,category,description,reference_code,created_at&order=created_at.desc&limit=1000",{headers})
+  ]);
+  const [accounts,transactions]=await Promise.all([ar.json(),tr.json()]);
+  if(!ar.ok)throw new Error(accounts.message||accounts.code||"finance_accounts_read_failed");
+  if(!tr.ok)throw new Error(transactions.message||transactions.code||"finance_transactions_read_failed");
+  financeReportCache={accounts:Array.isArray(accounts)?accounts:[],transactions:Array.isArray(transactions)?transactions:[],loadedAt:new Date().toISOString()};
+  const income=financeReportCache.transactions.filter(x=>x.transaction_type==="income").reduce((s,x)=>s+Number(x.amount||0),0);
+  const expense=financeReportCache.transactions.filter(x=>x.transaction_type==="expense").reduce((s,x)=>s+Number(x.amount||0),0);
+  const opening=financeReportCache.accounts.reduce((s,x)=>s+Number(x.opening_balance||0),0);
+  const money=n=>"Rp "+Number(n||0).toLocaleString("id-ID");
+  if($("financeBalance"))$("financeBalance").textContent=money(opening+income-expense);
+  if($("financeIncome"))$("financeIncome").textContent=money(income);
+  if($("financeExpense"))$("financeExpense").textContent=money(expense);
+  if($("financeCount"))$("financeCount").textContent=String(financeReportCache.transactions.length);
+  if($("financeUpdated"))$("financeUpdated").textContent="Diperbarui "+new Date().toLocaleString("id-ID");
+  if(table)table.innerHTML=financeReportCache.transactions.length?'<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Jenis</th><th>Kategori</th><th>Keterangan</th><th>Nominal</th></tr></thead><tbody>'+financeReportCache.transactions.map(x=>'<tr><td>'+escapeHTML(new Date(x.created_at).toLocaleString("id-ID"))+'</td><td>'+escapeHTML(x.transaction_type==="income"?"Pemasukan":"Pengeluaran")+'</td><td>'+escapeHTML(x.category)+'</td><td>'+escapeHTML(x.description)+'</td><td>'+money(x.amount)+'</td></tr>').join("")+'</tbody></table></div>':'<div class="empty">Belum ada transaksi operasional.</div>';
+  financeMessage("Laporan berhasil disinkronkan dari database online. Data transaksi ditampilkan maksimal 1.000 baris terbaru.");
+ }catch(e){financeMessage("Gagal memuat laporan: "+String(e.message||e),true);if(table)table.textContent="Data tidak dapat dimuat. Periksa koneksi dan hak akses Developer."}
+}
+async function financeSubmit(){
+ if(session?.role!=="Developer")return financeMessage("Akses ditolak.",true);
+ const type=$("financeType")?.value,amount=Number($("financeAmount")?.value),category=$("financeCategory")?.value.trim(),description=$("financeDescription")?.value.trim(),reference=$("financeReference")?.value.trim();
+ if(!["income","expense"].includes(type)||!Number.isSafeInteger(amount)||amount<=0||category.length<2||description.length<2)return financeMessage("Lengkapi jenis, nominal Rupiah, kategori, dan keterangan yang valid.",true);
+ if(!confirm("Simpan transaksi "+(type==="income"?"pemasukan":"pengeluaran")+" sebesar Rp "+amount.toLocaleString("id-ID")+"?"))return;
+ try{
+  const response=await fetch(window.FC_SUPABASE_URL+"/rest/v1/rpc/fc_record_finance_transaction",{method:"POST",headers:financeHeaders(),body:JSON.stringify({p_type:type,p_amount:amount,p_category:category,p_description:description,p_reference_code:reference,p_idempotency_key:crypto.randomUUID()})});
+  const result=await response.json();if(!response.ok)throw new Error(result.message||result.code||"finance_write_failed");
+  $("financeAmount").value="";$("financeCategory").value="";$("financeDescription").value="";$("financeReference").value="";
+  financeMessage("Transaksi berhasil dicatat dan masuk audit server.");await financeLoad();
+ }catch(e){financeMessage("Transaksi gagal disimpan: "+String(e.message||e),true)}
+}
+function financeExportCsv(){
+ if(!financeReportCache.loadedAt)return financeMessage("Muat laporan dari server sebelum ekspor.",true);
+ const rows=[["Tanggal","Jenis","Kategori","Keterangan","Referensi","Nominal IDR"],...financeReportCache.transactions.map(x=>[x.created_at,x.transaction_type==="income"?"Pemasukan":"Pengeluaran",x.category,x.description,x.reference_code||"",x.amount])];
+ const csv="\uFEFF"+rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="FAMILY-COLONY-Financial-Report-"+new Date().toISOString().slice(0,10)+".csv";a.click();URL.revokeObjectURL(url);
+ financeMessage("File CSV berhasil disiapkan. Buka file tersebut menggunakan WPS Office.");
+}
+function developerPage(){return pageHead("DEVELOPER • ROOT ACCESS","Developer Control Center","Panel teknis khusus developer. Akses backend ditampilkan secara jujur.")+`<div class="panel section"><div class="rowline"><div><h2 style="margin:0 0 5px">Mode Pengujian</h2><p class="tiny">Pratinjau tampilan Member dan Guest tanpa keluar dari sesi Developer.</p></div><span class="status ok">DEVELOPER ONLY</span></div><div class="toolbar"><button class="btn primary" onclick="startDeveloperPreview('member')">UJI TAMPILAN MEMBER</button><button class="btn" onclick="startDeveloperPreview('guest')">UJI TAMPILAN TAMU</button></div><p class="tiny">Mode ini adalah simulasi UI untuk pemeriksaan tampilan dan alur. Ini bukan autentikasi akun Member/Tamu sungguhan.</p></div><div class="stats"><div class="stat"><span>Website</span><strong style="font-size:1rem">RUNNING</strong></div><div class="stat"><span>Auth Backend</span><strong style="font-size:1rem;color:var(--green)">CONNECTED</strong></div><div class="stat"><span>Local members</span><strong>${db.members.length}</strong></div><div class="stat"><span>Pending requests</span><strong>${db.requests.filter(r=>r.status==="pending").length}</strong></div></div><div class="cards">${card("◉","Overview","Ringkasan runtime lokal.","developerAction('overview')")}${card("♙","User Management","Daftar dan status akun.","developerAction('users')")}${card("⚿","Role & Permission","Atur role akun demo.","developerAction('roles')")}${card("▦","Module Management","Status modul website.","developerAction('modules')")}${card("▤","Database Connection","Koneksi database eksternal.","developerAction('database')")}${card("⌁","System Monitoring","Status browser dan penyimpanan.","developerAction('monitor')")}${card("♫","Music Hall Management","Buka pengaturan Music Hall.","navigate('music')")}${card("⚙","Website Configuration","Nama website dan konfigurasi.","developerAction('config')")}${card("⌘","Developer Tools","Utilitas demo.","developerAction('tools')")}${card("◐","Maintenance Mode","Aktif/nonaktifkan banner maintenance.","toggleMaintenance()")}${card("☷","Activity Log","Riwayat aktivitas lokal.","developerAction('logs')")}${card("🏅","Mission Control","Kelola misi, izin, dan audit Tahap 11.","developerMissionControl()")}${card("☁","Cloud Integration","Firebase setup, connection test, dan migrasi aman Tahap 12.","navigate('cloudIntegration')")}${card("📦","APK Manager","Pilih dan instal APK secara manual dari perangkat ini.","developerApkManager()")}</div><div id="devDetail" class="section"></div><div class="notice">Sebagian modul masih berupa data lokal/demo. Login, Guest Premium, Financial tertentu, dan Live Maintenance menggunakan backend sesuai cakupan implementasinya; modul lain belum otomatis berarti tersinkron antarperangkat.</div>`}
+function developerApkManager(){
+ if(session?.role!=="Developer")return toast("APK Manager hanya untuk Developer.");
+ const el=$("devDetail");if(!el)return;
+ el.innerHTML='<div class="panel"><div class="rowline"><h2>📦 APK Manager</h2></div><p class="muted">Pilih file APK dari perangkat ini. Memilih file tidak akan langsung memasang aplikasi. Tekan tombol instal setelah nama file muncul.</p><div class="field"><label for="developerApkFile">File APK</label><input id="developerApkFile" type="file" accept=".apk,application/vnd.android.package-archive" onchange="developerApkSelected(this)"></div><div id="developerApkInfo" class="notice">Belum ada APK dipilih.</div><div class="toolbar"><button id="developerApkInstall" class="btn primary" disabled onclick="developerApkInstallNow()">INSTAL APK</button><button class="btn ghost" onclick="developerApkManager()">PILIH ULANG</button></div><div class="tiny">Instalasi dilakukan oleh Android Package Installer. Android mungkin meminta izin Izinkan dari sumber ini. Ini instalasi lokal, bukan unggah APK ke server/member lain.</div></div>';
+ el.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function developerApkSelected(input){
+ const file=input?.files?.[0],info=$("developerApkInfo"),button=$("developerApkInstall");
+ if(!file){if(info)info.textContent="Belum ada APK dipilih.";if(button)button.disabled=true;return}
+ const valid=file.name.toLowerCase().endsWith(".apk")||file.type==="application/vnd.android.package-archive";
+ if(!valid){input.value="";if(info)info.textContent="File tidak dikenali sebagai APK. Pilih file dengan ekstensi .apk.";if(button)button.disabled=true;return toast("Pilih file APK yang valid.")}
+ if(info)info.textContent="Terpilih: "+file.name+" · "+(file.size/1024/1024).toFixed(2)+" MB";
+ if(button)button.disabled=false;
+}
+function developerApkInstallNow(){
+ if(session?.role!=="Developer")return toast("Akses APK Manager ditolak.");
+ const file=$("developerApkFile")?.files?.[0];
+ if(!file||!file.name.toLowerCase().endsWith(".apk"))return toast("Pilih file APK terlebih dahulu.");
+ if(!window.FCAndroid||typeof window.FCAndroid.installSelectedApk!=="function")return toast("Fitur instalasi Android tidak tersedia pada build ini.");
+ if(!confirm("Buka pemasang Android untuk "+file.name+"?"))return;
+ window.FCAndroid.installSelectedApk();
+}
+function developerAction(which){if(session?.role!=="Developer"){toast("Akses Developer ditolak.");return}const el=$("devDetail");if(!el)return;let title="",body="";switch(which){case"overview":title="Overview";body=`Runtime browser aktif. Waktu perangkat: ${new Date().toLocaleString("id-ID")}.`;break;case"economy":title="Developer Bank • Royal Economy";body=`<div class="stats"><div class="stat"><span>Total Member</span><strong>${db.members.length}</strong></div><div class="stat"><span>Total Royal Coin</span><strong>${db.members.reduce((a,m)=>a+(m.coins||0),0).toLocaleString("id-ID")}</strong></div><div class="stat"><span>Total XP</span><strong>${db.members.reduce((a,m)=>a+(m.xp||0),0).toLocaleString("id-ID")}</strong></div><div class="stat"><span>Transaksi</span><strong>${db.economy.transactions.length}</strong></div></div><div class="field"><label>Member tujuan</label><select id="bankMember">${db.members.map((m,i)=>`<option value="${i}">${escapeHTML(m.name)} — ${m.coins||0} Coin / ${m.xp||0} XP</option>`).join("")}</select></div><div class="two-col"><div class="field"><label>Perubahan Royal Coin (+/-)</label><input id="bankCoin" type="number" value="0"></div><div class="field"><label>Perubahan XP (+/-)</label><input id="bankXP" type="number" value="0"></div></div><div class="field"><label>Alasan transaksi</label><input id="bankReason" maxlength="100" placeholder="Contoh: hadiah event koloni"></div><button class="btn primary" onclick="developerAdjustWallet()">Proses penyesuaian</button><h3 class="section">Permintaan hadiah</h3>${db.economy.redemptions.filter(r=>r.status==="requested").map((r,i)=>`<div class="track"><span><b>${escapeHTML(r.member)}</b><div class="tiny">${escapeHTML(r.reward)} · ${escapeHTML(r.at)}</div></span><span>${Number(r.cost).toLocaleString("id-ID")} Coin</span><button class="btn small" onclick="fulfillRedemption(${db.economy.redemptions.indexOf(r)})">Tandai diberikan</button></div>`).join("")||'<div class="empty">Tidak ada permintaan hadiah yang menunggu.</div>'}
+<h3 class="section">Riwayat transaksi terbaru</h3>${db.economy.transactions.slice(0,30).map(t=>`<div class="track"><span><b>${escapeHTML(t.member)}</b><div class="tiny">${escapeHTML(t.detail)} · ${escapeHTML(t.actor)}</div></span><span>${escapeHTML(t.kind)} ${Number(t.amount)>0?"+":""}${Number(t.amount)}</span><span class="tiny">${escapeHTML(t.at)}</span></div>`).join("")||'<div class="empty">Belum ada transaksi.</div>'}`;break;case"users":title="User Management";body=membersTable()+`<div class="field"><label>Tambah akun demo</label><input id="newUser" placeholder="Nama akun"></div><button class="btn small" onclick="addDemoUser()">Tambah Member</button>`;break;case"roles":title="Role & Permission";body=`<p class="muted">Role hanya dapat diubah Developer. Pilih akun demo yang sudah terdaftar.</p><div class="field"><label>Akun</label><select id="roleUser">${db.members.map((m,i)=>`<option value="${i}">${escapeHTML(m.name)} — ${escapeHTML(m.role)}</option>`).join("")}</select></div><div class="field"><label>Role baru</label><select id="newRole"><option>Member</option><option>Kepsuk</option><option>Deputi</option><option>Admin</option></select></div><button class="btn small primary" onclick="changeRole()">Simpan role lokal</button>`;break;case"modules":title="Module Management";body=modules.map(m=>`<div class="track"><span>${m[1]} ${m[2]}</span><span class="status ${["world","games"].includes(m[0])?"wait":"ok"}">${["world","games"].includes(m[0])?"IN DEVELOPMENT":"DEMO AVAILABLE"}</span></div>`).join("");break;case"database":title="Database Connection";body=`<span class="status bad">● NOT CONNECTED</span><p class="muted">Belum ada Firebase atau backend yang dikonfigurasi. Data saat ini disimpan melalui LocalStorage browser.</p>`;break;case"monitor":title="System Monitoring";body=`<p>Browser: ${escapeHTML(navigator.userAgent)}</p><p>LocalStorage: ${(()=>{try{localStorage.setItem("_fc_test","1");localStorage.removeItem("_fc_test");return"Available"}catch(e){return"Unavailable"}})()}</p><p>Online status perangkat: ${navigator.onLine?"Online":"Offline"} (bukan status server website).</p>`;break;case"config":title="Website Configuration";body=`<div class="field"><label>Nama website</label><input id="siteName" value="${escapeHTML(db.config.siteName)}"></div><button class="btn small" onclick="saveConfig()">Simpan konfigurasi lokal</button><p class="tiny">Nama ini disimpan di browser dan belum mengubah domain atau server.</p>`;break;case"tools":title="Developer Tools";body=`<button class="btn small" onclick="exportData()">Ekspor data demo JSON</button> <button class="btn danger small" onclick="resetData()">Reset seluruh data lokal</button>`;break;case"logs":title="Activity Log";body=db.activity.map(a=>`<div class="track"><span>${escapeHTML(a.action)} · ${escapeHTML(a.who)}</span><span class="tiny">${escapeHTML(a.at)}</span></div>`).join("")||"Belum ada aktivitas.";break}
+el.innerHTML=`<div class="panel"><div class="rowline"><h2>${title}</h2><button class="btn ghost small" onclick="$('devDetail').innerHTML=''">Tutup</button></div>${body}</div>`;el.scrollIntoView({behavior:"smooth",block:"nearest"})}
+function fulfillRedemption(i){
+ if(session?.role!=="Developer")return toast("Akses hanya untuk Developer.");
+ const r=db.economy.redemptions[i];if(!r||r.status!=="requested")return toast("Permintaan hadiah tidak ditemukan atau sudah diproses.");
+ r.status="fulfilled";r.fulfilledAt=new Date().toLocaleString("id-ID");r.fulfilledBy=session.name;
+ saveDB();log("Hadiah "+r.reward+" diberikan kepada "+r.member,session.name);developerAction("economy");toast("Permintaan hadiah ditandai sudah diberikan.");
+}
+function developerAdjustWallet(){if(session?.role!=="Developer")return toast("Akses hanya untuk Developer.");const i=Number($("bankMember")?.value),m=db.members[i];if(!m)return toast("Pilih member terlebih dahulu.");const coin=Number($("bankCoin")?.value||0),xp=Number($("bankXP")?.value||0),reason=$("bankReason")?.value.trim()||"Penyesuaian Developer";if(!Number.isFinite(coin)||!Number.isFinite(xp)||(!coin&&!xp))return toast("Masukkan perubahan Coin atau XP.");if(!changeWallet(m.name,coin,xp,reason,session.name))return toast("Saldo tidak cukup untuk pengurangan atau data tidak valid.");log("Developer menyesuaikan ekonomi "+m.name,session.name);renderPage();developerAction("economy");toast("Royal Wallet berhasil diperbarui.")}
+function addDemoUser(){const n=$("newUser")?.value.trim();if(!n)return toast("Isi nama akun.");if(db.members.some(m=>m.name.toLowerCase()===n.toLowerCase()))return toast("Nama sudah terdaftar.");db.members.push({name:n,role:"Member",status:"approved",joined:new Date().toLocaleDateString("id-ID"),coins:0,xp:0,level:1});saveDB();log("Developer menambahkan akun demo",session.name);renderPage();developerAction("users");toast("Akun demo ditambahkan.")}
+function changeRole(){const i=Number($("roleUser")?.value),r=$("newRole")?.value;if(!db.members[i])return toast("Pilih akun yang tersedia.");db.members[i].role=r;saveDB();log("Mengubah role "+db.members[i].name+" menjadi "+r,session.name);renderPage();developerAction("roles");toast("Role lokal diperbarui.")}
+function saveConfig(){db.config.siteName=$("siteName").value.trim()||"FAMILY COLONY — BEE KINGDOM";saveDB();toast("Konfigurasi lokal disimpan.")}
+async function fcPollAppStatus(){
+ try{const r=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"get_app_status"})});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||"status_unavailable");window.fcRemoteAppStatus=d.status||{};fcRenderRemoteAppStatus()}catch(e){/* retain last known state on temporary network loss */}
+}
+function fcRenderRemoteAppStatus(){
+ const st=window.fcRemoteAppStatus||{},now=Date.now(),starts=st.starts_at?new Date(st.starts_at).getTime():0,ends=st.ends_at?new Date(st.ends_at).getTime():Infinity,inWindow=now>=starts&&now<=ends,active=st.announcement_active===true&&inWindow,maintenance=st.maintenance_mode===true&&inWindow,banner=$("fcLiveAnnouncement"),overlay=$("fcMaintenanceOverlay");
+ if(banner){banner.style.display=active&&!maintenance?"block":"none";banner.innerHTML=active&&!maintenance?"<b>"+escapeHTML(st.title||"Pengumuman FAMILY COLONY")+"</b><div style='margin-top:5px;line-height:1.5'>"+escapeHTML(st.message||"")+"</div>":""}
+ const block=maintenance&&!!session&&session.role!=="Developer"&&!session.testPreview;
+ if(overlay){overlay.style.display=block?"flex":"none";$("fcMaintenanceTitle").textContent=st.title||"FAMILY COLONY sedang maintenance";$("fcMaintenanceMessage").textContent=st.message||"Kami sedang melakukan pemeliharaan sistem.";$("fcMaintenanceSchedule").textContent=st.ends_at?"Perkiraan selesai: "+new Date(st.ends_at).toLocaleString("id-ID"):""}
+}
+function toggleMaintenance(){
+ if(session?.role!=="Developer")return toast("Hanya Developer yang dapat mengatur maintenance.");const el=$("devDetail");if(!el)return;const st=window.fcRemoteAppStatus||{};
+ el.innerHTML="<div class='panel'><div class='rowline'><h2>📡 Live Announcement & Maintenance</h2><button class='btn small' onclick='fcPollAppStatus()'>Muat ulang status</button></div><p class='muted'>Pesan dikirim melalui server dan dibaca APK tanpa perlu membuat APK baru.</p><div class='field'><label>Jenis siaran</label><select id='fcBroadcastMode'><option value='notice'>Pengumuman biasa — aplikasi tetap dapat dimainkan</option><option value='maintenance'>Maintenance — akses member dan tamu dikunci sementara</option></select></div><div class='field'><label>Judul siaran</label><input id='fcBroadcastTitle' maxlength='100' placeholder='Contoh: Pemeliharaan Server'></div><div class='field'><label>Isi pemberitahuan</label><textarea id='fcBroadcastMessage' maxlength='2000' placeholder='Tulis informasi untuk seluruh pengguna...'></textarea></div><div class='two-col'><div class='field'><label>Mulai (opsional)</label><input id='fcBroadcastStart' type='datetime-local'></div><div class='field'><label>Perkiraan selesai (opsional)</label><input id='fcBroadcastEnd' type='datetime-local'></div></div><div class='toolbar'><button class='btn primary' onclick='fcPublishAppStatus()'>SIARKAN KE SEMUA APK</button><button class='btn danger' onclick='fcClearAppStatus()'>MATIKAN SIARAN / MAINTENANCE</button></div><div id='fcBroadcastFeedback' class='notice'>Status saat ini: "+(st.maintenance_mode?"MAINTENANCE AKTIF":st.announcement_active?"PENGUMUMAN AKTIF":"NORMAL")+"</div></div>";
+ if(st.title)$("fcBroadcastTitle").value=st.title;if(st.message)$("fcBroadcastMessage").value=st.message;if(st.maintenance_mode)$("fcBroadcastMode").value="maintenance";
+}
+async function fcSendAppStatus(payload){
+ if(session?.role!=="Developer"||!session.accessToken)return toast("Sesi Developer diperlukan.");const feedback=$("fcBroadcastFeedback");if(feedback)feedback.textContent="Mengirim perubahan ke server...";
+ try{const r=await fetch(window.FC_SUPABASE_URL+"/functions/v1/fc-member-auth",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.accessToken},body:JSON.stringify({action:"publish_app_status",...payload})});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||"publish_failed");window.fcRemoteAppStatus=d.status;fcRenderRemoteAppStatus();if(feedback)feedback.textContent="Berhasil disiarkan. APK menerima pembaruan pada pemeriksaan status berikutnya.";toast("Siaran berhasil diperbarui.")}catch(e){if(feedback)feedback.textContent="Gagal: "+String(e.message||"publish_failed");toast("Siaran gagal. Periksa koneksi dan sesi Developer.")}
+}
+function fcPublishAppStatus(){
+ const mode=$("fcBroadcastMode")?.value||"notice",title=$("fcBroadcastTitle")?.value.trim()||"",message=$("fcBroadcastMessage")?.value.trim()||"";if(title.length<3||message.length<5)return toast("Isi judul dan pesan pemberitahuan.");
+ const iso=id=>{const v=$(id)?.value;return v?new Date(v).toISOString():null};fcSendAppStatus({announcement_active:true,maintenance_mode:mode==="maintenance",title,message,starts_at:iso("fcBroadcastStart"),ends_at:iso("fcBroadcastEnd")});
+}
+function fcClearAppStatus(){if(!confirm("Matikan pengumuman dan mode maintenance untuk semua pengguna?"))return;fcSendAppStatus({announcement_active:false,maintenance_mode:false,title:"",message:"",starts_at:null,ends_at:null})}
+function exportData(){const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="family-colony-demo-data.json";a.click();URL.revokeObjectURL(url);toast("Ekspor data dimulai.")}
+function resetData(){if(!confirm("Hapus semua data demo lokal di browser ini?"))return;localStorage.removeItem(STORE);db=defaultDB();log("Reset data lokal",session.name);renderPage();toast("Data lokal direset.")}
+function musicPage(){return pageHead("ROYAL SOUND EXPERIENCE","Music Hall","Musik lokal dari perangkat dan pemutar video YouTube.")+`<div class="two-col"><section class="panel"><div class="rowline"><h2>♫ MP3 Player</h2><span class="status ok">HTML AUDIO API</span></div><div class="player"><div class="player-display"><div class="disc"><span></span></div><div id="trackTitle">Belum ada lagu dipilih</div><div id="trackTime" class="tiny">00:00 / 00:00</div></div><input id="progress" class="range" type="range" min="0" max="100" value="0" oninput="seekTrack(this.value)"><div class="player-controls"><button class="btn small" onclick="prevTrack()">⏮</button><button class="btn primary" onclick="toggleAudio()">▶ / ❚❚</button><button class="btn small" onclick="nextTrack()">⏭</button></div><div class="field"><label>Volume</label><input class="range" type="range" min="0" max="1" step=".01" value=".8" oninput="audio.volume=this.value"></div><div class="field"><label for="mp3Files">Pilih satu atau beberapa file MP3</label><input id="mp3Files" type="file" accept="audio/mpeg,audio/mp3,audio/*" multiple onchange="loadTracks(this.files)"></div><div id="playlist" class="playlist"><div class="empty">Playlist masih kosong.</div></div></div><p class="tiny">File diputar dari perangkat ini saja. File tidak diunggah atau dibagikan otomatis.</p></section><section class="panel"><div class="rowline"><h2>▶ YouTube Player</h2><span class="status wait">INTERNET REQUIRED</span></div><div class="field"><label for="youtubeUrl">Link YouTube</label><input id="youtubeUrl" placeholder="https://youtu.be/..."></div><button class="btn primary" onclick="loadYoutube()">PUTAR VIDEO</button><div id="youtubeNotice" class="notice">Masukkan link video YouTube yang valid.</div><div id="videoArea" class="video-frame" style="margin-top:13px;display:grid;place-items:center;color:#8392a7">YouTube preview</div><p class="tiny">Video yang membatasi pemutaran embed mungkin tidak dapat diputar di sini. Coba buka langsung di YouTube.</p></section></div>`}
+function loadTracks(files){tracks=Array.from(files||[]).filter(f=>f.type.startsWith("audio/"));trackIndex=0;if(!tracks.length){toast("Tidak ada file audio yang sesuai.");return}playTrack(0);renderPlaylist()}
+function renderPlaylist(){const el=$("playlist");if(!el)return;el.innerHTML=tracks.map((f,i)=>`<div class="track ${i===trackIndex?"active":""}"><button class="btn ghost small" onclick="playTrack(${i})">${i===trackIndex?"▶":"♪"} ${escapeHTML(f.name)}</button><span class="tiny">${(f.size/1048576).toFixed(1)} MB</span></div>`).join("")}
+function playTrack(i){if(!tracks.length)return;trackIndex=(i+tracks.length)%tracks.length;audio.pause();if(audio._url)URL.revokeObjectURL(audio._url);audio._url=URL.createObjectURL(tracks[trackIndex]);audio.src=audio._url;audio.volume=.8;audio.play().catch(()=>toast("Tekan tombol Play untuk memulai audio."));$("trackTitle").textContent=tracks[trackIndex].name;renderPlaylist()}
+function toggleAudio(){if(!tracks.length)return toast("Pilih file MP3 terlebih dahulu.");if(audio.paused)audio.play().catch(()=>toast("Audio belum dapat diputar."));else audio.pause()}
+function prevTrack(){if(tracks.length)playTrack(trackIndex-1)}
+function nextTrack(){if(tracks.length)playTrack(trackIndex+1)}
+function seekTrack(v){if(audio.duration)audio.currentTime=audio.duration*(Number(v)/100)}
+function fmt(t){if(!Number.isFinite(t))return"00:00";return Math.floor(t/60).toString().padStart(2,"0")+":"+Math.floor(t%60).toString().padStart(2,"0")}
+audio.addEventListener("timeupdate",()=>{const p=$("progress"),t=$("trackTime");if(p&&audio.duration)p.value=audio.currentTime/audio.duration*100;if(t)t.textContent=fmt(audio.currentTime)+" / "+fmt(audio.duration)});
+audio.addEventListener("ended",nextTrack);
+function youtubeId(raw){try{const u=new URL(raw);let id="";if(u.hostname==="youtu.be"||u.hostname.endsWith(".youtu.be"))id=u.pathname.split("/").filter(Boolean)[0]||"";else if(u.hostname.includes("youtube.com")){if(u.pathname==="/watch")id=u.searchParams.get("v")||"";else if(/^\/(embed|shorts|live)\//.test(u.pathname))id=u.pathname.split("/")[2]||""}return /^[A-Za-z0-9_-]{11}$/.test(id)?id:""}catch(e){return""}}
+function loadYoutube(){const raw=$("youtubeUrl").value.trim(),id=youtubeId(raw),area=$("videoArea"),notice=$("youtubeNotice");if(!id){notice.textContent="Link tidak valid. Gunakan link video YouTube standar, youtu.be, Shorts, Live, atau embed.";area.textContent="YouTube preview";toast("Link YouTube tidak valid.");return}activeVideo=id;area.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${id}" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;notice.textContent="Video dimuat melalui YouTube embed. Jika pemutaran dibatasi, buka video langsung di YouTube.";log("Memuat video YouTube",session.name)}
 
-	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
-	if typeof(parsed) != TYPE_DICTIONARY:
-		_access_denied("session_response_invalid")
-		return
+function ensureHoneyChallengeData(){
+ if(!Array.isArray(db.honeyChallenges))db.honeyChallenges=[];
+ db.honeyChallenges.forEach(c=>{if(!Array.isArray(c.contributions))c.contributions=[];if(!Number.isFinite(c.totalHoney))c.totalHoney=c.contributions.reduce((a,x)=>a+(Number(x.amount)||0),0);if(!c.status)c.status="active";});
+}
+function honeyChallengeStatus(c){const now=new Date(),start=new Date(c.startDate+"T00:00:00"),end=new Date(c.endDate+"T23:59:59.999");if(c.status==="archived")return "ARCHIVED";if(c.status==="completed"||Number(c.totalHoney)>=Number(c.targetHoney))return "TARGET REACHED";if(now<start)return "UPCOMING";if(now>end)return "ENDED";return c.status==="paused"?"PAUSED":"ACTIVE"}
+function honeyChallengePage(){
+ ensureHoneyChallengeData();const now=new Date(),active=db.honeyChallenges.filter(c=>c.status!=="archived"),mine=memberRecord(session.name),totalGiven=active.reduce((a,c)=>a+c.contributions.filter(x=>x.memberId===session.name).reduce((b,x)=>b+Number(x.amount||0),0),0),totalPool=active.reduce((a,c)=>a+Number(c.totalHoney||0),0);
+ const cards=active.slice().sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||""))).map(c=>{const target=Math.max(1,Number(c.targetHoney)||1),total=Number(c.totalHoney)||0,pct=Math.min(100,Math.round(total/target*100)),status=honeyChallengeStatus(c),eligible=status==="ACTIVE",rank=[...c.contributions.reduce((map,x)=>map.set(x.memberId,(map.get(x.memberId)||0)+Number(x.amount||0)),new Map()).entries()].sort((a,b)=>b[1]-a[1]),myAmount=rank.find(x=>x[0]===session.name)?.[1]||0,board=rank.slice(0,5).map((x,i)=>`<div class="track"><span><b>${i+1}. ${escapeHTML(x[0])}</b></span><span class="gold">${x[1].toLocaleString("id-ID")} 🍯</span></div>`).join("");return `<article class="mission-card"><div class="rowline"><span class="mission-icon">🍯</span><span class="status ${status==="ACTIVE"||status==="TARGET REACHED"?"ok":"wait"}">${status}</span></div><h3>${escapeHTML(c.name)}</h3><p class="muted">${escapeHTML(c.description||"Tantangan kontribusi Honey koloni.")}</p><div class="mission-meta"><span class="tier">🎯 Target ${target.toLocaleString("id-ID")} Honey</span><span class="tier">📅 ${escapeHTML(c.startDate)} — ${escapeHTML(c.endDate)}</span></div><div class="rowline"><b>Progres koloni</b><b>${total.toLocaleString("id-ID")} / ${target.toLocaleString("id-ID")} 🍯</b></div><div class="mission-progress"><span style="width:${pct}%"></span></div><div class="rowline"><span class="tiny">Kontribusimu</span><b>${myAmount.toLocaleString("id-ID")} Honey</b></div>${eligible&&mine?`<div class="toolbar"><input id="hcAmount-${c.id}" type="number" min="1" step="1" inputmode="numeric" placeholder="Jumlah Honey" style="max-width:180px"><button class="btn primary small" onclick="contributeHoneyChallenge('${c.id}')">Sumbangkan Honey</button></div>`:""}<div class="section"><b class="tiny">TOP KONTRIBUTOR</b>${board||'<div class="tiny muted">Belum ada kontribusi.</div>'}</div>${c.rewardLabel?`<div class="notice">Penghargaan koloni: ${escapeHTML(c.rewardLabel)}</div>`:""}${isStaff()?`<div class="toolbar section"><button class="btn small" onclick="setHoneyChallengeStatus('${c.id}','${c.status==="paused"?"active":"paused"}')">${c.status==="paused"?"Aktifkan":"Jeda"}</button><button class="btn danger small" onclick="archiveHoneyChallenge('${c.id}')">Arsipkan</button></div>`:""}</article>`}).join("");
+ return pageHead("COLONY HONEY TRIALS","Honey Challenge","Tantangan sukarela untuk mengumpulkan Honey bersama dan melihat kontribusi setiap anggota.",isStaff()?'<button class="btn primary small" onclick="createHoneyChallenge()">+ Buat Challenge</button>':"")+`<div class="stats"><div class="stat"><span>Challenge tersedia</span><strong>${active.length}</strong></div><div class="stat"><span>Total Honey terkumpul</span><strong>${totalPool.toLocaleString("id-ID")}</strong></div><div class="stat"><span>Kontribusimu</span><strong>${totalGiven.toLocaleString("id-ID")}</strong></div><div class="stat"><span>Saldo Honey</span><strong>${Number(mine?.honey||0).toLocaleString("id-ID")}</strong></div></div><div class="notice">Partisipasi sepenuhnya sukarela. Honey yang disumbangkan masuk ke total tantangan dan tidak dapat ditarik kembali melalui halaman ini. Periksa nama challenge, target, dan tanggal sebelum menyumbang. Tidak ada hadiah pribadi otomatis yang dijanjikan; penghargaan hanya mengikuti keterangan challenge atau keputusan pengurus.</div><div class="mission-grid">${cards||'<div class="panel empty">Belum ada Honey Challenge. Pengurus dapat membuat challenge pertama.</div>'}</div><div class="section panel"><h2>Aturan Honey Challenge</h2><ul class="muted" style="line-height:1.9"><li>Hanya anggota terdaftar yang dapat menyumbangkan Honey.</li><li>Jumlah kontribusi harus bilangan bulat positif dan tidak boleh melebihi saldo.</li><li>Setiap kontribusi mengurangi saldo Honey dan tercatat di Royal Wallet Ledger.</li><li>Progress dan leaderboard dihitung dari transaksi kontribusi yang berhasil disimpan.</li><li>Challenge otomatis berstatus target tercapai ketika jumlah Honey memenuhi target.</li></ul></div><div class="notice">Mode lokal browser: data challenge hanya tersedia pada perangkat ini. Sinkronisasi antaranggota/perangkat dan validasi keamanan produksi menunggu backend Tahap 24.</div>`;
+}
+function createHoneyChallenge(){
+ if(!isStaff())return toast("Hanya pengurus yang dapat membuat challenge.");
+ const name=prompt("Nama Honey Challenge:");if(!name?.trim())return;
+ const description=prompt("Deskripsi challenge:")||"Kumpulkan Honey bersama untuk mencapai target koloni.";
+ const targetHoney=Number(prompt("Target total Honey:","1000")),startDate=prompt("Tanggal mulai YYYY-MM-DD:",localDateKey()),endDate=prompt("Tanggal akhir YYYY-MM-DD:",localDateKey()),rewardLabel=prompt("Keterangan penghargaan (opsional, bukan hadiah otomatis):","")||"";
+ const validDate=x=>/^\d{4}-\d{2}-\d{2}$/.test(x)&&!Number.isNaN(new Date(x+"T00:00:00").getTime());
+ if(!Number.isSafeInteger(targetHoney)||targetHoney<1||!validDate(startDate)||!validDate(endDate)||endDate<startDate)return toast("Data challenge tidak valid.");
+ const c={id:"HC-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),name:name.trim(),description:description.trim(),targetHoney,startDate,endDate,rewardLabel:rewardLabel.trim(),totalHoney:0,contributions:[],status:"active",createdBy:session.name,createdAt:new Date().toISOString()};
+ db.honeyChallenges.unshift(c);try{localStorage.setItem(STORE,JSON.stringify(db));}catch(e){db.honeyChallenges.shift();return toast("Challenge gagal disimpan. Penyimpanan lokal penuh atau tidak tersedia.");}
+ auditMission("CREATE_HONEY_CHALLENGE",c.id,null,c,"Membuat Honey Challenge");saveDB();renderPage();toast("Honey Challenge berhasil dibuat.");
+}
+function contributeHoneyChallenge(id){
+ ensureHoneyChallengeData();const c=db.honeyChallenges.find(x=>x.id===id),m=memberRecord(session?.name),input=$("hcAmount-"+id),amount=Number(input?.value);
+ if(!c||!m||!["approved","aktif","active"].includes(String(m.status||"").toLowerCase()))return toast("Akun atau challenge tidak valid.");
+ if(honeyChallengeStatus(c)!=="ACTIVE")return toast("Challenge tidak sedang aktif.");
+ if(!Number.isSafeInteger(amount)||amount<1)return toast("Masukkan jumlah Honey berupa bilangan bulat positif.");
+ const before=Number(m.honey)||0,after=before-amount;if(after<0)return toast("Saldo Honey tidak mencukupi.");
+ const op="HC-CONTRIB-"+Date.now()+"-"+Math.random().toString(36).slice(2,9);if(db.economy.processedOperations?.[op])return toast("Transaksi duplikat ditolak.");
+ const entry={id:op,operationId:op,challengeId:c.id,challengeName:c.name,memberId:m.name,amount,at:new Date().toISOString()};const oldTotal=Number(c.totalHoney)||0,oldLength=c.contributions.length,oldTx=db.economy.transactions.length;
+ m.honey=after;c.totalHoney=oldTotal+amount;c.contributions.push(entry);const now=new Date().toISOString();db.economy.transactions.unshift({id:op,operationId:op,member:m.name,kind:"HONEY_CHALLENGE_CONTRIBUTION",currency:"honey",amount:-amount,detail:"Kontribusi Honey Challenge: "+c.name,actor:m.name,source:"Royal Wallet",destination:"Honey Challenge Pool",balanceBefore:before,balanceAfter:after,at:new Date().toLocaleString("id-ID"),createdAt:now});db.economy.transactions=db.economy.transactions.slice(0,1500);db.economy.processedOperations[op]=now;
+ if(c.totalHoney>=c.targetHoney)c.status="completed";
+ try{localStorage.setItem(STORE,JSON.stringify(db));}catch(e){m.honey=before;c.totalHoney=oldTotal;c.contributions.splice(oldLength);c.status="active";db.economy.transactions=db.economy.transactions.filter(t=>t.operationId!==op);delete db.economy.processedOperations[op];return toast("Kontribusi dibatalkan. Saldo Honey tidak berubah karena penyimpanan gagal.");}
+ log("Kontribusi "+amount+" Honey untuk "+c.name,m.name);auditMission("HONEY_CONTRIBUTION",c.id,null,entry,"Kontribusi anggota");renderPage();toast("Kontribusi berhasil! "+amount.toLocaleString("id-ID")+" Honey tercatat.");
+}
+function setHoneyChallengeStatus(id,status){if(!isStaff())return toast("Akses pengurus ditolak.");const c=db.honeyChallenges.find(x=>x.id===id);if(!c||!['active','paused'].includes(status))return toast("Challenge tidak ditemukan.");if(c.status==="completed"||Number(c.totalHoney)>=Number(c.targetHoney))return toast("Challenge yang targetnya tercapai tidak dapat diaktifkan kembali.");c.status=status;auditMission("UPDATE_HONEY_CHALLENGE",id,null,{status},"Mengubah status challenge");saveDB();renderPage();toast("Status challenge diperbarui.");}
+function archiveHoneyChallenge(id){if(!isStaff())return toast("Akses pengurus ditolak.");const c=db.honeyChallenges.find(x=>x.id===id);if(!c)return toast("Challenge tidak ditemukan.");if(!confirm("Arsipkan challenge ini? Riwayat kontribusi tetap disimpan."))return;c.status="archived";auditMission("ARCHIVE_HONEY_CHALLENGE",id,null,{status:"archived"},"Mengarsipkan challenge");saveDB();renderPage();toast("Challenge diarsipkan. Riwayat kontribusi tetap tersimpan.");}
 
-	var payload: Dictionary = parsed
-	if response_code != 200 or payload.get("ok") != true:
-		_access_denied(str(payload.get("error", "session_verification_rejected")))
-		return
+function ensureMissionData(){
+ db.missionMeta=db.missionMeta||{schema:1};for(const k of ["missionEvents","missionClaims","missionHistory","auditLog","specialMissions","memberAchievements"])if(!Array.isArray(db[k]))db[k]=[];
+ db.missionPermissions=db.missionPermissions||{Kepsuk:{},Deputi:{},Admin:{}};
+ if(!Array.isArray(db.achievementCatalog)||!db.achievementCatalog.length){
+ const a=[["Royal Beginner","🌱","Memulai perjalanan","login"],["Active Member","⚡","Aktif di koloni","game_visit"],["Loyal Member","🛡️","Konsisten hadir","loginDays"],["Daily Warrior","☀️","Menyelesaikan misi harian","dailyClaims"],["Weekly Champion","🏆","Menyelesaikan misi mingguan","weeklyClaims"],["Mission Master","👑","Menguasai misi","allClaims"],["Royal Contributor","🍯","Mengumpulkan Coin","coins"],["Game Explorer","🎮","Menjelajahi Game Center","game_visit"],["Special Event Winner","🎖️","Menyelesaikan event","specialClaims"],["Legendary Member","💎","Pencapaian tertinggi","level"]];
+ db.achievementCatalog=a.flatMap(x=>["Bronze","Silver","Gold","Platinum","Diamond"].map((t,i)=>({id:x[0].toLowerCase().replace(/[^a-z0-9]+/g,"-")+"-"+t.toLowerCase(),name:x[0],icon:x[1],description:x[2],metric:x[3],tier:t,threshold:[1,3,7,15,30][i]})));}
+ db.missionMeta.schema=2;
+}
+ensureMissionData();
+ensureHoneyChallengeData();
+function missionPeriod(type){const d=new Date(),day=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");if(type==="daily")return day;const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return "W-"+x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0")}
+function missionDefs(type){return type==="daily"?[
+{id:"daily-login",name:"Kembali ke Kerajaan",desc:"Login ke kerajaan hari ini.",event:"login",target:1,coin:5,xp:10,icon:"🏰"},
+{id:"daily-checkin",name:"Daily Check-in",desc:"Lakukan check-in melalui Royal Economy.",event:"checkin",target:1,coin:10,xp:15,icon:"☀️"},
+{id:"daily-game",name:"Penjelajah Game Center",desc:"Kunjungi Royal Game Center.",event:"game_visit",target:1,coin:5,xp:10,icon:"🎮"}]:type==="weekly"?[
+{id:"weekly-login",name:"Hadir 3 Hari",desc:"Login pada 3 hari berbeda minggu ini.",event:"loginDays",target:3,coin:30,xp:50,icon:"📅"},
+{id:"weekly-daily",name:"Penyelesai Misi Harian",desc:"Klaim 3 misi harian minggu ini.",event:"dailyClaims",target:3,coin:40,xp:60,icon:"🏆"}]:[]}
+function recordMissionEvent(type,detail){if(!session||!memberRecord(session.name))return false;const day=missionPeriod("daily"),week=missionPeriod("weekly"),key=type+"|"+session.name+"|"+day;if(db.missionEvents.some(e=>e.uniqueKey===key))return false;db.missionEvents.push({id:"ME-"+Date.now(),uniqueKey:key,memberId:session.name,type,detail,period:day,week,at:new Date().toISOString()});db.missionEvents=db.missionEvents.slice(-5000);saveDB();evaluateAchievements(session.name);return true}
+function missionProgress(member,def,type,period){if(def.event==="loginDays")return new Set(db.missionEvents.filter(e=>e.memberId===member&&e.type==="login"&&e.week===period).map(e=>e.period)).size;if(def.event==="dailyClaims")return db.missionClaims.filter(c=>c.memberId===member&&c.missionType==="daily"&&c.week===period).length;return db.missionEvents.filter(e=>e.memberId===member&&e.type===def.event&&(type==="weekly"?e.week===period:e.period===period)).length}
+function authorizedMissionPage(p){if(p==="finance")return session?.role==="Developer";if(p==="cloudIntegration")return session?.role==="Developer";if(["dailyMission","weeklyMission","specialMission","achievementCenter","missionHistory","honeyChallenge"].includes(p))return !!session&&(session.role==="Developer"||!!memberRecord(session.name));if(p==="developer")return session?.role==="Developer";if(p==="management")return canManage();return true}
+function canManageSpecial(p){return session?.role==="Developer"||!!db.missionPermissions?.[session?.role]?.[p]}
+function canSeeSpecial(m){return !m.participants.length||m.participants.includes(session?.name)}
+function missionPage(type){
+ const special=type==="special",weekly=type==="weekly",period=missionPeriod(weekly?"weekly":"daily"),defs=special?db.specialMissions.filter(m=>m.status==="active"&&canSeeSpecial(m)&&new Date()>=new Date(m.startDate+"T00:00:00")&&new Date()<=new Date(m.endDate+"T23:59:59")):missionDefs(type);
+ const cards=defs.map(m=>{const p=special?db.missionEvents.filter(e=>e.memberId===session.name&&e.type===m.event&&e.at>=m.startDate&&e.at<=m.endDate+"T23:59:59.999Z").length:missionProgress(session.name,m,type,period),target=Number(m.target)||1,cp=special?m.id:period,claimed=db.missionClaims.some(c=>c.memberId===session.name&&c.missionId===m.id&&c.period===cp),done=p>=target,pct=Math.min(100,Math.round(p/target*100));return `<article class="mission-card"><div class="rowline"><span class="mission-icon">${m.icon||"🐝"}</span><span class="status ${claimed||done?"ok":"wait"}">${claimed?"CLAIMED":done?"COMPLETED":p?"IN PROGRESS":"AVAILABLE"}</span></div><h3>${escapeHTML(m.name)}</h3><p class="muted">${escapeHTML(m.desc)}</p><div class="rowline"><span>Progress</span><b>${p}/${target}</b></div><div class="mission-progress"><span style="width:${pct}%"></span></div><div class="mission-meta"><span class="tier">🪙 ${Number(m.coin)||0} Coin</span><span class="tier">⭐ ${Number(m.xp)||0} XP</span></div><button class="btn ${done&&!claimed?"primary":"small"}" ${!done||claimed?"disabled":""} onclick="claimMission('${escapeHTML(m.id)}','${type}','${escapeHTML(cp)}')">${claimed?"Sudah diklaim":done?"KLAIM HADIAH":"Belum selesai"}</button></article>`}).join("");
+ return pageHead("COLONY CHALLENGES",special?"SPECIAL MISSION":weekly?"WEEKLY MISSION":"DAILY MISSION",weekly?"Progress aktivitas valid minggu ini.":special?"Event khusus untuk akunmu.":"Misi harian berdasarkan tanggal lokal.")+(weekly?`<div class="notice">Periode: <b>${period}</b></div>`:"")+(special&&canManageSpecial("create")?'<button class="btn primary small" onclick="createSpecialMission()">+ Buat Special Mission</button>':"")+`<div class="mission-grid">${cards||'<div class="panel empty">Belum ada misi aktif.</div>'}</div><div class="notice section">Penyimpanan lokal browser; sinkronisasi multi-perangkat/backend belum tersedia.</div>`;
+}
+function claimMission(id,type,period){
+ if(!session||!memberRecord(session.name))return toast("Akun tidak valid.");
+ const special=type==="special",mdef=special?db.specialMissions.find(x=>x.id===id):missionDefs(type).find(x=>x.id===id);
+ if(!mdef)return toast("Misi tidak ditemukan.");
+ if(special&&(!canSeeSpecial(mdef)||mdef.status!=="active"||mdef.status==="deleted"))return toast("Misi tidak aktif atau bukan untuk akun ini.");
+ const expectedPeriod=special?id:missionPeriod(type);
+ if(period!==expectedPeriod)return toast("Periode misi tidak valid. Muat ulang halaman.");
+ if(db.missionClaims.some(c=>c.memberId===session.name&&c.missionId===id&&c.period===period))return toast("Hadiah sudah diklaim.");
+ const nowDate=new Date();
+ if(special&&(nowDate<new Date(mdef.startDate+"T00:00:00")||nowDate>new Date(mdef.endDate+"T23:59:59.999")))return toast("Periode event sudah berakhir atau belum dimulai.");
+ const progress=special?db.missionEvents.filter(e=>e.memberId===session.name&&e.type===mdef.event&&e.at>=new Date(mdef.startDate+"T00:00:00").toISOString()&&e.at<=new Date(mdef.endDate+"T23:59:59.999").toISOString()).length:missionProgress(session.name,mdef,type,period);
+ const target=Number(mdef.target),coin=Number(mdef.coin)||0,xp=Number(mdef.xp)||0,m=memberRecord(session.name);
+ if(!Number.isSafeInteger(target)||target<1||progress<target)return toast("Target belum tercapai.");
+ if(!Number.isSafeInteger(coin)||coin<0||!Number.isSafeInteger(xp)||xp<0)return toast("Hadiah tidak valid.");
+ const beforeCoins=Number(m.coins)||0,beforeXP=Number(m.xp)||0,nc=beforeCoins+coin,nx=beforeXP+xp;
+ if(!Number.isSafeInteger(nc)||!Number.isSafeInteger(nx))return toast("Perhitungan hadiah tidak valid.");
+ const tx="MT-"+Date.now()+"-"+Math.random().toString(36).slice(2,8),now=new Date().toISOString(),at=new Date().toLocaleString("id-ID");
+ const r={id:tx,operationId:tx,memberId:m.name,missionId:id,missionName:mdef.name,missionType:type,period,week:missionPeriod("weekly"),rewardCoin:coin,rewardXP:xp,claimedAt:now,status:"CLAIMED"};
+ const oldClaims=db.missionClaims.length,oldHistory=db.missionHistory.length,oldTransactions=db.economy.transactions.length;
+ m.coins=nc;m.xp=nx;m.level=levelFromXP(nx);db.missionClaims.push(r);db.missionHistory.unshift(r);
+ if(coin)db.economy.transactions.unshift({id:tx+"C",operationId:tx,member:m.name,kind:"COIN_IN",currency:"coins",amount:coin,detail:"Hadiah misi: "+mdef.name,actor:"Mission System",source:"Mission Center",destination:m.name,balanceBefore:beforeCoins,balanceAfter:nc,at,createdAt:now});
+ if(xp)db.economy.transactions.unshift({id:tx+"X",operationId:tx,member:m.name,kind:"XP_IN",currency:"xp",amount:xp,detail:"Hadiah misi: "+mdef.name,actor:"Mission System",source:"Mission Center",destination:m.name,balanceBefore:beforeXP,balanceAfter:nx,at,createdAt:now});
+ db.economy.transactions=db.economy.transactions.slice(0,1500);db.economy.processedOperations[tx]=now;
+ try{localStorage.setItem(STORE,JSON.stringify(db));}
+ catch(err){m.coins=beforeCoins;m.xp=beforeXP;m.level=levelFromXP(beforeXP);db.missionClaims.splice(oldClaims);db.missionHistory.splice(0,Math.max(0,db.missionHistory.length-oldHistory));db.economy.transactions=db.economy.transactions.filter(t=>t.operationId!==tx);delete db.economy.processedOperations[tx];return toast("Klaim dibatalkan: penyimpanan lokal gagal. Tidak ada hadiah yang diberikan.");}
+ log("Klaim misi "+mdef.name,m.name);evaluateAchievements(m.name);renderPage();toast("Hadiah tercatat: +"+coin+" Coin, +"+xp+" XP.");
+}
+function auditMission(action,target,before,after,reason){db.auditLog.unshift({id:"AUD-"+Date.now(),actorId:session?.name,actorRole:session?.role,action,targetId:target,previousData:before?JSON.stringify(before):null,newData:after?JSON.stringify(after):null,reason,createdAt:new Date().toISOString()});db.auditLog=db.auditLog.slice(0,1000)}
+function createSpecialMission(){if(!canManageSpecial("create"))return toast("Izin belum diberikan.");const name=prompt("Nama Special Mission:");if(!name?.trim())return;const desc=prompt("Deskripsi:")||"Selesaikan target event.",event=prompt("Aktivitas: login, checkin, game_visit","game_visit");if(!["login","checkin","game_visit"].includes(event))return toast("Aktivitas tidak didukung.");const target=Number(prompt("Target positif:","3")),coin=Number(prompt("Hadiah Coin:","20")),xp=Number(prompt("Hadiah XP:","30")),startDate=prompt("Tanggal mulai YYYY-MM-DD:",localDateKey()),endDate=prompt("Tanggal akhir YYYY-MM-DD:",localDateKey()),aud=prompt("Peserta ALL atau nama member:","ALL")||"ALL";if(!Number.isSafeInteger(target)||target<1||!Number.isSafeInteger(coin)||coin<0||!Number.isSafeInteger(xp)||xp<0||!/^\d{4}-\d{2}-\d{2}$/.test(startDate)||!/^\d{4}-\d{2}-\d{2}$/.test(endDate)||endDate<startDate)return toast("Data misi tidak valid.");const m={id:"SM-"+Date.now(),name:name.trim(),desc,event,target,coin,xp,startDate,endDate,participants:aud.toUpperCase()==="ALL"?[]:[aud.trim()],status:"active",createdBy:session.name,createdAt:new Date().toISOString()};db.specialMissions.push(m);auditMission("CREATE_SPECIAL_MISSION",m.id,null,m,"Membuat misi");saveDB();renderPage();toast("Special Mission dibuat.")}
+function evaluateAchievements(member){const m=memberRecord(member);if(!m)return;const ev=db.missionEvents.filter(e=>e.memberId===member),cl=db.missionClaims.filter(c=>c.memberId===member),v={login:ev.filter(e=>e.type==="login").length,game_visit:ev.filter(e=>e.type==="game_visit").length,loginDays:new Set(ev.filter(e=>e.type==="login").map(e=>e.period)).size,dailyClaims:cl.filter(c=>c.missionType==="daily").length,weeklyClaims:cl.filter(c=>c.missionType==="weekly").length,allClaims:cl.length,coins:cl.reduce((a,c)=>a+c.rewardCoin,0),specialClaims:cl.filter(c=>c.missionType==="special").length,level:levelFromXP(m.xp)};db.achievementCatalog.forEach(a=>{if((v[a.metric]||0)>=a.threshold&&!db.memberAchievements.some(x=>x.memberId===member&&x.achievementId===a.id)){db.memberAchievements.push({memberId:member,achievementId:a.id,obtainedAt:new Date().toISOString()});db.missionHistory.unshift({id:"ACH-"+Date.now()+a.id,memberId:member,missionName:a.name+" — "+a.tier,missionType:"achievement",status:"UNLOCKED",claimedAt:new Date().toISOString(),rewardCoin:0,rewardXP:0})}});saveDB()}
+function achievementMetricValue(member,metric){const m=memberRecord(member);if(!m)return 0;const ev=db.missionEvents.filter(e=>e.memberId===member),cl=db.missionClaims.filter(c=>c.memberId===member);const values={login:ev.filter(e=>e.type==="login").length,game_visit:ev.filter(e=>e.type==="game_visit").length,loginDays:new Set(ev.filter(e=>e.type==="login").map(e=>e.period)).size,dailyClaims:cl.filter(c=>c.missionType==="daily").length,weeklyClaims:cl.filter(c=>c.missionType==="weekly").length,allClaims:cl.length,coins:cl.reduce((a,c)=>a+(Number(c.rewardCoin)||0),0),specialClaims:cl.filter(c=>c.missionType==="special").length,level:levelFromXP(m.xp)};return Number(values[metric])||0}
+function memberLoginStreak(member){const days=[...new Set(db.missionEvents.filter(e=>e.memberId===member&&e.type==="login").map(e=>e.period))].sort().reverse();if(!days.length)return 0;let cursor=new Date();cursor.setHours(0,0,0,0);const today=localDateKey();if(days[0]!==today)cursor.setDate(cursor.getDate()-1);let streak=0;for(;;){const key=cursor.getFullYear()+"-"+String(cursor.getMonth()+1).padStart(2,"0")+"-"+String(cursor.getDate()).padStart(2,"0");if(!days.includes(key))break;streak++;cursor.setDate(cursor.getDate()-1)}return streak}
+function missionCenterPage(){const member=session.name,streak=memberLoginStreak(member),daily=missionDefs("daily"),weekly=missionDefs("weekly"),dailyDone=daily.filter(m=>missionProgress(member,m,"daily",missionPeriod("daily"))>=m.target).length,weeklyDone=weekly.filter(m=>missionProgress(member,m,"weekly",missionPeriod("weekly"))>=m.target).length,unlocked=db.memberAchievements.filter(x=>x.memberId===member).length;return pageHead("ROYAL QUESTS","Mission Center","Pusat misi, perkembangan aktivitas, dan penghargaan anggota.")+`<div class="stats"><div class="stat"><span>🔥 Login streak</span><strong>${streak} hari</strong></div><div class="stat"><span>☀️ Daily selesai</span><strong>${dailyDone}/${daily.length}</strong></div><div class="stat"><span>📅 Weekly selesai</span><strong>${weeklyDone}/${weekly.length}</strong></div><div class="stat"><span>🏅 Lencana terbuka</span><strong>${unlocked}</strong></div></div><div class="cards">${card("☀️","Daily Mission","Selesaikan misi harian dan ambil hadiah.","navigate('dailyMission')")}${card("📅","Weekly Mission","Kumpulkan progres sepanjang minggu.","navigate('weeklyMission')")}${card("✦","Special Mission","Ikuti event dan tantangan khusus.","navigate('specialMission')")}${card("🏅","Achievement Center","Lihat koleksi lencana dan progresnya.","navigate('achievementCenter')")}${card("▤","Mission History","Periksa riwayat hadiah dan pencapaian.","navigate('missionHistory')")}</div><div class="notice section">Streak dihitung dari hari login yang tercatat pada browser ini. Login berulang pada hari yang sama tidak menambah hitungan. Data belum tersinkron antarperangkat.</div>`}
+function achievementPage(){evaluateAchievements(session.name);const mine=db.memberAchievements.filter(x=>x.memberId===session.name),cards=db.achievementCatalog.map(a=>{const got=mine.find(x=>x.achievementId===a.id),progress=achievementMetricValue(session.name,a.metric),pct=Math.min(100,Math.round(progress/Math.max(1,a.threshold)*100));return `<article class="mission-card"><div class="rowline"><span class="mission-icon">${a.icon}</span><span class="tier">${a.tier}</span></div><h3>${escapeHTML(a.name)}</h3><p class="muted">${escapeHTML(a.description)}</p><div class="rowline"><span class="tiny">Progress</span><b>${got?"Selesai":progress+" / "+a.threshold}</b></div><div class="mission-progress"><span style="width:${got?100:pct}%"></span></div><span class="status ${got?"ok":"wait"}">${got?"UNLOCKED":"LOCKED"}</span><div class="tiny">${got?"Diperoleh "+new Date(got.obtainedAt).toLocaleDateString("id-ID"):"Terus aktif untuk membuka lencana ini"}</div></article>`}).join("");return pageHead("ROYAL HONORS","Achievement Center","Progres setiap lencana dihitung dari aktivitas dan klaim yang tercatat.")+`<div class="stats"><div class="stat"><span>Lencana terbuka</span><strong>${mine.length}</strong></div><div class="stat"><span>Total katalog</span><strong>${db.achievementCatalog.length}</strong></div><div class="stat"><span>Login streak</span><strong>${memberLoginStreak(session.name)} hari</strong></div></div><div class="mission-grid">${cards}</div>`}
+function historyRows(rows){return rows.length?rows.map(r=>`<div class="audit-row"><div class="rowline"><b>${escapeHTML(r.missionName||"Mission")}</b><span class="status ok">${escapeHTML(r.status||"CLAIMED")}</span></div><div class="tiny">${escapeHTML(r.missionType||"")} · ${r.claimedAt?new Date(r.claimedAt).toLocaleString("id-ID"):""}</div><div class="mission-meta"><span class="tier">+${Number(r.rewardCoin)||0} Coin</span><span class="tier">+${Number(r.rewardXP)||0} XP</span><span class="tiny">${escapeHTML(r.id||"")}</span></div></div>`).join(""):'<div class="empty">Belum ada riwayat.</div>'}
+function missionHistoryPage(){const rows=session.role==="Developer"?db.missionHistory:db.missionHistory.filter(x=>x.memberId===session.name);return pageHead("COLONY RECORDS","Mission History","Riwayat klaim misi dan lencana.")+`<div class="field"><label>Filter</label><select id="missionHistoryFilter" onchange="filterMissionHistory()"><option value="all">Semua</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="special">Special</option><option value="achievement">Achievement</option></select></div><div id="missionHistoryRows">${historyRows(rows)}</div>`}
+function filterMissionHistory(){const f=$("missionHistoryFilter").value,rows=(session.role==="Developer"?db.missionHistory:db.missionHistory.filter(x=>x.memberId===session.name)).filter(x=>f==="all"||x.missionType===f);$("missionHistoryRows").innerHTML=historyRows(rows)}
+function developerMissionControl(){if(session?.role!=="Developer")return toast("Akses Developer ditolak.");const perms=["create","edit","participants","validate","approve"],staff=["Kepsuk","Deputi","Admin"].map(r=>`<div class="panel"><h3>${r}</h3>${perms.map(p=>`<label class="tiny"><input type="checkbox" ${db.missionPermissions[r]?.[p]?"checked":""} onchange="setMissionPermission('${r}','${p}',this.checked)"> ${p} </label>`).join("")}</div>`).join(""),missions=db.specialMissions.map(m=>`<div class="audit-row"><b>${escapeHTML(m.name)}</b> · ${m.status} · ${m.startDate}—${m.endDate}<div class="tiny">${m.target} ${m.event} · ${m.coin} Coin · ${m.xp} XP</div><button class="btn small" onclick="toggleSpecialMission('${m.id}')">${m.status==="active"?"Nonaktifkan":"Aktifkan"}</button> <button class="btn danger small" onclick="deleteSpecialMission('${m.id}')">Arsipkan</button></div>`).join("");$("devDetail").innerHTML=`<div class="panel"><h2>Developer Mission Control</h2><button class="btn primary" onclick="createSpecialMission()">+ Create Special Mission</button><h3 class="section">Mission Registry</h3>${missions||"Belum ada misi."}<h3 class="section">Role Permissions</h3>${staff}<h3 class="section">Developer Audit Log</h3>${db.auditLog.map(a=>`<div class="audit-row">${escapeHTML(a.action)} · ${escapeHTML(a.actorId)} · ${escapeHTML(a.createdAt)}</div>`).join("")||"Belum ada audit."}</div>`}
+function setMissionPermission(role,p,value){if(session?.role!=="Developer"||!db.missionPermissions[role])return toast("Akses ditolak.");const before=!!db.missionPermissions[role][p];db.missionPermissions[role][p]=!!value;auditMission("SET_PERMISSION",role+"."+p,before,value,"Developer mengubah izin");saveDB();toast("Izin diperbarui.")}
+function toggleSpecialMission(id){if(session?.role!=="Developer")return;const m=db.specialMissions.find(x=>x.id===id);if(!m)return;const b={...m};m.status=m.status==="active"?"inactive":"active";auditMission("TOGGLE_SPECIAL_MISSION",id,b,m,"Ubah status");saveDB();developerMissionControl()}
+function deleteSpecialMission(id){if(session?.role!=="Developer"||!confirm("Arsipkan misi? Riwayat klaim tetap disimpan."))return;const m=db.specialMissions.find(x=>x.id===id);if(!m)return;const b={...m};m.status="deleted";auditMission("ARCHIVE_SPECIAL_MISSION",id,b,m,"Arsip misi");saveDB();developerMissionControl()}
 
-	var member_value: Variant = payload.get("member", {})
-	var permission_value: Variant = payload.get("permissions", {})
-	if typeof(member_value) != TYPE_DICTIONARY or typeof(permission_value) != TYPE_DICTIONARY:
-		_access_denied("session_identity_payload_invalid")
-		return
+// ================= TAHAP 13: ROYAL BEE KINGDOM MEMBER MIGRATION =================
+// Roster is embedded from the validated migration JSON. Import is local-only and idempotent.
+const FC13_ROSTER = {"format":"royal-bee-kingdom-member-migration","version":1,"createdAt":"2026-11-18T10:05:36.684Z","sourceFile":"Family_Colony_Bee_Kingdom_Backup (3).json","passwordPolicy":"reset_required","totalSourceRows":40,"uniqueMemberCount":40,"duplicateCount":0,"members":[{"memberId":"mmwj8vunhthaxw","username":"dhita","displayName":"Dhita","email":"","role":"Kepsuk","status":"Aktif","joinedAt":"2026-11-16T12:33:45.2+00:00","avatar":"","legacyData":{"id":"mmwj8vunhthaxw","name":"Dhita","username":"dhita","role":"Kepsuk","status":"Aktif","createdAt":"2026-11-16T12:33:45.2+00:00"},"sourceRow":1},{"memberId":"mmwj8vunxq8xy7","username":"adibah","displayName":"Adibah","email":"","role":"Deputi","status":"Aktif","joinedAt":"2026-11-16T12:33:45.213+00:00","avatar":"","legacyData":{"id":"mmwj8vunxq8xy7","name":"Adibah","username":"adibah","role":"Deputi","status":"Aktif","createdAt":"2026-11-16T12:33:45.213+00:00"},"sourceRow":2},{"memberId":"mmwj8vunxzscsr","username":"hani","displayName":"Hani","email":"","role":"Deputi","status":"Aktif","joinedAt":"2026-11-16T12:33:45.214+00:00","avatar":"","legacyData":{"id":"mmwj8vunxzscsr","name":"Hani","username":"hani","role":"Deputi","status":"Aktif","createdAt":"2026-11-16T12:33:45.214+00:00"},"sourceRow":3},{"memberId":"mmwj8vunzizfcy","username":"rere","displayName":"Rere","email":"","role":"Admin","status":"Aktif","joinedAt":"2026-11-16T12:33:45.215+00:00","avatar":"","legacyData":{"id":"mmwj8vunzizfcy","name":"Rere","username":"rere","role":"Admin","status":"Aktif","createdAt":"2026-11-16T12:33:45.215+00:00"},"sourceRow":4},{"memberId":"mmwj8vuo0wcheh","username":"raff","displayName":"Raff","email":"","role":"Admin","status":"Aktif","joinedAt":"2026-11-16T12:33:45.216+00:00","avatar":"","legacyData":{"id":"mmwj8vuo0wcheh","name":"Raff","username":"raff","role":"Admin","status":"Aktif","createdAt":"2026-11-16T12:33:45.216+00:00"},"sourceRow":5},{"memberId":"mmwj8vuo1qpo2o","username":"cike","displayName":"Cike","email":"","role":"Admin","status":"Aktif","joinedAt":"2026-11-16T12:33:45.218+00:00","avatar":"","legacyData":{"id":"mmwj8vuo1qpo2o","name":"Cike","username":"cike","role":"Admin","status":"Aktif","createdAt":"2026-11-16T12:33:45.218+00:00"},"sourceRow":6},{"memberId":"mmwj8vuo29pkmk","username":"edrick","displayName":"Edrick","email":"","role":"Developer","status":"Aktif","joinedAt":"2026-11-16T12:33:45.219+00:00","avatar":"","legacyData":{"id":"mmwj8vuo29pkmk","name":"Edrick","username":"edrick","role":"Developer","status":"Aktif","createdAt":"2026-11-16T12:33:45.219+00:00"},"sourceRow":7},{"memberId":"mmwj8vuo5vslbp","username":"ikki","displayName":"Ikki","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.221+00:00","avatar":"","legacyData":{"id":"mmwj8vuo5vslbp","name":"Ikki","username":"ikki","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.221+00:00"},"sourceRow":8},{"memberId":"mmwj8vuo6vle1q","username":"zia","displayName":"Zia","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.222+00:00","avatar":"","legacyData":{"id":"mmwj8vuo6vle1q","name":"Zia","username":"zia","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.222+00:00"},"sourceRow":9},{"memberId":"mmwj8vuo6gldk5","username":"jv","displayName":"Jv","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.222+00:00","avatar":"","legacyData":{"id":"mmwj8vuo6gldk5","name":"Jv","username":"jv","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.222+00:00"},"sourceRow":10},{"memberId":"mmwj8vuo6z0ypx","username":"araa","displayName":"Araa","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.222+00:00","avatar":"","legacyData":{"id":"mmwj8vuo6z0ypx","name":"Araa","username":"araa","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.222+00:00"},"sourceRow":11},{"memberId":"mmwj8vuo5syi7b","username":"uthi","displayName":"Uthi","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.222+00:00","avatar":"","legacyData":{"id":"mmwj8vuo5syi7b","name":"Uthi","username":"uthi","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.222+00:00"},"sourceRow":12},{"memberId":"mmwj8vuo7cgmq4","username":"fay","displayName":"Fay","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.223+00:00","avatar":"","legacyData":{"id":"mmwj8vuo7cgmq4","name":"Fay","username":"fay","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.223+00:00"},"sourceRow":13},{"memberId":"mmwj8vuo7ofdne","username":"airin","displayName":"Airin","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.223+00:00","avatar":"","legacyData":{"id":"mmwj8vuo7ofdne","name":"Airin","username":"airin","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.223+00:00"},"sourceRow":14},{"memberId":"mmwj8vuo7yp71d","username":"yaya","displayName":"Yaya","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.223+00:00","avatar":"","legacyData":{"id":"mmwj8vuo7yp71d","name":"Yaya","username":"yaya","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.223+00:00"},"sourceRow":15},{"memberId":"mmwj8vuo87w00f","username":"nae","displayName":"Nae","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.224+00:00","avatar":"","legacyData":{"id":"mmwj8vuo87w00f","name":"Nae","username":"nae","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.224+00:00"},"sourceRow":16},{"memberId":"mmwj8vuo8okrcf","username":"dewa.indra","displayName":"Dewa indra","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.224+00:00","avatar":"","legacyData":{"id":"mmwj8vuo8okrcf","name":"Dewa indra","username":"dewa.indra","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.224+00:00"},"sourceRow":17},{"memberId":"mmwj8vuo83zs7u","username":"jo","displayName":"Jo","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.224+00:00","avatar":"","legacyData":{"id":"mmwj8vuo83zs7u","name":"Jo","username":"jo","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.224+00:00"},"sourceRow":18},{"memberId":"mmwj8vuo9uioz8","username":"shar","displayName":"Shar","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.225+00:00","avatar":"","legacyData":{"id":"mmwj8vuo9uioz8","name":"Shar","username":"shar","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.225+00:00"},"sourceRow":19},{"memberId":"mmwj8vuo9k8m4a","username":"lynx","displayName":"Lynx","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.225+00:00","avatar":"","legacyData":{"id":"mmwj8vuo9k8m4a","name":"Lynx","username":"lynx","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.225+00:00"},"sourceRow":20},{"memberId":"mmwj8vuoa9xlam","username":"ya","displayName":"Ya","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.226+00:00","avatar":"","legacyData":{"id":"mmwj8vuoa9xlam","name":"Ya","username":"ya","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.226+00:00"},"sourceRow":21},{"memberId":"mmwj8vuoa08nv6","username":"juni","displayName":"Juni","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.226+00:00","avatar":"","legacyData":{"id":"mmwj8vuoa08nv6","name":"Juni","username":"juni","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.226+00:00"},"sourceRow":22},{"memberId":"mmwj8vuo91iy90","username":"mouren","displayName":"Mouren","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.226+00:00","avatar":"","legacyData":{"id":"mmwj8vuo91iy90","name":"Mouren","username":"mouren","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.226+00:00"},"sourceRow":23},{"memberId":"mmwj8vuoaunr7p","username":"fy","displayName":"Fy","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.226+00:00","avatar":"","legacyData":{"id":"mmwj8vuoaunr7p","name":"Fy","username":"fy","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.226+00:00"},"sourceRow":24},{"memberId":"mmwj8vuob2e89d","username":"hubbert","displayName":"Hubbert","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.227+00:00","avatar":"","legacyData":{"id":"mmwj8vuob2e89d","name":"Hubbert","username":"hubbert","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.227+00:00","mustChange":true},"sourceRow":25},{"memberId":"mmwj8vuobc2ouh","username":".martopo","displayName":".Martopo","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.227+00:00","avatar":"","legacyData":{"id":"mmwj8vuobc2ouh","name":".Martopo","username":".martopo","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.227+00:00"},"sourceRow":26},{"memberId":"mmwj8vuocsyxir","username":"kiki","displayName":"Kiki","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.228+00:00","avatar":"","legacyData":{"id":"mmwj8vuocsyxir","name":"Kiki","username":"kiki","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.228+00:00"},"sourceRow":27},{"memberId":"mmwj8vuocwuw40","username":"zey","displayName":"Zey","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.228+00:00","avatar":"","legacyData":{"id":"mmwj8vuocwuw40","name":"Zey","username":"zey","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.228+00:00"},"sourceRow":28},{"memberId":"mmwj8vuob2rcvw","username":"aulia","displayName":"Aulia","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.228+00:00","avatar":"","legacyData":{"id":"mmwj8vuob2rcvw","name":"Aulia","username":"aulia","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.228+00:00"},"sourceRow":29},{"memberId":"mmwj8vuocaezud","username":"angga","displayName":"Angga","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.228+00:00","avatar":"","legacyData":{"id":"mmwj8vuocaezud","name":"Angga","username":"angga","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.228+00:00"},"sourceRow":30},{"memberId":"mmwj8vuodimuxu","username":"nalu","displayName":"Nalu","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.23+00:00","avatar":"","legacyData":{"id":"mmwj8vuodimuxu","name":"Nalu","username":"nalu","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.23+00:00"},"sourceRow":31},{"memberId":"mmwj8vuofgniu4","username":"ika","displayName":"Ika","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.231+00:00","avatar":"","legacyData":{"id":"mmwj8vuofgniu4","name":"Ika","username":"ika","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.231+00:00"},"sourceRow":32},{"memberId":"mmwj8vuofunm6f","username":"hana","displayName":"Hana","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.231+00:00","avatar":"","legacyData":{"id":"mmwj8vuofunm6f","name":"Hana","username":"hana","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.231+00:00"},"sourceRow":33},{"memberId":"mmwj8vuogzkp11","username":"finaa","displayName":"Finaa","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.232+00:00","avatar":"","legacyData":{"id":"mmwj8vuogzkp11","name":"Finaa","username":"finaa","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.232+00:00"},"sourceRow":34},{"memberId":"mmwj8vuogug4x2","username":"dwi","displayName":"Dwi","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.232+00:00","avatar":"","legacyData":{"id":"mmwj8vuogug4x2","name":"Dwi","username":"dwi","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.232+00:00"},"sourceRow":35},{"memberId":"mmwj8vuofc8tn9","username":"salt","displayName":"Salt","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.232+00:00","avatar":"","legacyData":{"id":"mmwj8vuofc8tn9","name":"Salt","username":"salt","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.232+00:00"},"sourceRow":36},{"memberId":"mmwj8vuohfo3de","username":"pii","displayName":"Pii","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.233+00:00","avatar":"","legacyData":{"id":"mmwj8vuohfo3de","name":"Pii","username":"pii","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.233+00:00"},"sourceRow":37},{"memberId":"mmwj8vuohylys5","username":"anne","displayName":"Anne","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.233+00:00","avatar":"","legacyData":{"id":"mmwj8vuohylys5","name":"Anne","username":"anne","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.233+00:00"},"sourceRow":38},{"memberId":"mmwj8vuohuzvkk","username":"duwi","displayName":"Duwi","email":"","role":"Member","status":"Aktif","joinedAt":"2026-11-16T12:33:45.233+00:00","avatar":"","legacyData":{"id":"mmwj8vuohuzvkk","name":"Duwi","username":"duwi","role":"Member","status":"Aktif","createdAt":"2026-11-16T12:33:45.233+00:00"},"sourceRow":39},{"memberId":"mmwj900c5tpbwa","username":"bee","displayName":"Bee","email":"","role":"Deputi","status":"Aktif","joinedAt":"2026-11-16T12:36:59.197+00:00","avatar":"","legacyData":{"id":"mmwj900c5tpbwa","name":"Bee","username":"bee","role":"Deputi","status":"Aktif","createdAt":"2026-11-16T12:36:59.197+00:00"},"sourceRow":40}]};
+function fc13MigrationSummary(){
+ const imported=db.members.filter(m=>m.legacyMemberId).length;
+ const names=new Set(db.members.map(m=>String(m.name||'').toLowerCase()));
+ const ready=FC13_ROSTER.members.filter(m=>!db.members.some(x=>x.legacyMemberId===m.memberId)&&!names.has(m.displayName.toLowerCase()));
+ const collisions=FC13_ROSTER.members.filter(m=>!db.members.some(x=>x.legacyMemberId===m.memberId)&&names.has(m.displayName.toLowerCase()));
+ return {imported,ready,collisions};
+}
+function fc13RosterPanel(){
+ const st=fc13MigrationSummary();
+ return `<section class="panel section"><h2>TAHAP 13 — Royal Bee Kingdom Member Migration</h2>
+ <p class="muted">Sumber tervalidasi: 40 anggota, 40 ID unik, tanpa duplikat. Migrasi ini hanya menambahkan identitas lokal; tidak mengubah Royal Coin, XP, transaksi, misi, atau riwayat.</p>
+ <div class="stats"><div class="stat"><span>Anggota sumber</span><strong>40</strong></div><div class="stat"><span>Sudah diimpor</span><strong id="fc13Imported">${st.imported}</strong></div><div class="stat"><span>Siap ditambahkan</span><strong>${st.ready.length}</strong></div><div class="stat"><span>Nama bentrok</span><strong>${st.collisions.length}</strong></div></div>
+ <div class="notice">Anggota dengan status Aktif pada roster akan tampil sebagai Aktif di daftar lokal. Email dan password sumber kosong; autentikasi permanen tetap menunggu integrasi backend dan reset kredensial. Email sumber kosong; tidak ada password yang dipindahkan. Role sumber disimpan sebagai role awal dan tidak dijadikan bukti autentikasi.</div>
+ <div class="toolbar"><button class="btn primary" onclick="fc13ImportRoster()" ${st.ready.length?'':'disabled'}>Impor Anggota ke Data Lokal</button><button class="btn" onclick="fc13ShowRoster()">Lihat Daftar 40 Anggota</button></div>
+ <div id="fc13Result" class="notice">${st.imported?'Migrasi sebelumnya terdeteksi; impor ulang akan melewati ID yang sudah ada.':'Belum ada anggota dari file sumber yang diimpor.'}</div><div id="fc13RosterList"></div></section>`;
+}
+function fc13ImportRoster(){
+ if(session?.role!=="Developer")return toast("Akses Developer ditolak.");
+ const st=fc13MigrationSummary();let added=0,skipped=0;
+ st.ready.forEach(src=>{
+  const rec={name:src.displayName,username:src.username,email:"",role:src.role,status:String(src.status||"").toLowerCase()==="aktif"?"approved":"pending",joined:src.joinedAt,coins:0,xp:0,level:1,legacyMemberId:src.memberId,legacyUsername:src.username,legacyRole:src.role,migrationSource:"Royal Bee Kingdom",migrationStatus:String(src.status||"").toLowerCase()==="aktif"?"active":"reset_required",mustChangePassword:true};
+  db.members.push(rec);added++;
+ });
+ skipped=st.collisions.length;
+ db.activity.unshift({action:"IMPORT_ROYAL_BEE_KINGDOM_MEMBERS",who:"Developer",at:new Date().toLocaleString("id-ID"),detail:{added,skipped,sourceCount:FC13_ROSTER.members.length}});
+ db.activity=db.activity.slice(0,80);saveDB();
+ const out=$("fc13Result");if(out)out.textContent=`Selesai: ${added} anggota ditambahkan. ${skipped} nama dilewati karena bentrok. Royal Coin, XP, transaksi, misi, dan riwayat tidak diubah.`;
+ renderPage();toast("Impor lokal selesai. Akun tetap menunggu verifikasi.");
+}
+function fc13ShowRoster(){
+ const el=$("fc13RosterList");if(!el)return;
+ el.innerHTML=`<div class="table-wrap"><table><thead><tr><th>No.</th><th>Nama</th><th>Username</th><th>Role sumber</th><th>Status</th></tr></thead><tbody>${FC13_ROSTER.members.map((m,i)=>`<tr><td>${i+1}</td><td>${escapeHTML(m.displayName)}</td><td>${escapeHTML(m.username)}</td><td>${escapeHTML(m.role)}</td><td>${escapeHTML(m.status)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+// Ensure Afran exists as an active Member. This is idempotent and does not duplicate the account.
+function ensureAfranMember(){
+ const existing=memberRecord("Afran");
+ if(!existing){db.members.push({name:"Afran",role:"Member",status:"approved",joined:new Date().toLocaleDateString("id-ID"),coins:0,xp:0,level:1,username:"afran",migrationSource:"Manual roster correction",migrationStatus:"active"});saveDB();}
+ else {let changed=false;if(existing.role!=="Member"){existing.role="Member";changed=true;}if(existing.status!=="approved"){existing.status="approved";changed=true;}if(!existing.username)existing.username="afran";if(changed)saveDB();}
+}
+function fc13EnsureRosterMembers(){
+ // Tahap 14: reconcile roster by stable legacy ID, then username, then exact name.
+ // Existing wallet, XP, transactions, missions, and member profile fields are preserved.
+ let added=0,linked=0,activated=0,rolesFixed=0,skipped=0;
+ FC13_ROSTER.members.forEach(src=>{
+  const srcId=String(src.memberId||"");
+  const srcUser=String(src.username||"").trim().toLowerCase();
+  const srcName=String(src.displayName||"").trim().toLowerCase();
+  let rec=db.members.find(m=>srcId&&m.legacyMemberId===srcId)
+   ||db.members.find(m=>srcUser&&String(m.legacyUsername||m.username||"").trim().toLowerCase()===srcUser)
+   ||db.members.find(m=>srcName&&String(m.name||"").trim().toLowerCase()===srcName);
+  if(!rec){
+   rec={name:src.displayName,username:src.username,email:src.email||"",role:src.role,status:"approved",joined:src.joinedAt,coins:0,xp:0,level:1,legacyMemberId:srcId,legacyUsername:src.username,legacyRole:src.role,migrationSource:"Royal Bee Kingdom",migrationStatus:"active",mustChangePassword:true};
+   db.members.push(rec);added++;
+  }else{
+   if(!rec.legacyMemberId&&srcId){rec.legacyMemberId=srcId;linked++;}
+   if(!rec.legacyUsername&&src.username)rec.legacyUsername=src.username;
+   if(!rec.username&&src.username)rec.username=src.username;
+   if(!rec.legacyRole&&src.role)rec.legacyRole=src.role;
+   if(rec.role!==src.role){rec.role=src.role;rolesFixed++;}
+   if(String(src.status||"").toLowerCase()==="aktif"&&rec.status!=="approved"){rec.status="approved";activated++;}
+   if(!rec.joined&&src.joinedAt)rec.joined=src.joinedAt;
+   if(!rec.migrationSource)rec.migrationSource="Royal Bee Kingdom";
+   if(!rec.migrationStatus)rec.migrationStatus=String(src.status||"").toLowerCase()==="aktif"?"active":"reset_required";
+  }
+ });
+ // Reserved owner account: Edrick is Developer; roster reconciliation must preserve this role.
+ const edrick=db.members.find(m=>String(m.legacyUsername||m.username||"").trim().toLowerCase()==="edrick"||String(m.name||"").trim().toLowerCase()==="edrick");
+ if(edrick){if(edrick.role!=="Developer"){edrick.role="Developer";rolesFixed++;}if(edrick.status!="approved"&&String(edrick.status||"").toLowerCase()==="aktif")edrick.status="approved";}
+ if(added||linked||activated||rolesFixed){
+  db.activity.unshift({action:"TAHAP_14_MASTER_MEMBER_RECONCILIATION",who:"System Tahap 14",at:new Date().toLocaleString("id-ID"),detail:{added,linked,activated,rolesFixed,skipped,sourceCount:FC13_ROSTER.members.length,edrickRole:edrick?.role||"not-found"}});
+  db.activity=db.activity.slice(0,80);saveDB();
+ }
+ return {added,linked,activated,rolesFixed,skipped,edrickFound:!!edrick};
+}
+ensureAfranMember();
+fc13EnsureRosterMembers();
 
-	var member_data: Dictionary = member_value
-	var permission_data: Dictionary = permission_value
-	if str(member_data.get("member_id", "")).is_empty() or not bool(permission_data.get("can_enter_world", false)):
-		_access_denied("session_world_access_denied")
-		return
-
-	last_error_code = ""
-	_current_member = member_data.duplicate(true)
-	_current_permissions = permission_data.duplicate(true)
-	session_verified.emit(get_member_profile(), get_permission_snapshot())
+// ================= TAHAP 14: MASTER DATA ANGGOTA =================
 
 
-func _access_denied(error_code: String) -> void:
-	last_error_code = error_code
-	_current_member.clear()
-	_current_permissions.clear()
-	session_rejected.emit(error_code)
+// ================= TAHAP 12: FIREBASE CLOUD FOUNDATION =================
+// Firebase config is public web-app configuration, not a server credential.
+// No local role/wallet data is uploaded until UID mapping + trusted backend exist.
+const FC12_CONFIG_KEY="fc_bee_kingdom_firebase_config_v1";
+let fc12Runtime={status:"NOT TESTED",detail:"Firebase belum diuji pada sesi ini.",projectId:"",uid:""};
+function fc12LoadConfig(){try{return JSON.parse(localStorage.getItem(FC12_CONFIG_KEY)||"null")}catch(e){return null}}
+function cloudIntegrationPage(){
+ if(session?.role!=="Developer")return pageHead("ACCESS DENIED","Developer Only","Halaman ini khusus Developer.");
+ const cfg=fc12LoadConfig(),cfgText=cfg?JSON.stringify(cfg,null,2):"";
+ const statusClass=fc12Runtime.status==="CONNECTED"?"ok":fc12Runtime.status==="ERROR"?"bad":"wait";
+ return pageHead("TAHAP 12 • CLOUD & SECURITY","Firebase Cloud Integration","Integrasi bertahap pada proyek Firebase Family Colony yang sudah ada. Tidak membuat proyek baru atau mengubah login member.")+
+ `<div class="stats"><div class="stat"><span>Firebase status</span><strong style="font-size:1rem" id="fc12Status">${escapeHTML(fc12Runtime.status)}</strong></div><div class="stat"><span>Project ID</span><strong style="font-size:.95rem" id="fc12Project">${escapeHTML(fc12Runtime.projectId||cfg?.projectId||"BELUM DIISI")}</strong></div><div class="stat"><span>Auth UID</span><strong style="font-size:.9rem" id="fc12Uid">${escapeHTML(fc12Runtime.uid||"—")}</strong></div><div class="stat"><span>Data mode</span><strong style="font-size:1rem;color:var(--red)">LOCAL ONLY</strong></div></div>
+ <section class="panel"><h2>1. Firebase Web App Configuration</h2><p class="muted">Tempel objek firebaseConfig dari Project settings → Your apps → SDK setup and configuration → Config. Gunakan project <b>Family Colony</b> yang sudah ada. Jangan masukkan Service Account JSON atau private key.</p><div class="field"><label for="fc12Config">Firebase config JSON</label><textarea id="fc12Config" spellcheck="false" placeholder='{"apiKey":"...","authDomain":"...","projectId":"family-colony-...","appId":"..."}'>${escapeHTML(cfgText)}</textarea></div><div class="toolbar"><button class="btn primary" onclick="fc12SaveConfig()">Simpan Konfigurasi</button><button class="btn" onclick="fc12ExportConfigFile()">Ekspor Config untuk Tahap 13</button><button class="btn" onclick="document.getElementById('fc12ConfigFile').click()">Impor File Config</button><input id="fc12ConfigFile" type="file" accept="application/json,.json" style="display:none" onchange="fc12ImportConfigFile(this)"><button class="btn" onclick="fc12TestConnection()">Diagnosis Firebase Lengkap</button><button class="btn ghost" onclick="fc12ClearConfig()">Hapus Konfigurasi Lokal</button></div><div class="notice" id="fc12Result"><b>${escapeHTML(fc12Runtime.status)}:</b> ${escapeHTML(fc12Runtime.detail)}</div></section>
+ <section class="panel section"><h2>2. Kesiapan Data & Migrasi</h2><div class="stats"><div class="stat"><span>Member lokal</span><strong>${db.members.length}</strong></div><div class="stat"><span>Transaksi lokal</span><strong>${db.economy?.transactions?.length||0}</strong></div><div class="stat"><span>Misi lokal</span><strong>${(db.specialMissions||[]).length+(db.missionCatalog?.length||0)}</strong></div><div class="stat"><span>Riwayat misi</span><strong>${(db.missionHistory||[]).length}</strong></div></div><div class="notice">Migrasi otomatis <b>ditahan demi keamanan</b>. Data akun saat ini memakai nama tampilan sebagai identitas dan role/wallet berada di LocalStorage. Data tersebut belum terikat Firebase Auth UID dan belum divalidasi backend. Mengunggahnya sekarang dapat menyebabkan benturan akun atau eskalasi role.</div><button class="btn" onclick="fc12ExportBackup()">Ekspor Backup Data Lokal (JSON)</button></section>
+ ${fc13RosterPanel()}
+ <section class="panel section"><h2>3. Target Struktur Firestore</h2><div class="table-wrap"><table><thead><tr><th>Path</th><th>Tujuan</th><th>Penulisan</th></tr></thead><tbody><tr><td>members/{uid}</td><td>Identitas + role hasil verifikasi</td><td>Cloud Functions / Admin SDK</td></tr><tr><td>economy/{uid}</td><td>Royal Coin, XP, Level</td><td>Cloud Functions saja</td></tr><tr><td>missions/{missionId}</td><td>Katalog misi</td><td>Developer backend</td></tr><tr><td>missionProgress/{id}</td><td>Progress tervalidasi</td><td>Backend</td></tr><tr><td>missionClaims/{claimId}</td><td>Idempotency & klaim</td><td>Backend transaction</td></tr><tr><td>achievements/{uid}</td><td>Lencana anggota</td><td>Backend</td></tr><tr><td>transactions/{transactionId}</td><td>Ledger transaksi immutable</td><td>Backend</td></tr><tr><td>auditLogs/{logId}</td><td>Audit tindakan</td><td>Backend</td></tr><tr><td>colonies/honey_challenge/*</td><td>Honey Challenge existing design</td><td>Backend sesuai rules</td></tr></tbody></table></div><p class="tiny">Koleksi chat <b>messages</b> dan <b>fc_messages</b> tidak dihapus atau ditimpa. Aturan koleksi tersebut harus dipertahankan saat memperbarui Firestore Rules.</p></section>
+ <section class="panel section"><h2>4. Security Gate — wajib sebelum sinkronisasi</h2><ul class="muted" style="line-height:1.9"><li>Firebase Authentication UID harus dipetakan ke satu member resmi.</li><li>Role Developer/Kepsuk/Deputi/Admin/Member tidak boleh berasal dari input browser.</li><li>Role istimewa harus diterbitkan sebagai custom claims oleh Admin SDK setelah verifikasi.</li><li>Coin, XP, klaim misi, penukaran hadiah, dan audit harus ditulis melalui Cloud Functions dengan transaksi Firestore.</li><li>Firestore Rules menolak penulisan langsung dari client untuk data sensitif.</li><li>Jangan gunakan Anonymous Auth sebagai identitas permanen akun anggota.</li></ul><div class="notice">Diagnosis menjalankan pemeriksaan SDK, Authentication diagnostik, Firestore read, write, read-back, dan penghapusan dokumen sementara. Hasil PASS hanya membuktikan koneksi dasar; belum mengaktifkan sinkronisasi aplikasi. Anonymous UID diagnosis tidak ditautkan ke akun Member. Jangan mengubah Firestore Rules sebelum membaca tahap yang gagal.</div></section>`;
+}
+function fc12SaveConfig(){if(session?.role!=="Developer")return toast("Akses Developer ditolak.");const raw=$("fc12Config")?.value||"";let c;try{c=JSON.parse(raw)}catch(e){return toast("JSON konfigurasi tidak valid.")};const required=["apiKey","authDomain","projectId","appId"];if(!c||required.some(k=>typeof c[k]!=="string"||!c[k].trim()))return toast("Config wajib memuat apiKey, authDomain, projectId, dan appId.");if(!/family.?colony/i.test(c.projectId)&&!confirm("Project ID tidak memuat nama Family Colony. Pastikan ini project lama yang benar. Lanjut simpan?"))return;localStorage.setItem(FC12_CONFIG_KEY,JSON.stringify(c));fc12Runtime={status:"SAVED",detail:"Konfigurasi tersimpan di browser ini. Belum diuji koneksinya.",projectId:c.projectId,uid:""};renderPage();toast("Konfigurasi Firebase disimpan lokal.")}
+function fc12ExportConfigFile(){if(session?.role!=="Developer")return toast("Akses Developer ditolak.");const cfg=fc12LoadConfig();if(!cfg)return toast("Belum ada konfigurasi tersimpan untuk diekspor.");const safe={apiKey:cfg.apiKey,authDomain:cfg.authDomain,projectId:cfg.projectId,appId:cfg.appId};if(cfg.messagingSenderId)safe.messagingSenderId=cfg.messagingSenderId;if(cfg.measurementId)safe.measurementId=cfg.measurementId;if(cfg.storageBucket)safe.storageBucket=cfg.storageBucket;if(cfg.databaseURL)safe.databaseURL=cfg.databaseURL;const blob=new Blob([JSON.stringify(safe,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="family-colony-firebase-config.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);toast("File konfigurasi publik berhasil diekspor.")}
+function fc12ImportConfigFile(input){if(session?.role!=="Developer")return toast("Akses Developer ditolak.");const file=input?.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const c=JSON.parse(String(reader.result||"")),required=["apiKey","authDomain","projectId","appId"];if(!c||required.some(k=>typeof c[k]!=="string"||!c[k].trim()))throw new Error("File tidak memuat apiKey, authDomain, projectId, dan appId.");if(!/family.?colony/i.test(c.projectId)&&!confirm("Project ID tidak memuat nama Family Colony. Pastikan file berasal dari proyek lama yang benar. Lanjutkan?"))return;localStorage.setItem(FC12_CONFIG_KEY,JSON.stringify(c));fc12Runtime={status:"SAVED",detail:"Konfigurasi publik diimpor dari file. Koneksi belum diuji.",projectId:c.projectId,uid:""};renderPage();toast("Konfigurasi berhasil diimpor. Belum berarti Firebase sudah terhubung.")}catch(e){toast("Gagal mengimpor: "+(e.message||String(e)))}finally{input.value=""}};reader.onerror=()=>{toast("File konfigurasi tidak dapat dibaca.");input.value=""};reader.readAsText(file)}
+function fc12ClearConfig(){if(session?.role!=="Developer"||!confirm("Hapus konfigurasi Firebase dari browser ini? Data member dan Royal Economy tidak dihapus."))return;localStorage.removeItem(FC12_CONFIG_KEY);fc12Runtime={status:"NOT TESTED",detail:"Konfigurasi Firebase lokal dihapus. Data aplikasi tidak disentuh.",projectId:"",uid:""};renderPage()}
+async function fc12TestConnection(){
+ if(session?.role!=="Developer")return toast("Akses Developer ditolak.");
+ const cfg=fc12LoadConfig();if(!cfg)return toast("Konfigurasi Firebase belum tersimpan di browser ini. Masukkan satu kali, lalu diagnosis dapat dijalankan.");
+ const out=$("fc12Result");if(out)out.textContent="Diagnosis berjalan: memuat SDK → Auth → Firestore read → write → read-back → cleanup…";
+ fc12Runtime={status:"TESTING",detail:"Diagnosis bertahap sedang berjalan.",projectId:cfg.projectId,uid:""};
+ const checks=[];let user=null,firestore=null,fsMod=null,canaryRef=null,cleanup="NOT RUN";
+ try{
+  if(location.protocol==="file:")throw new Error("FILE_PROTOCOL: file HTML dibuka langsung. Modul Firebase perlu dijalankan melalui HTTPS hosting atau server lokal; ini bukan bukti konfigurasi Firebase salah.");
+  const v="11.0.2",[appMod,authMod,firestoreMod]=await Promise.all([import(`https://www.gstatic.com/firebasejs/${v}/firebase-app.js`),import(`https://www.gstatic.com/firebasejs/${v}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${v}/firebase-firestore.js`)]);fsMod=firestoreMod;
+  checks.push("SDK: PASS");
+  const appName="family-colony-stage12-diagnostic",existing=appMod.getApps().find(a=>a.name===appName),app=existing||appMod.initializeApp(cfg,appName),auth=authMod.getAuth(app);
+  user=auth.currentUser;if(!user){const cred=await authMod.signInAnonymously(auth);user=cred.user;}
+  checks.push("AUTH: PASS (diagnostic anonymous UID; tidak ditautkan ke akun Member)");
+  firestore=fsMod.getFirestore(app);
+  let healthRead="NOT TESTED";try{const health=await fsMod.getDoc(fsMod.doc(firestore,"system","health"));healthRead=health.exists()?"PASS (document exists)":"PASS (read allowed; document absent)";}catch(e){healthRead="BLOCKED ("+(e.code||e.message)+")";}
+  checks.push("FIRESTORE READ system/health: "+healthRead);
+  const canaryId="diag_"+user.uid+"_"+Date.now();canaryRef=fsMod.doc(firestore,"fc_stage12_diagnostics",canaryId);
+  await fsMod.setDoc(canaryRef,{uid:user.uid,projectId:cfg.projectId,createdAt:new Date().toISOString(),purpose:"temporary connectivity diagnostic; no member/economy data"});
+  checks.push("FIRESTORE WRITE: PASS");
+  const verify=await fsMod.getDoc(canaryRef);if(!verify.exists()||verify.data()?.uid!==user.uid)throw new Error("READ_BACK_MISMATCH: Dokumen canary tidak cocok saat dibaca kembali.");
+  checks.push("FIRESTORE READ-BACK: PASS");
+  try{await fsMod.deleteDoc(canaryRef);cleanup="PASS (temporary diagnostic document deleted)";}catch(cleanErr){cleanup="BLOCKED (canary remains: "+(cleanErr.code||cleanErr.message)+")";}
+  checks.push("CLEANUP: "+cleanup);
+  const writeOk=checks.some(x=>x==="FIRESTORE WRITE: PASS"),readOk=checks.some(x=>x==="FIRESTORE READ-BACK: PASS");
+  fc12Runtime={status:writeOk&&readOk?"CONNECTION VERIFIED":"PARTIAL",detail:checks.join(" | ")+". Ini membuktikan akses dasar Firebase saja; belum mengaktifkan sinkronisasi aplikasi atau keamanan produksi.",projectId:cfg.projectId,uid:user.uid};
+ }catch(e){
+  const code=e?.code||"unknown";let msg=e?.message||String(e);
+  if(code==="auth/operation-not-allowed")msg="Anonymous Authentication tidak diizinkan. Ini hanya metode diagnosis, bukan login member.";
+  else if(code==="permission-denied")msg="Firestore Rules menolak salah satu operasi. Lihat daftar tahapan di bawah; jangan mengganti Rules secara membabi buta.";
+  else if(code==="unavailable")msg="Firestore tidak tersedia atau jaringan memblokir koneksi. Coba jaringan lain hanya setelah memeriksa error ini.";
+  checks.push("FAILED: "+code+" — "+msg);
+  if(canaryRef&&fsMod){try{await fsMod.deleteDoc(canaryRef);cleanup="PASS";}catch(_){cleanup="Belum dapat dipastikan; periksa koleksi fc_stage12_diagnostics.";}}
+  fc12Runtime={status:"DIAGNOSIS FAILED",detail:checks.join(" | ")+" | Cleanup: "+cleanup,projectId:cfg.projectId,uid:user?.uid||""};
+ }
+ const status=$("fc12Status"),project=$("fc12Project"),uid=$("fc12Uid");if(status)status.textContent=fc12Runtime.status;if(project)project.textContent=fc12Runtime.projectId||"—";if(uid)uid.textContent=fc12Runtime.uid||"—";if(out)out.textContent=fc12Runtime.status+": "+fc12Runtime.detail;toast(fc12Runtime.status==="CONNECTION VERIFIED"?"Tes dasar Firebase berhasil: read/write/read-back.":"Diagnosis selesai. Gunakan hasil tahap yang gagal; tidak perlu mengulang langkah yang sudah PASS.");
+}
+function fc12ExportBackup(){if(session?.role!=="Developer")return toast("Akses Developer ditolak.");try{const payload={exportType:"FAMILY_COLONY_LOCAL_BACKUP",schemaVersion:1,exportedAt:new Date().toISOString(),source:"Tahap 12 local-only export",data:db};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="FAMILY_COLONY_LOCAL_BACKUP_TAHAP_12.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);toast("Backup JSON dibuat. Simpan di tempat aman.")}catch(e){toast("Gagal membuat backup JSON.")}}
+// ================= END TAHAP 12 FOUNDATION =================
+
+// Initial safe setup and small runtime checks.
+$("memberName").addEventListener("keydown",e=>{if(e.key==="Enter")requestAccess()});
+$("devGateCode")?.addEventListener("keydown",e=>{if(e.key==="Enter")developerLogin()});
+const developerSetupButton=$("developerSetupButton");if(developerSetupButton)developerSetupButton.addEventListener("click",()=>bootstrapDeveloperPassword());
+$("memberName").addEventListener("input",e=>{const value=e.target.value.trim().replace(/^@/,"").toLowerCase();if(value==="edrick")openPrivateDeveloperPanel();else $("developerLoginPanel")?.classList.add("hidden")});
+$("guestRecommendationCode")?.addEventListener("keydown",e=>{if(e.key==="Enter")guestRecommendationLogin()});
+/* Panel Developer tetap tersembunyi sampai username khusus Developer dimasukkan. */
+$("developerGate").addEventListener("click",e=>{if(e.target.id==="developerGate")closeDeveloperGate()});
+if(!Array.isArray(db.members))db.members=[];if(!Array.isArray(db.requests))db.requests=[];if(!Array.isArray(db.announcements))db.announcements=[];if(!Array.isArray(db.activity))db.activity=[];ensureEconomyData();ensureMissionData();ensureHoneyChallengeData();ensureGuessWhoData();saveDB();try{const saved=JSON.parse(sessionStorage.getItem("fc_session")||"null");if(saved&&saved.expiresAt>Date.now()+30000){session=saved;if(saved.guest&&saved.guestToken){$("landing").classList.add("hidden");$("workspace").classList.add("hidden");$("guestWorkspace").classList.remove("hidden");$("guestWelcome").textContent="Halo, "+saved.name+". Selamat menjelajahi fitur publik dan area demo FAMILY COLONY.";$("guestReferrer").textContent=saved.referrer||"Member Family Colony";$("guestExpiry").textContent="Sesi sampai "+new Date(saved.expiresAt).toLocaleString("id-ID");$("logoutBtn").classList.remove("hidden");$("topUser").textContent=saved.name+" · TAMU";guestOpen("overview")}else if(saved.accessToken){enterApp()}}}catch(e){}
+
+setInterval(fcPollAppStatus,45000);fcPollAppStatus();
+</script>
+</body></html>
