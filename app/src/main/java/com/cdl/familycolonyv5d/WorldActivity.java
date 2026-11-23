@@ -16,8 +16,11 @@ import java.util.Set;
 public final class WorldActivity extends GodotActivity {
     public static final String EXTRA_ACCESS_TOKEN =
             "com.cdl.familycolonyv5d.extra.WORLD_ACCESS_TOKEN";
+    public static final String EXTRA_API_KEY =
+            "com.cdl.familycolonyv5d.extra.WORLD_API_KEY";
 
     private String pendingAccessToken = "";
+    private String pendingApiKey = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,25 +28,31 @@ public final class WorldActivity extends GodotActivity {
         String suppliedToken = getIntent() == null
                 ? ""
                 : getIntent().getStringExtra(EXTRA_ACCESS_TOKEN);
+        String suppliedApiKey = getIntent() == null
+                ? ""
+                : getIntent().getStringExtra(EXTRA_API_KEY);
         pendingAccessToken = suppliedToken == null ? "" : suppliedToken.trim();
+        pendingApiKey = suppliedApiKey == null ? "" : suppliedApiKey.trim();
 
         super.onCreate(savedInstanceState);
 
         // Do not leave the bearer token in the Activity's launch Intent.
         if (getIntent() != null) {
             getIntent().removeExtra(EXTRA_ACCESS_TOKEN);
+            getIntent().removeExtra(EXTRA_API_KEY);
         }
     }
 
     @Override
     public Set<GodotPlugin> getHostPlugins(Godot godot) {
-        if (pendingAccessToken.isEmpty()) {
+        if (pendingAccessToken.isEmpty() || pendingApiKey.isEmpty()) {
             return Collections.emptySet();
         }
 
         FamilyColonyGodotPlugin bridge =
-                new FamilyColonyGodotPlugin(godot, this, pendingAccessToken);
+                new FamilyColonyGodotPlugin(godot, this, pendingAccessToken, pendingApiKey);
         pendingAccessToken = "";
+        pendingApiKey = "";
         return Collections.singleton(bridge);
     }
 
