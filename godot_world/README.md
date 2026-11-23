@@ -83,3 +83,8 @@ Godot 4.x. Compatibility renderer is the initial baseline for broad Android supp
 - Clients request the action from the host; the host accepts only the current allowlisted gesture IDs and relays the event with the originating peer ID.
 - This synchronizes the gesture event only. It does not validate FAMILY COLONY account identity, room membership, social permissions, seat ownership or anti-spam policy, and it is not a production multiplayer authority model.
 - This networking change has not been runtime-tested with multiple Godot clients.
+
+## Supabase member-session bridge contract
+- Added `docs/GODOT_SUPABASE_MEMBER_SESSION_BRIDGE.md` with the secure handoff sequence from the existing authenticated app to the Godot world.
+- The contract requires server-side token verification and canonical member resolution through `fc_members.auth_user_id`; client-supplied IDs and roles are never trusted.
+- This is documentation only. No login flow was modified, no new Edge Function was deployed, and Godot is not yet connected to Supabase member identity.
