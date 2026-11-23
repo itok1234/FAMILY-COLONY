@@ -109,6 +109,12 @@ jobs:
           unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "scenes/world.tscn"
           unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "scripts/world_session_client.gd"
           sha256sum "$APK"
+          APK_BYTES="$(stat -c%s "$APK")"
+          APK_MIB="$((APK_BYTES / 1024 / 1024))"
+          echo "Signed release APK: ${APK_BYTES} bytes (${APK_MIB} MiB)"
+          if [ "$APK_BYTES" -gt $((250 * 1024 * 1024)) ]; then
+            echo "::warning::APK exceeds the 250 MiB optimization target; review ABI and asset packaging before final publication."
+          fi
 
       - name: Upload signed Release APK artifact
         uses: actions/upload-artifact@v4
