@@ -21,6 +21,7 @@ func _ready() -> void:
 	_build_lamps()
 	_build_benches()
 	_build_community_interior()
+	_build_royal_hive_citadel()
 
 func apply_quality_density(trees: int, lamps: int, buildings: int) -> void:
 	tree_count = maxi(0, trees)
@@ -320,3 +321,121 @@ func _build_community_interior() -> void:
 	exit_sphere.radius = 1.8
 	exit_shape.shape = exit_sphere
 	exit_portal.add_child(exit_shape)
+
+
+func _build_royal_hive_citadel() -> void:
+	# Signature landmark for the first FAMILY COLONY kingdom zone.
+	# Procedural low-poly architecture is deliberately lightweight for Android;
+	# authored high-detail art can replace these meshes without changing gameplay.
+	var citadel := Node3D.new()
+	citadel.name = "RoyalHiveCitadel"
+	citadel.position = Vector3(0, 0, -132)
+	add_child(citadel)
+
+	var stone := _mat("citadel_stone", Color(0.72, 0.75, 0.72), 0.86)
+	var ivory := _mat("citadel_ivory", Color(0.88, 0.85, 0.73), 0.78)
+	var honey := _mat("citadel_honey_gold", Color(0.88, 0.61, 0.19), 0.42, 0.18)
+	var deep_gold := _mat("citadel_deep_gold", Color(0.48, 0.29, 0.10), 0.5, 0.22)
+	var teal := _mat("citadel_teal_glass", Color(0.16, 0.39, 0.43), 0.22, 0.28)
+	var garden := _mat("citadel_garden", Color(0.23, 0.43, 0.29), 0.96)
+
+	# Forecourt and raised foundation.
+	_box(citadel, Vector3(34, 0.35, 28), Vector3(0, -0.28, 0), stone, "CitadelForecourt")
+	_box(citadel, Vector3(26, 0.5, 20), Vector3(0, 0.12, -1.5), ivory, "CitadelFoundation")
+	_box(citadel, Vector3(21, 0.22, 16), Vector3(0, 0.48, -1.5), honey, "GoldenFoundationTrim")
+
+	# Main hexagonal keep and crown.
+	var keep := CylinderMesh.new()
+	keep.top_radius = 5.8
+	keep.bottom_radius = 6.8
+	keep.height = 13.0
+	keep.radial_segments = 6
+	_mesh_node(citadel, keep, ivory, Vector3(0, 7.0, -4.0), "GreatHiveKeep")
+	var keep_roof := CylinderMesh.new()
+	keep_roof.top_radius = 0.0
+	keep_roof.bottom_radius = 7.6
+	keep_roof.height = 5.2
+	keep_roof.radial_segments = 6
+	_mesh_node(citadel, keep_roof, honey, Vector3(0, 16.0, -4.0), "GoldenHiveCrown")
+	var crown_cap := SphereMesh.new()
+	crown_cap.radius = 1.0
+	crown_cap.height = 2.0
+	_mesh_node(citadel, crown_cap, deep_gold, Vector3(0, 18.9, -4.0), "CrownFinial")
+
+	# Two side towers frame the entrance and make the silhouette readable at a distance.
+	for side in [-1.0, 1.0]:
+		var tower := CylinderMesh.new()
+		tower.top_radius = 2.2
+		tower.bottom_radius = 2.7
+		tower.height = 10.0
+		tower.radial_segments = 6
+		_mesh_node(citadel, tower, ivory, Vector3(side * 9.0, 5.5, -0.5), "CitadelWatchTower")
+		var tower_roof := CylinderMesh.new()
+		tower_roof.top_radius = 0.0
+		tower_roof.bottom_radius = 3.0
+		tower_roof.height = 3.2
+		tower_roof.radial_segments = 6
+		_mesh_node(citadel, tower_roof, honey, Vector3(side * 9.0, 12.1, -0.5), "WatchTowerCrown")
+		_cylinder(citadel, 0.16, 5.0, Vector3(side * 9.0, 2.9, 1.0), deep_gold, "EntranceColumn")
+
+	# A broad gate, colored glass panels and a honeycomb crest.
+	_box(citadel, Vector3(8.0, 0.55, 0.65), Vector3(0, 5.5, 2.1), honey, "RoyalGateLintel")
+	_box(citadel, Vector3(5.2, 4.2, 0.3), Vector3(0, 2.65, 2.35), deep_gold, "RoyalGate")
+	for side in [-1.0, 1.0]:
+		var window := CylinderMesh.new()
+		window.top_radius = 0.95
+		window.bottom_radius = 0.95
+		window.height = 0.16
+		window.radial_segments = 6
+		var pane := _mesh_node(citadel, window, teal, Vector3(side * 3.0, 8.2, 2.35), "HoneycombWindow")
+		pane.rotation.x = PI * 0.5
+		var frame := CylinderMesh.new()
+		frame.top_radius = 1.12
+		frame.bottom_radius = 1.12
+		frame.height = 0.12
+		frame.radial_segments = 6
+		var frame_node := _mesh_node(citadel, frame, honey, Vector3(side * 3.0, 8.2, 2.2), "HoneycombWindowFrame")
+		frame_node.rotation.x = PI * 0.5
+
+	var crest := CylinderMesh.new()
+	crest.top_radius = 1.55
+	crest.bottom_radius = 1.55
+	crest.height = 0.2
+	crest.radial_segments = 6
+	var crest_node := _mesh_node(citadel, crest, honey, Vector3(0, 11.2, 2.15), "RoyalHoneycombCrest")
+	crest_node.rotation.x = PI * 0.5
+
+	# Garden beds and golden path markers lead from the road to the royal gate.
+	for side in [-1.0, 1.0]:
+		_box(citadel, Vector3(4.0, 0.18, 12.0), Vector3(side * 12.5, 0.05, 7.0), garden, "RoyalGardenBed")
+		for index in range(5):
+			var flower := SphereMesh.new()
+			flower.radius = 0.28
+			flower.height = 0.56
+			_mesh_node(citadel, flower, honey, Vector3(side * (11.0 + float(index % 2)), 0.55, 3.0 + float(index) * 2.0), "RoyalGardenBloom")
+		for index in range(4):
+			_box(citadel, Vector3(0.22, 0.18, 0.22), Vector3(side * 6.0, 0.72, 7.0 + float(index) * 2.4), honey, "PathLanternMarker")
+
+	# Ground collision prevents walking through the central keep.
+	var keep_collision := StaticBody3D.new()
+	keep_collision.name = "RoyalKeepCollision"
+	keep_collision.position = Vector3(0, 6.5, -4.0)
+	citadel.add_child(keep_collision)
+	var keep_shape := CollisionShape3D.new()
+	var keep_box := BoxShape3D.new()
+	keep_box.size = Vector3(11.5, 13.0, 11.5)
+	keep_shape.shape = keep_box
+	keep_collision.add_child(keep_shape)
+
+	# Clear the approach so the citadel remains visible from the main road.
+	var sign := Label3D.new()
+	sign.name = "CitadelName"
+	sign.text = "ISTANA KERAJAAN LEBAH"
+	sign.position = Vector3(0, 7.2, 3.0)
+	sign.font_size = 44
+	sign.pixel_size = 0.012
+	sign.outline_size = 8
+	sign.modulate = Color(1.0, 0.86, 0.55, 1.0)
+	sign.outline_modulate = Color(0.10, 0.12, 0.15, 1.0)
+	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	citadel.add_child(sign)
