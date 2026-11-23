@@ -44,8 +44,8 @@ func _ready() -> void:
 		_access_denied("native_session_bridge_missing")
 
 
-## Called by the future Android native bridge after the existing app login succeeds.
-## Do not pass refresh tokens, service-role keys, member IDs, or role values here.
+## Called with the one-time Android handoff after the existing app login succeeds.
+## Never pass refresh tokens, service-role keys, member IDs, or client-selected roles.
 func verify_access_token(access_token: String, publishable_key: String) -> Error:
 	var token := access_token.strip_edges()
 	var api_key := publishable_key.strip_edges()
