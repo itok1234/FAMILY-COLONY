@@ -11,6 +11,7 @@ var connection_state: String = "offline"
 var connection_detail: String = "Belum terhubung"
 var peer_ids: Array[int] = []
 var _status_label: Label
+var _world_session: Node
 var _remote_players: Dictionary = {}
 var _sync_accumulator: float = 0.0
 const SYNC_INTERVAL: float = 0.05
@@ -23,6 +24,12 @@ func _ready() -> void:
 	multiplayer.connected_to_server.connect(_on_connected_to_server)
 	multiplayer.connection_failed.connect(_on_connection_failed)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
+	_world_session = get_parent().get_node_or_null("WorldSessionClient")
+	if _world_session != null:
+		if _world_session.has_signal("session_rejected"):
+			_world_session.connect("session_rejected", Callable(self, "_on_world_session_rejected"))
+		if _world_session.has_signal("session_cleared"):
+			_world_session.connect("session_cleared", Callable(self, "_on_world_session_cleared"))
 	_create_status_hud()
 	_update_status("offline", "LAN multiplayer siap")
 
@@ -37,6 +44,9 @@ func _process(delta: float) -> void:
 
 
 func host_game(port: int = -1) -> Error:
+	if not _has_verified_world_session():
+		_update_status("error", "Login anggota aktif diperlukan sebelum membuat koneksi.")
+		return ERR_UNAUTHORIZED
 	var chosen_port := default_port if port <= 0 else port
 	var peer := ENetMultiplayerPeer.new()
 	var result := peer.create_server(chosen_port, max_clients)
@@ -53,6 +63,9 @@ func host_game(port: int = -1) -> Error:
 
 
 func join_game(address: String, port: int = -1) -> Error:
+	if not _has_verified_world_session():
+		_update_status("error", "Login anggota aktif diperlukan sebelum bergabung.")
+		return ERR_UNAUTHORIZED
 	var host_address := address.strip_edges()
 	if host_address.is_empty():
 		_update_status("error", "Alamat host belum diisi")
@@ -75,6 +88,24 @@ func leave_game() -> void:
 	peer_ids.clear()
 	_emit_roster()
 	_update_status("offline", "Koneksi diputus")
+
+
+func _has_verified_world_session() -> bool:
+	return is_instance_valid(_world_session) \
+		and _world_session.has_method("has_verified_session") \
+		and bool(_world_session.call("has_verified_session"))
+
+
+func _on_world_session_rejected(_error_code: String) -> void:
+	if multiplayer.multiplayer_peer != null and not multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
+		leave_game()
+	_update_status("error", "Sesi anggota tidak valid. Koneksi multiplayer dihentikan.")
+
+
+func _on_world_session_cleared() -> void:
+	if multiplayer.multiplayer_peer != null and not multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
+		leave_game()
+	_update_status("offline", "Sesi berakhir; koneksi multiplayer ditutup.")
 
 
 func get_peer_roster() -> Array[int]:
