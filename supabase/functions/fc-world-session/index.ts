@@ -1,4 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import {
+  buildWorldPermissions,
+  isActiveWorldMemberStatus,
+} from "../_shared/world-session-policy.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -73,22 +77,17 @@ Deno.serve(async (req) => {
       return json({ error: "member_identity_not_linked" }, 403);
     }
 
-    const normalizedStatus = String(member.status || "").trim().toLowerCase();
-    if (!["aktif", "active"].includes(normalizedStatus)) {
+    if (!isActiveWorldMemberStatus(member.status)) {
       return json({ error: "member_account_inactive" }, 403);
-    }
-
-    const normalizedRole = String(member.role || "").trim().toLowerCase();
-    const allowedRoles = ["kepsuk", "deputi", "admin", "member", "developer"];
-    if (!allowedRoles.includes(normalizedRole)) {
-      return json({ error: "member_role_invalid" }, 403);
     }
 
     // Developer may enter the world as an ordinary player. The separate
     // Developer Center flag is only a UI hint; every privileged action must
     // still be checked by its own trusted backend endpoint.
-    const isDeveloper = normalizedRole === "developer";
-    const canManageMembers = ["kepsuk", "deputi", "admin"].includes(normalizedRole);
+    const permissions = buildWorldPermissions(member.role);
+    if (!permissions) {
+      return json({ error: "member_role_invalid" }, 403);
+    }
 
     return json({
       ok: true,
@@ -99,13 +98,7 @@ Deno.serve(async (req) => {
         role: member.role,
         status: member.status,
       },
-      permissions: {
-        can_enter_world: true,
-        world_role: "member",
-        can_manage_members: canManageMembers,
-        can_manage_staff: normalizedRole === "kepsuk",
-        can_access_developer_center: isDeveloper,
-      },
+      permissions,
       verified_at: new Date().toISOString(),
     });
   } catch {
