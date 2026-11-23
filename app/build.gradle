@@ -8,9 +8,12 @@ android {
     compileSdk 35
 
     defaultConfig {
-        // Keep the install package limited to supported ARM device architectures.
-        ndk {
-            abiFilters 'arm64-v8a', 'armeabi-v7a'
+        // Normal builds declare ARM support directly. Release split builds take ABI filters
+        // exclusively from splits.abi to avoid Android Gradle Plugin filter conflicts.
+        if (!project.hasProperty('fcSplitReleaseApks')) {
+            ndk {
+                abiFilters 'arm64-v8a', 'armeabi-v7a'
+            }
         }
         aaptOptions {
             ignoreAssetsPattern '!.svn:!.git:!.gitignore:!.ds_store:!*.scc:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~'
@@ -56,13 +59,8 @@ android {
 
     buildTypes {
         debug {
-            // Keep x86_64 for normal emulator-test builds. Release packaging enables ABI splits,
-            // so its debug variant must use the same ARM-only filter to avoid Gradle conflicts.
-            if (project.hasProperty('fcSplitReleaseApks')) {
-                ndk {
-                    abiFilters 'arm64-v8a', 'armeabi-v7a'
-                }
-            } else {
+            // Include x86_64 only in normal internal emulator-test builds.
+            if (!project.hasProperty('fcSplitReleaseApks')) {
                 ndk {
                     abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
                 }
@@ -71,8 +69,10 @@ android {
             versionNameSuffix '-world-maintenance-test-13'
         }
         release {
-            ndk {
-                abiFilters 'arm64-v8a', 'armeabi-v7a'
+            if (!project.hasProperty('fcSplitReleaseApks')) {
+                ndk {
+                    abiFilters 'arm64-v8a', 'armeabi-v7a'
+                }
             }
             signingConfig signingConfigs.release
             minifyEnabled false
