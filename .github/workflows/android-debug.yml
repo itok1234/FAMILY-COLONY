@@ -55,6 +55,17 @@ jobs:
       - name: Build Debug APK
         run: gradle --no-daemon assembleDebug --stacktrace
 
+      - name: Verify embedded Godot project pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          unzip -l "$APK" | grep -F "assets/godot_world.zip"
+          unzip -p "$APK" "assets/godot_world.zip" > "$RUNNER_TEMP/godot_world.zip"
+          unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "project.godot"
+          unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "scenes/world.tscn"
+          unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "scripts/world_session_client.gd"
+
       - name: Verify APK package identity and signature
         shell: bash
         run: |
