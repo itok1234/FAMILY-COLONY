@@ -57,4 +57,21 @@ android {
 
 dependencies {
     implementation 'androidx.webkit:webkit:1.12.1'
+    implementation 'org.godotengine:godot:4.4.1.stable'
+    implementation 'androidx.fragment:fragment:1.8.6'
+}
+
+
+// Package the Godot project as a main pack inside the existing Android application.
+tasks.register("packageGodotWorld", Zip) {
+    archiveFileName = "godot_world.zip"
+    destinationDirectory = layout.projectDirectory.dir("src/main/assets")
+    from("../godot_world") {
+        exclude ".godot/**", ".git/**", "docs/**"
+    }
+    includeEmptyDirs = false
+}
+
+tasks.named("preBuild").configure {
+    dependsOn("packageGodotWorld")
 }
