@@ -12,6 +12,7 @@ on:
       - "app/src/main/assets/**"
       - "godot_world/**"
       - ".github/workflows/android-emulator-smoke.yml"
+      - ".github/workflows/android-release.yml"
 
 permissions:
   contents: read
