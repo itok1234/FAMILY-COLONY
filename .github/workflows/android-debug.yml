@@ -1,65 +1,27 @@
-
-name: Build FAMILY COLONY V5D Android APK
+name: Validate FAMILY COLONY Android Build
 
 on:
   workflow_dispatch:
   push:
+    branches:
+      - feature/guest-premium-access
     paths:
-      - 'FAMILY_COLONY_V5D_SOURCE_UPLOAD.zip'
-      - '.github/workflows/android-debug.yml'
       - 'app/**'
+      - 'godot_world/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - '.github/workflows/android-debug.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-debug-apk:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Extract Android project
-        shell: bash
-        run: |
-          set -euo pipefail
-          ARCHIVE="FAMILY_COLONY_V5D_SOURCE_UPLOAD.zip"
-          test -f "$ARCHIVE"
-          mkdir -p /tmp/family-colony-src
-          unzip -q "$ARCHIVE" -d /tmp/family-colony-src
-          SRC="/tmp/family-colony-src/FAMILY_COLONY_V5D_Android_Project"
-          test -f "$SRC/settings.gradle"
-          # The ZIP is a recovery source only. Never overwrite tracked source changes.
-          for file in README.md BUILD_STATUS.txt settings.gradle gradle.properties build.gradle; do
-            if [ ! -f "$file" ]; then cp -a "$SRC/$file" "$file"; fi
-          done
-          if [ ! -f app/src/main/assets/index.html ]; then
-            cp -a "$SRC/app" .
-          else
-            echo "Tracked Android source found; preserving repository version."
-          fi
-
-      - name: Commit extracted Android source to repository
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md BUILD_STATUS.txt settings.gradle gradle.properties build.gradle app
-          if ! git diff --cached --quiet; then
-            git commit -m "Extract Android project source for Supabase integration"
-            git push
-          else
-            echo "Android source is already extracted."
-          fi
-
-      - name: Upload extracted project for inspection
-        uses: actions/upload-artifact@v4
-        with:
-          name: FAMILY-COLONY-V5D-EXTRACTED-SOURCE
-          path: /tmp/family-colony-src/FAMILY_COLONY_V5D_Android_Project/
-          if-no-files-found: error
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -82,38 +44,34 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Verify project files
+      - name: Verify source inputs
         run: |
           test -f settings.gradle
           test -f app/build.gradle
           test -f app/src/main/AndroidManifest.xml
           test -f app/src/main/assets/index.html
+          test -f godot_world/project.godot
 
       - name: Build Debug APK
         run: gradle --no-daemon assembleDebug --stacktrace
-
-      - name: Verify APK
-        run: |
-          test -s app/build/outputs/apk/debug/app-debug.apk
-          ls -lh app/build/outputs/apk/debug/app-debug.apk
 
       - name: Verify APK package identity and signature
         shell: bash
         run: |
           set -euo pipefail
           APK="app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
           SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
           AAPT="$(find "$SDK_ROOT/build-tools" -type f -name aapt | sort -V | tail -n 1)"
           APKSIGNER="$(find "$SDK_ROOT/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
-          test -n "$AAPT"
-          test -n "$APKSIGNER"
           "$AAPT" dump badging "$APK" | grep -E "^package:|^sdkVersion:|^targetSdkVersion:"
           "$APKSIGNER" verify --verbose "$APK"
           sha256sum "$APK"
 
-      - name: Upload APK artifact
+      - name: Upload internal validation artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FAMILY-COLONY-V5D-DEBUG-APK
+          name: FAMILY-COLONY-INTERNAL-ANDROID-VALIDATION
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+          retention-days: 7
