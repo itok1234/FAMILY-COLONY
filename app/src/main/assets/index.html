@@ -145,7 +145,7 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
 </div></header>
 <main class="shell">
 <section id="landing">
-  <div class="hero"><div><div class="eyebrow">A DIGITAL KINGDOM • EST. BY COMMUNITY</div><h1>One Colony.<br><span>One Kingdom.</span></h1><p>Selamat datang di dunia Family Colony — Bee Kingdom. Ruang digital untuk mengenal anggota, membangun kebersamaan, menikmati hiburan, dan menjaga kehidupan koloni.</p><div class="toolbar"><span class="status ok">● DEMO WEBSITE</span><span class="status">♢ Premium Royal Experience</span></div></div><div class="hero-art"><div class="hive"><span>🐝</span></div></div></div>
+  <div class="hero"><div><div class="eyebrow">A DIGITAL KINGDOM • EST. BY COMMUNITY</div><h1>One Colony.<br><span>One Kingdom.</span></h1><p>Selamat datang di dunia Family Colony — Bee Kingdom. Ruang digital untuk mengenal anggota, membangun kebersamaan, menikmati hiburan, dan menjaga kehidupan koloni.</p><div class="toolbar"><span class="status ok">● ANDROID APP • SERVER AUTH</span><span class="status">♢ Premium Royal Experience</span></div></div><div class="hero-art"><div class="hive"><span>🐝</span></div></div></div>
   <div class="login-grid">
     <section class="panel login-panel"><div class="eyebrow">COLONY ACCESS</div><h2>Member Login</h2><p class="muted tiny">Masuk menggunakan username Family Colony dan password akunmu. Email pribadi tidak diperlukan.</p>
       <div class="field"><label for="memberName">Username</label><input id="memberName" maxlength="32" autocomplete="username" placeholder="Contoh: dhita atau @dhita"></div>
@@ -166,8 +166,8 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
       <p class="muted tiny">Jalur khusus Developer FAMILY COLONY. Gunakan PIN 6 digit yang telah disiapkan.</p>
       <div class="field"><label for="developerPinInput">PIN Developer</label><input id="developerPinInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="••••••" onkeydown="if(event.key==='Enter')developerPinLogin()"></div>
       <button class="btn primary" style="width:100%" onclick="developerPinLogin()">MASUK SEBAGAI DEVELOPER</button>
-      <button class="btn ghost small" style="width:100%;margin-top:9px" onclick="developerPinSetup()">PENYIAPAN PIN PERTAMA KALI</button>
-      <p class="tiny" style="margin-top:10px">Penyiapan pertama memerlukan kode bootstrap server. PIN diverifikasi oleh server dan tidak disimpan di perangkat.</p>
+      <button class="btn ghost small" style="width:100%;margin-top:9px" onclick="developerPinSetup()">PENYIAPAN / RESET PIN DEVELOPER</button>
+      <p class="tiny" style="margin-top:10px">Penyiapan atau reset PIN memerlukan kode bootstrap server yang sudah kamu miliki. PIN diverifikasi server, bukan disimpan di perangkat.</p>
       <div id="developerPinFeedback" class="notice hidden"></div>
     </section>
   </div>
@@ -178,7 +178,7 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
     <div class="content"><div id="pageContent"></div></div>
   </div>
 </section>
-<div class="footer">FAMILY COLONY — BEE KINGDOM · TAHAP 20 MINI GAME CENTER · PREMIUM 4D WEB APPLICATION<br>Single-file HTML demo · Data lokal perangkat · Bukan layanan server online</div>
+<div class="footer">FAMILY COLONY — BEE KINGDOM · TAHAP 20 MINI GAME CENTER · PREMIUM 4D WEB APPLICATION<br>Aplikasi Android hybrid · Login diverifikasi server · Sebagian modul dan data masih tersimpan lokal di perangkat</div>
 </main>
 <div id="developerGate" class="dev-gate hidden" role="dialog" aria-modal="true" aria-labelledby="devGateTitle">
   <div class="dev-gate-card">
@@ -402,11 +402,11 @@ async function bootstrapDeveloperPassword(){
  }catch(err){const code=String(err.message||"").split(":")[0];const detail=code==="network_error"?"Koneksi ke Supabase gagal. Periksa internet dan coba lagi.":code==="server_invalid_response"?"Server mengirim respons yang tidak dapat dibaca.":code.startsWith("http_")?"Server menolak permintaan ("+code.replace("http_","HTTP ")+").":fcFriendlyError(code);showResult("Gagal menyiapkan login Developer: "+detail+" ["+code+"]")}
  finally{if(button){button.disabled=false;button.textContent="SIAPKAN LOGIN DEVELOPER"}}
 }
-function developerLogin(){closeDeveloperGate();$("memberName").value="edrick";$("memberPassword").focus();toast("Masukkan password akun Developer @edrick pada login utama.")}
-function closeDeveloperGate(){$("developerGate").classList.add("hidden");$("devGateCode").value="";if($("bootstrapSecret"))$("bootstrapSecret").value=""}
+function developerLogin(){closeDeveloperGate();$("developerPinInput")?.focus();toast("Gunakan PIN 6 digit pada panel Login Developer.")}
+function closeDeveloperGate(){$("developerGate")?.classList.add("hidden");if($("devGateCode"))$("devGateCode").value="";if($("bootstrapSecret"))$("bootstrapSecret").value=""}
 let secretTapCount=0,secretTapTimer=null;
 function secretGateTap(){secretTapCount++;clearTimeout(secretTapTimer);secretTapTimer=setTimeout(()=>{secretTapCount=0},2200);if(secretTapCount>=7){secretTapCount=0;$("developerGate").classList.remove("hidden");$("devGateCode").focus()}}
-function logout(){if(session?.accessToken&&fcConfigReady())fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":session.anonKey||window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.accessToken}}).catch(()=>{});if(session)log("Logout",session.name);session=null;try{sessionStorage.removeItem("fc_session")}catch(e){}audio.pause();$("workspace").classList.add("hidden");$("landing").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("homeBtn").classList.add("hidden");$("topUser").textContent="";$("devGateCode").value=""}
+function logout(){if(session?.accessToken&&fcConfigReady())fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":session.anonKey||window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.accessToken}}).catch(()=>{});if(session)log("Logout",session.name);session=null;try{sessionStorage.removeItem("fc_session")}catch(e){}audio.pause();$("workspace").classList.add("hidden");$("landing").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("homeBtn").classList.add("hidden");$("topUser").textContent="";if($("devGateCode"))$("devGateCode").value=""}
 function goHome(){currentPage="overview";renderPage()}
 function enterApp(){$("landing").classList.add("hidden");$("workspace").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("homeBtn").classList.remove("hidden");$("topUser").textContent=session.name+" · "+session.role;currentPage=session.role==="Developer"?"developer":"overview";$("sideName").textContent=session.name;$("sideRole").textContent=session.role.toUpperCase();buildNav();recordMissionEvent("login","Login ke kerajaan");renderPage();requestLandscape()}
 async function requestLandscape(){
