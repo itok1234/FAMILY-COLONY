@@ -122,6 +122,7 @@ func clear_session() -> void:
 	_matchmaking_pending = false
 	_access_token = ""
 	_publishable_key = ""
+	_requested_world_id = ""
 	_current_member.clear()
 	_current_permissions.clear()
 	session_cleared.emit()
