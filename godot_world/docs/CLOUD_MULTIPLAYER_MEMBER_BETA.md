@@ -1,67 +1,88 @@
 # FAMILY COLONY — Cloud Multiplayer Member Beta Gate
 
-Status: architecture and acceptance contract only. The current Godot transport is ENet LAN host/client and is not an Internet-wide shared world. This document does not claim a cloud multiplayer service is implemented.
+Status: implementation contract, not a completion claim. The repository now contains a Supabase matchmaking Edge Function and a private world-server registry. The mobile client still uses the existing LAN ENet transport and does not yet consume the matchmaking response. No dedicated authoritative game-server deployment or healthy server endpoint is confirmed.
 
-## Decision
+## Non-negotiable member access decision
 
-Do not expose the current LAN host as the member online world. For the first controlled member Beta, use a dedicated authoritative Godot 4 headless server per world instance, with Supabase retained as the identity and persistent-data authority.
+- Every eligible active, linked FAMILY COLONY member enters without a paid ticket, entrance ticket, coin charge, or separate purchase.
+- The experimental `fc_world_join_tickets` table and one-time join-ticket mechanism have been removed.
+- A member's existing Supabase access token is the authentication credential. It is not an entrance ticket and must never be sold, charged, or exposed as a UI gate.
+- The matchmaking endpoint selects a healthy server from the private registry and returns its endpoint. The authoritative game server must validate the same existing Supabase access token with Supabase Auth before accepting the connection.
+- An active member session grants entry; roles do not create a paid or ticket-based access tier. Privileged moderation or developer actions remain separately authorized.
 
-The mobile client must never be the authority for member identity, room membership, movement validation, inventory, gifts, moderation, or privileged actions.
+## Current implementation snapshot
 
-## Target connection flow
+### Present in repository
+- `fc-world-session` verifies the Supabase access token, resolves the linked active member row, and returns canonical member identity and world-entry permission.
+- `fc-world-matchmaking` verifies the bearer token, checks active member status, selects a ready server with a fresh heartbeat and available capacity, and returns the server endpoint plus canonical member profile.
+- Migration `202611250001_cloud_world_ticketing.sql` creates the private `fc_world_servers` registry and explicitly drops the experimental `fc_world_join_tickets` table.
+- The registry is service-role-only under RLS; clients cannot read or write it directly.
+- Godot currently has LAN ENet host/client, room-scoped presence, chat, and remote-avatar foundations.
+
+### Not yet implemented or verified
+- The Android/Godot client does not yet call `fc-world-matchmaking` or connect to its returned endpoint.
+- No dedicated authoritative Godot headless server deployment, public endpoint, heartbeat publisher, or server-side Supabase token validation is confirmed.
+- Existing LAN peer IDs are not canonical member identities and must not be presented as production cloud presence.
+- No successful two-device, different-network cloud multiplayer test has passed.
+- No real-member end-to-end test on a physical Android device has passed.
+
+## Target connection flow — no entrance ticket
 
 1. The existing Android app authenticates the member through Supabase Auth.
-2. The app opens Godot with the short-lived access token and publishable key only.
-3. Godot calls `fc-world-session` and receives a canonical active member profile.
-4. The client requests a world ticket from a trusted matchmaking Edge Function using the access token.
-5. Matchmaking validates the member and returns a short-lived, single-use ticket plus the selected world endpoint.
-6. The client connects to a dedicated Godot headless server using the ticket. The server validates the ticket with a trusted backend before accepting the peer.
-7. The server assigns the peer to a room and authoritative avatar entity. Client-provided member IDs, display names, and roles are ignored.
+2. The app opens the embedded Godot world with the short-lived access token and publishable key only.
+3. Godot calls `fc-world-session` and receives the canonical active member profile and `can_enter_world` permission.
+4. Godot calls `fc-world-matchmaking` with the same bearer access token and a requested world ID.
+5. Matchmaking selects a healthy, non-full server from `fc_world_servers` and returns its endpoint. It does not issue or require a separate entrance ticket.
+6. Godot connects to the selected authoritative server using a mobile-NAT-compatible transport. The server validates the existing Supabase access token with Supabase Auth before accepting the connection.
+7. The server assigns the verified member to a room and authoritative avatar entity. Client-supplied member IDs, display names, and roles are ignored.
 8. Server snapshots are replicated to clients in the same room. Clients send input intents, not authoritative transforms.
-9. On logout, token revocation, kick, or session expiry, the backend revokes the ticket/session and the server removes the peer.
+9. On logout, token revocation, kick, or session expiry, the server removes the peer and clears transient room state.
 
 ## Transport and deployment constraints
 
-- Prefer a dedicated server transport that works through common mobile NAT/firewall conditions. Validate UDP/ENet reachability on Indonesian mobile carriers and Wi-Fi before choosing the final transport; if UDP reliability is inadequate, use a WebSocket-capable transport.
+- Validate UDP/ENet reachability on Indonesian mobile carriers and Wi-Fi before choosing the final transport. If UDP reliability is inadequate, use a WebSocket-capable transport.
 - Never put service-role keys or server secrets in the APK, Godot resources, exported project, or client logs.
 - Keep the first closed Beta small: target 8–16 concurrent players per room, one region, bounded world interest area, and conservative snapshot frequency.
 - Use server-side rate limits, bounded packet sizes, movement speed/acceleration checks, teleport rejection, room capacity checks, and reconnect timeouts.
 - Persist member identity and durable social state in Supabase; do not treat transient peer IDs as account IDs.
-- Presence and chat must display the canonical member name returned by trusted server state. Room visibility and chat delivery must be server-enforced.
-- Do not use Supabase Edge Functions as a per-frame movement relay. They are for ticketing, matchmaking, authorization, and durable actions—not 20 Hz game-state simulation.
+- Presence and chat must display canonical member names returned by trusted server state. Room visibility and chat delivery must be server-enforced.
+- Do not use Supabase Edge Functions as a per-frame movement relay. They are for matchmaking, authorization, and durable actions—not 20 Hz game-state simulation.
 
-## Required backend components
+## Required backend and server components
 
-- Ticket/matchmaking Edge Function: verifies Supabase JWT, active member mapping, account status, world access and capacity; issues short-lived single-use ticket.
-- Ticket redemption service on the dedicated game server: validates ticket signature/expiry/nonce against trusted server-side configuration and prevents replay.
-- Server instance registry/heartbeat: reports healthy instances, region, room capacity and deployment version.
-- Durable room lifecycle: server-created room IDs, room capacity, room close/recovery behavior and reconnect policy.
+- Private server registry: implemented as a database migration; server registration and heartbeat publisher still need implementation and deployment.
+- Matchmaking Edge Function: implemented in repository; deployment/configuration and client integration must be verified end to end.
+- Dedicated authoritative Godot server: deploy a headless server process with trusted configuration and server-side Supabase token validation.
+- Durable room lifecycle: server-created room IDs, room capacity, room close/recovery behavior, and reconnect policy.
 - Moderation controls: kick/ban/block/report hooks checked by the server.
 - Audit trail for privileged moderation and member-affecting actions.
 
-## Client implementation boundary
+## Seven parallel completion lanes
 
-- Replace public-facing LAN host/join UX with automatic ticket-based matchmaking only after the cloud server is deployed and tested.
-- Keep LAN tools internal-only; do not silently fall back to LAN when cloud connection fails.
-- Use input-intent RPCs and server snapshots. The client may interpolate remote avatars but cannot decide another player's position.
-- Clear room state, presence, chat and local cached identity on logout, session rejection or server disconnect.
-- Do not ship peer-ID chat labels or peer-ID-only presence as production social features.
+1. **Auth and member access:** preserve existing login; verify active linked member access; reject guest, inactive, unlinked, expired, and revoked sessions; no entrance ticket or payment gate.
+2. **3D art and avatar:** replace procedural blockout-only character/environment art with licensed, authored, Godot-importable GLB/GLTF assets; verify rigs, materials, animation, scale, mobile draw calls, and visual quality.
+3. **World client integration:** consume matchmaking endpoint, handle loading/retry/disconnect, and remove public-facing LAN host/join controls from the member path.
+4. **Cloud multiplayer:** deploy authoritative headless server, heartbeat, server token validation, room assignment, authoritative movement, and remote avatar replication.
+5. **Social systems:** bind chat, presence, invitations, and interactions to verified member IDs; enforce room boundaries, block/report/moderation, and logout cleanup.
+6. **Android quality and release:** test real devices across low/mid/high tiers, thermal and memory behavior, pause/resume, network loss, upgrade path, signed APK and AAB build checks.
+7. **iOS readiness:** prepare a separate iOS export/signing pipeline and validate supported devices, provisioning, and TestFlight. iOS cannot be declared ready from Android CI.
+
+Work may proceed in parallel, but cross-lane integration and acceptance tests are still mandatory before release.
 
 ## Acceptance gates
 
-- Valid active members can obtain and redeem a single-use ticket; guest, inactive, unlinked, expired and revoked accounts are rejected.
-- Ticket replay, tampered ticket, wrong audience, expired ticket and wrong world instance are rejected.
-- Two or more devices on different networks join the same room and see each other with stable canonical member names.
-- Movement is server-authoritative; speed hacks, teleport packets, malformed values and room-crossing attempts are rejected.
+- Active linked members enter with their existing account session and no separate entrance ticket or payment.
+- Guest, inactive, unlinked, expired, and revoked accounts are rejected.
+- Matchmaking rejects invalid world IDs, missing servers, stale heartbeats, and full servers without leaking private registry data.
+- Two or more physical devices on different networks join the same room and see each other with stable canonical member names.
+- The server validates Supabase identity and is authoritative for movement, room membership, and social actions.
+- Speed hacks, teleport packets, malformed values, replayed/expired credentials, and room-crossing attempts are rejected.
 - Chat and presence are room-scoped and use server-verified member identity.
-- Disconnect/reconnect, app background/resume, token refresh, logout and account revocation are tested.
-- Capacity, latency, packet loss, server restart, room drain and graceful shutdown are tested.
-- Android 11/ARM64 physical-device test passes before inviting external members.
+- Disconnect/reconnect, app background/resume, token refresh, logout, and account revocation are tested.
+- Capacity, latency, packet loss, server restart, room drain, and graceful shutdown are tested.
+- Physical Android device testing passes before inviting external members.
+- iOS is separately built and tested; Android success does not imply iOS readiness.
 
-## Current blockers
+## Release rule
 
-- No dedicated cloud game-server deployment or public endpoint is configured in this repository.
-- No matchmaking/ticket Edge Function exists.
-- Current `multiplayer_manager.gd`, `room_manager.gd`, `presence_manager.gd` and `chat_manager.gd` remain LAN/peer-ID foundations.
-- No successful real-member multiplayer test has been completed.
-- This is therefore a required implementation milestone, not a completed feature.
+Do not label an internal APK, LAN prototype, or successful compilation as the final member Beta. Final release requires authored 3D assets, a working cloud server path, real-member authentication, cross-network multiplayer, physical-device regression, and signed distribution artifacts to pass together.
