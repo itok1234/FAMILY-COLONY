@@ -1,19 +1,21 @@
 PROJECT: FAMILY COLONY V5D
 BRANCH: feature/direct-3d-entry
-LATEST SOURCE COMMIT: e3f6b0b45f0172436458dee1dfda4e47c64ee9de
+LATEST SOURCE COMMIT: 1afd92a0f51b1f2f52cba2ae1b187d24c9ff90cd
 
 LATEST AUTOMATED VALIDATION (2026-11-25):
-- Godot 3D World validation run 45506388542: SUCCESS for latest source commit.
-- Android debug APK build run 45506388770: SUCCESS for latest source commit.
-- Embedded Godot Android emulator smoke run 45506388660: IN PROGRESS at last check; emulator launch step is still running.
-- The successful Android artifact is an INTERNAL DEBUG APK, not a signed final release.
-- These checks do not prove real-member physical-device login or successful cloud multiplayer.
+- Godot 3D World validation run 45506388542: SUCCESS.
+- Android debug APK build/package validation run 45506388770: SUCCESS.
+- Embedded Godot Android emulator smoke run 45506388660: SUCCESS.
+- All three checks passed on source commit e3f6b0b45f0172436458dee1dfda4e47c64ee9de. The later 1afd92a commit only updates project status documentation.
+- Emulator smoke test validates embedded Godot startup and expected native bridge/session request behavior with deliberately invalid test credentials. It is not a real-member login test.
 
-ANDROID INTERNAL BUILD:
-- Latest internal debug build run: 45506388770
+LATEST INTERNAL ANDROID APK:
 - Artifact: FAMILY-COLONY-INTERNAL-DEBUG-e3f6b0b45f0172436458dee1dfda4e47c64ee9de
-- Artifact archive size: 53,754,256 bytes.
-- Package/build validation passed. Do not call this a final release APK.
+- GitHub Actions run: 45506388770
+- APK size: 159,511,207 bytes.
+- SHA-256: 1037fc68fb304dafc959364b2dee4a308c62ec8375b1f0552398f5d7013b6f25
+- Contains ARM64 (arm64-v8a) and ARM32 (armeabi-v7a) native Godot libraries.
+- This is a DEBUG/internal test APK, not a signed final release.
 
 CURRENT IMPLEMENTATION FACTS:
 - Godot 4.4.1 is embedded in the Android application.
