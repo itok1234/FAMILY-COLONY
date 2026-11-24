@@ -110,7 +110,10 @@ func _build_avatar() -> void:
 		"trousers": trousers,
 		"shoes": shoes
 	}
+	# Rounded shoulder and hip volumes soften the mannequin-like silhouette.
+	_add_sphere(self, "UpperTorso", Vector3(0, 1.34, 0), Vector3(0.30, 0.27, 0.22), shirt)
 	_add_capsule(self, "Torso", Vector3(0, 1.12, 0), 0.28, 0.82, shirt)
+	_add_sphere(self, "HipShape", Vector3(0, 0.78, 0), Vector3(0.265, 0.19, 0.205), trousers)
 	# Layered clothing details keep the procedural preview readable at mobile distance.
 	var trim := _material(Color(0.78, 0.67, 0.43), 0.52)
 	_add_box(self, "CollarFront", Vector3(0, 1.48, -0.245), Vector3(0.22, 0.075, 0.045), trim)
@@ -128,6 +131,9 @@ func _build_avatar() -> void:
 	_add_sphere(_head, "FrontHair", Vector3(0, 0.105, -0.16), Vector3(0.19, 0.105, 0.075), hair)
 	_add_sphere(_head, "LeftHairLock", Vector3(-0.19, -0.005, -0.005), Vector3(0.055, 0.19, 0.085), hair)
 	_add_sphere(_head, "RightHairLock", Vector3(0.19, -0.005, -0.005), Vector3(0.055, 0.19, 0.085), hair)
+	_add_sphere(_head, "HairCrownVolume", Vector3(0, 0.19, 0.015), Vector3(0.205, 0.09, 0.20), hair)
+	_add_sphere(_head, "CheekLeft", Vector3(-0.125, -0.065, -0.165), Vector3(0.075, 0.06, 0.04), skin)
+	_add_sphere(_head, "CheekRight", Vector3(0.125, -0.065, -0.165), Vector3(0.075, 0.06, 0.04), skin)
 	_add_sphere(_head, "LeftEar", Vector3(-0.222, -0.005, -0.005), Vector3(0.045, 0.075, 0.055), skin)
 	_add_sphere(_head, "RightEar", Vector3(0.222, -0.005, -0.005), Vector3(0.045, 0.075, 0.055), skin)
 	_add_sphere(_head, "LeftEyeWhite", Vector3(-0.078, 0.025, -0.195), Vector3(0.035, 0.03, 0.018), eye_white)
@@ -159,6 +165,11 @@ func _build_avatar() -> void:
 	_add_capsule(_right_arm, "Sleeve", Vector3(0, 0.12, 0), 0.14, 0.48, shirt)
 	_add_capsule(_left_arm, "LeftCuff", Vector3(0, -0.13, 0), 0.119, 0.10, trim)
 	_add_capsule(_right_arm, "RightCuff", Vector3(0, -0.13, 0), 0.119, 0.10, trim)
+	_add_sphere(_left_arm, "LeftHand", Vector3(0, -0.34, 0), Vector3(0.105, 0.13, 0.09), skin)
+	_add_sphere(_right_arm, "RightHand", Vector3(0, -0.34, 0), Vector3(0.105, 0.13, 0.09), skin)
+	# Subtle shoulder caps smooth the transition between torso and sleeves.
+	_add_sphere(self, "LeftShoulder", Vector3(-0.34, 1.42, 0), Vector3(0.17, 0.18, 0.17), shirt)
+	_add_sphere(self, "RightShoulder", Vector3(0.34, 1.42, 0), Vector3(0.17, 0.18, 0.17), shirt)
 	_left_leg = _make_limb("LeftLeg", Vector3(-0.15, 0.72, 0), trousers, 0.145, 0.78)
 	_right_leg = _make_limb("RightLeg", Vector3(0.15, 0.72, 0), trousers, 0.145, 0.78)
 	_add_box(_left_leg, "ShoeSole", Vector3(0, -0.445, -0.07), Vector3(0.27, 0.055, 0.40), trim)
