@@ -237,11 +237,11 @@ jobs:
           code=$(curl -sS -w "%{http_code}" -o /tmp/fc-world-registry-result.json -X POST \
             -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
             -H "Content-Type: application/json" \
-            --data-binary @/tmp/fc-world-ticketing-query.json \
+            --data-binary @/tmp/fc-world-registry-query.json \
             "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")
           echo "World server registry schema HTTP status: $code"
           if [[ "$code" != 2* ]]; then
-            cat /tmp/fc-world-ticketing-result.json
+            cat /tmp/fc-world-registry-result.json
             exit 1
           fi
 
