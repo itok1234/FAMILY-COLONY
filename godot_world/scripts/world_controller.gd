@@ -170,7 +170,7 @@ func _set_player_enabled(enabled: bool) -> void:
 func _return_to_app() -> void:
 	if Engine.has_singleton("FamilyColonyBridge"):
 		var bridge: Object = Engine.get_singleton("FamilyColonyBridge")
-		if bridge.has_method("requestExitToApp"):
-			bridge.call("requestExitToApp")
-			return
+		# Android JNISingleton does not expose Java plugin methods through has_method().
+		bridge.call("requestExitToApp")
+		return
 	get_tree().quit()
