@@ -1,4 +1,5 @@
 name: Publish FAMILY COLONY Android APK
+# Release is gated by source validation and an Android 11 signed-release install test.
 
 on:
   push:
