@@ -1,6 +1,6 @@
 # FAMILY COLONY — Android Integration & Release Gate
 
-Status: the existing Android application compiles with the Godot 4.4.1 Android engine embedded as an internal Activity. CI verifies WebView JavaScript syntax, Android compilation/signature, and the Godot world pack inside the same APK. The Supabase world-session policy tests pass and the Edge Function is deployed. No physical-device installation or end-to-end world session test has passed yet.
+Status (2026-11-24): the existing Android application compiles with the Godot 4.4.1 Android engine embedded as an internal Activity. Latest CI for commit `f01e58cf6ab3b4439c91387e1cb40a95023e47bd` passed Android debug compilation/package checks, Godot parse/startup validation, and emulator smoke checks. The emulator verified native credential handoff and received HTTP 401 from the Supabase world-session endpoint using deliberately invalid test credentials. This is a transport-path check only; it does not verify a real member session. No physical-device installation or successful real-account world session test has passed yet.
 
 ## Preserve the current application
 - Keep application ID `com.cdl.familycolonyv5d`.
@@ -17,7 +17,7 @@ Status: the existing Android application compiles with the Godot 4.4.1 Android e
 - `FamilyColonyGodotPlugin` provides a one-time in-memory handoff for the existing app's access token and publishable key. Refresh tokens and service-role keys are not passed to Godot.
 - The deployed `fc-world-session` Edge Function verifies the bearer token with Supabase Auth, resolves the canonical active member row, and returns a minimal profile/permission snapshot.
 - `WorldSessionClient` sends the access token and publishable key to the Edge Function. Android gameplay remains locked until the server confirms access.
-- The existing app's 3D entry is restricted to Developer during internal validation; ordinary members continue using the rest of the app.
+- The WebView entry currently allows any non-guest signed-in account with a live access token to request 3D entry. The Supabase `fc-world-session` Edge Function is the authority: it verifies the token, resolves the linked active member row, and rejects unlinked/inactive/unsupported accounts. Real-account end-to-end verification is still pending.
 - The WebView app refreshes Supabase sessions before entering the world, on returning to the app, and while the WebView is active. A native callback also requests a WebView refresh every 10 minutes while Godot is open; only the renewed access token and publishable key are handed back to Godot. The refresh token stays in the existing WebView authentication layer. Physical-device and network interruption tests remain release blockers.
 
 ## Remaining integration and release sequence
