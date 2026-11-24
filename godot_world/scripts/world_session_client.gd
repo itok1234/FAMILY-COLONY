@@ -86,6 +86,7 @@ func verify_access_token(access_token: String, publishable_key: String) -> Error
 		return request_error
 
 	_request_pending = true
+	print("FC_WORLD_SESSION_REQUEST_STARTED")
 	return OK
 
 
@@ -132,6 +133,7 @@ func _on_request_completed(
 	_request_pending = false
 
 	if result != HTTPRequest.RESULT_SUCCESS:
+		push_warning("FC_WORLD_SESSION_NETWORK_RESULT=" + str(result))
 		_access_denied("session_network_unavailable")
 		return
 
@@ -142,8 +144,11 @@ func _on_request_completed(
 
 	var payload: Dictionary = parsed
 	if response_code != 200 or payload.get("ok") != true:
-		_access_denied(str(payload.get("error", "session_verification_rejected")))
+		var server_error := str(payload.get("error", "session_verification_rejected"))
+		push_warning("FC_WORLD_SESSION_HTTP_RESPONSE=" + str(response_code) + " ERROR=" + server_error)
+		_access_denied(server_error)
 		return
+	print("FC_WORLD_SESSION_VERIFIED")
 
 	var member_value: Variant = payload.get("member", {})
 	var permission_value: Variant = payload.get("permissions", {})
