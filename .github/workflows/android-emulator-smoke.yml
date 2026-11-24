@@ -75,7 +75,7 @@ jobs:
           disable-linux-hw-accel: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           script: |
-            APK="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' | head -n 1)" && test -s "$APK" && adb wait-for-device && adb install "$APK" && adb shell am start -n "com.cdl.familycolonyv5d.next/com.cdl.familycolonyv5d.MainActivity" && sleep 20 && adb shell pidof com.cdl.familycolonyv5d.next && adb shell dumpsys activity activities | grep -F "com.cdl.familycolonyv5d.MainActivity" && adb logcat -d > "$RUNNER_TEMP/family-colony-emulator-logcat.txt" && ! grep -E "FATAL EXCEPTION|SCRIPT ERROR:|Parse Error:|Failed to load main pack|Failed to load scene" "$RUNNER_TEMP/family-colony-emulator-logcat.txt"
+            APK="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' | head -n 1)" && test -s "$APK" && adb wait-for-device && adb install "$APK" && adb shell am start -n "com.cdl.familycolonyv5d.next/com.cdl.familycolonyv5d.MainActivity" && sleep 8 && adb shell pidof com.cdl.familycolonyv5d.next && adb shell am start -n "com.cdl.familycolonyv5d.next/com.cdl.familycolonyv5d.WorldActivity" && sleep 20 && adb shell dumpsys activity activities | grep -F "com.cdl.familycolonyv5d.WorldActivity" && adb logcat -d > "$RUNNER_TEMP/family-colony-emulator-logcat.txt" && ! grep -E "FATAL EXCEPTION|SCRIPT ERROR:|Parse Error:|Failed to load main pack|Failed to load scene|Couldn't load project data|Unable to setup the Godot engine" "$RUNNER_TEMP/family-colony-emulator-logcat.txt"
 
       - name: Upload emulator logcat
         if: always()
