@@ -2,19 +2,7 @@ name: Publish FAMILY COLONY Android APK
 # Release is gated by source validation and an Android 11 signed-release install test.
 
 on:
-  push:
-    branches:
-      - feature/direct-3d-entry
-    paths:
-      - 'app/**'
-      - 'godot_world/**'
-      - 'build.gradle'
-      - 'settings.gradle'
-      - 'gradle.properties'
-      - '.github/workflows/android-release.yml'
-      - '.github/workflows/android-debug.yml'
-      - '.github/workflows/godot-validation.yml'
-      - '.github/workflows/android-emulator-smoke.yml'
+  # Release builds are manual only. Routine fixes must not publish another APK.
   workflow_dispatch:
     inputs:
       release_tag:
