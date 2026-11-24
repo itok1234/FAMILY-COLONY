@@ -382,6 +382,34 @@ func _build_royal_hive_citadel() -> void:
 	crown_cap.radius = 1.0
 	crown_cap.height = 2.0
 	_mesh_node(citadel, crown_cap, deep_gold, Vector3(0, 18.9, -4.0), "CrownFinial")
+	# Decorative vertical ribs, cornices and balcony rings give the keep a crafted silhouette.
+	for rib_index in range(6):
+		var angle := TAU * float(rib_index) / 6.0
+		var rib := _cylinder(citadel, 0.13, 10.8, Vector3(cos(angle) * 6.05, 7.1, -4.0 + sin(angle) * 6.05), honey, "KeepFacadeRib")
+		rib.rotation.z = 0.0
+	var cornice := CylinderMesh.new()
+	cornice.top_radius = 6.35
+	cornice.bottom_radius = 6.35
+	cornice.height = 0.38
+	cornice.radial_segments = 6
+	_mesh_node(citadel, cornice, deep_gold, Vector3(0, 12.7, -4.0), "KeepUpperCornice")
+	var balcony := CylinderMesh.new()
+	balcony.top_radius = 7.15
+	balcony.bottom_radius = 7.15
+	balcony.height = 0.22
+	balcony.radial_segments = 6
+	_mesh_node(citadel, balcony, honey, Vector3(0, 13.0, -4.0), "KeepBalconyRing")
+	for side in [-1.0, 1.0]:
+		var banner := _box(citadel, Vector3(1.05, 3.8, 0.10), Vector3(side * 5.3, 8.8, 2.62), teal, "RoyalBanner")
+		banner.rotation.z = side * -0.08
+		_box(citadel, Vector3(1.22, 0.12, 0.16), Vector3(side * 5.3, 10.75, 2.62), honey, "RoyalBannerTop")
+		for level in range(3):
+			var tower_band := CylinderMesh.new()
+			tower_band.top_radius = 2.78 - float(level) * 0.12
+			tower_band.bottom_radius = 2.78 - float(level) * 0.12
+			tower_band.height = 0.18
+			tower_band.radial_segments = 6
+			_mesh_node(citadel, tower_band, honey, Vector3(side * 9.0, 3.0 + float(level) * 3.0, -0.5), "TowerDecorativeBand")
 
 	# Two side towers frame the entrance and make the silhouette readable at a distance.
 	for side in [-1.0, 1.0]:
@@ -517,6 +545,18 @@ func _build_landscape_details() -> void:
 			bloom.rings = 5
 			_mesh_node(bed, bloom, flower_materials[flower_index % flower_materials.size()], Vector3(fx, 0.12 + stem_height, fz), "FlowerBloom")
 
+	# Repeated stone edging, seating islands and path lights create a readable landscaped public space.
+	for side in [-1.0, 1.0]:
+		for segment in range(7):
+			var z := -5.0 - float(segment) * 7.0
+			var x := side * 16.0
+			_box(details, Vector3(0.22, 0.24, 4.8), Vector3(x, -0.27, z), stone, "GardenKerb")
+			if segment % 2 == 0:
+				var post := _cylinder(details, 0.11, 1.15, Vector3(side * 7.6, 0.12, z), stone, "PathLightPost")
+				var cap := SphereMesh.new()
+				cap.radius = 0.22
+				cap.height = 0.44
+				_mesh_node(details, cap, flower_materials[0], Vector3(side * 7.6, 0.82, z), "PathLightCap")
 	# Low-cost shrub clusters add depth to the road edges without costly foliage simulation.
 	for shrub_index in range(22):
 		var side := -1.0 if shrub_index % 2 == 0 else 1.0
