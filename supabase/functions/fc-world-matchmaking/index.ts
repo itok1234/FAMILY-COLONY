@@ -63,7 +63,7 @@ Deno.serve(async req => {
 
   if (action === "request_ticket") {
     const authorization = req.headers.get("Authorization") || "";
-    const bearer = authorization.match(/^Bearer\\s+(.+)$/i)?.[1]?.trim() || "";
+    const bearer = authorization.match(/^Bearer\s+(.+)$/i)?.[1]?.trim() || "";
     if (!bearer) return json({ error: "authentication_required" }, 401);
 
     const { data: authData, error: authError } = await admin.auth.getUser(bearer);
