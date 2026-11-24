@@ -1,4 +1,5 @@
 name: Validate FAMILY COLONY 3D World
+# Keep this workflow in sync with release validation gates.
 
 on:
   push:
