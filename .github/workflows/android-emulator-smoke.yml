@@ -8,6 +8,7 @@ on:
     paths:
       - "app/build.gradle"
       - "app/src/main/**"
+      - "app/src/androidTest/**"
       - ".github/workflows/android-emulator-smoke.yml"
       - ".github/workflows/android-release.yml"
       - ".github/workflows/android-debug.yml"
