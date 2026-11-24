@@ -1,4 +1,8 @@
 name: Deploy Family Colony Supabase backend
+
+concurrency:
+  group: family-colony-supabase-deploy
+  cancel-in-progress: false
 # Deploy authentication backend and secure operational finance ledger.
 
 on:
@@ -235,10 +239,10 @@ jobs:
           sql = Path("supabase/migrations/202611250001_cloud_world_ticketing.sql").read_text()
           Path("/tmp/fc-world-ticketing-query.json").write_text(json.dumps({"query": sql}))
           PY
-          code=$(curl -sS -w "%{http_code}" -o /tmp/fc-world-ticketing-result.json -X POST \\
-            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \\
-            -H "Content-Type: application/json" \\
-            --data-binary @/tmp/fc-world-ticketing-query.json \\
+          code=$(curl -sS -w "%{http_code}" -o /tmp/fc-world-ticketing-result.json -X POST \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data-binary @/tmp/fc-world-ticketing-query.json \
             "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")
           echo "World ticketing schema HTTP status: $code"
           if [[ "$code" != 2* ]]; then
