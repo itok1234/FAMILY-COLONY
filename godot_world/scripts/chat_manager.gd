@@ -39,21 +39,25 @@ func get_recent_messages() -> Array[Dictionary]:
 	return _history.duplicate(true)
 
 
-func send_message(raw_text: String) -> void:
+func send_message(raw_text: String) -> bool:
 	var clean_text := raw_text.strip_edges()
 	if clean_text.is_empty():
 		chat_error.emit("Pesan tidak boleh kosong.")
-		return
+		return false
 	if clean_text.length() > max_message_characters:
 		chat_error.emit("Pesan maksimal %d karakter." % max_message_characters)
-		return
+		return false
+	if _current_room_id.is_empty():
+		chat_error.emit("Masuk ke room terlebih dahulu sebelum mengirim pesan.")
+		return false
 	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
-		chat_error.emit("Hubungkan ke room terlebih dahulu.")
-		return
+		chat_error.emit("Koneksi room belum aktif. Chat belum dapat dikirim.")
+		return false
 	if multiplayer.is_server():
 		_accept_message(multiplayer.get_unique_id(), clean_text)
 	else:
 		_rpc_submit_message.rpc_id(1, clean_text)
+	return true
 
 
 func _accept_message(sender_id: int, clean_text: String) -> void:
@@ -299,8 +303,8 @@ func _send_chat_input() -> void:
 	var message_text := _chat_input.text
 	if message_text.strip_edges().is_empty():
 		return
-	send_message(message_text)
-	_chat_input.clear()
+	if send_message(message_text):
+		_chat_input.clear()
 
 
 func _on_chat_text_submitted(_submitted_text: String) -> void:
