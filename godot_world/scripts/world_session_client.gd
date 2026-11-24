@@ -34,17 +34,16 @@ func _ready() -> void:
 			bridge.connect("session_credentials_refreshed", Callable(self, "_on_session_credentials_refreshed"))
 		if bridge.has_signal("session_refresh_failed"):
 			bridge.connect("session_refresh_failed", Callable(self, "_on_session_refresh_failed"))
-		if bridge.has_method("consumeInitialAccessToken"):
-			var initial_token := str(bridge.call("consumeInitialAccessToken"))
-			var publishable_key := str(bridge.call("consumeInitialPublishableKey"))
-			if initial_token.is_empty() or publishable_key.is_empty():
-				_access_denied("native_session_credentials_missing")
-			else:
-				var request_error := verify_access_token(initial_token, publishable_key)
-				if request_error != OK:
-					push_warning("FAMILY COLONY: Could not start member session verification.")
+		# Godot Android JNISingleton does not implement has_method() for
+		# Java plugin methods. Call the @UsedByGodot methods directly.
+		var initial_token := str(bridge.call("consumeInitialAccessToken"))
+		var publishable_key := str(bridge.call("consumeInitialPublishableKey"))
+		if initial_token.is_empty() or publishable_key.is_empty():
+			_access_denied("native_session_credentials_missing")
 		else:
-			_access_denied("native_session_bridge_invalid")
+			var request_error := verify_access_token(initial_token, publishable_key)
+			if request_error != OK:
+				push_warning("FAMILY COLONY: Could not start member session verification.")
 	else:
 		_access_denied("native_session_bridge_missing")
 
@@ -175,8 +174,8 @@ func _request_session_refresh() -> void:
 	if not has_verified_session() or not Engine.has_singleton("FamilyColonyBridge"):
 		return
 	var bridge: Object = Engine.get_singleton("FamilyColonyBridge")
-	if bridge.has_method("requestSessionRefresh"):
-		bridge.call("requestSessionRefresh")
+	# has_method() is unsupported for Android Java plugin methods.
+	bridge.call("requestSessionRefresh")
 
 
 func _on_session_credentials_refreshed(access_token: String, api_key: String) -> void:
