@@ -111,6 +111,12 @@ func _build_avatar() -> void:
 		"shoes": shoes
 	}
 	_add_capsule(self, "Torso", Vector3(0, 1.12, 0), 0.28, 0.82, shirt)
+	# Layered clothing details keep the procedural preview readable at mobile distance.
+	var trim := _material(Color(0.78, 0.67, 0.43), 0.52, 0.18)
+	_add_box(self, "CollarFront", Vector3(0, 1.48, -0.245), Vector3(0.22, 0.075, 0.045), trim)
+	_add_box(self, "ShirtPlacket", Vector3(0, 1.16, -0.286), Vector3(0.035, 0.48, 0.025), trim)
+	for button_index in range(3):
+		_add_sphere(self, "ShirtButton_%d" % button_index, Vector3(0, 1.31 - float(button_index) * 0.14, -0.306), Vector3(0.018, 0.018, 0.012), trim)
 	_add_capsule(self, "Neck", Vector3(0, 1.61, 0), 0.105, 0.22, skin)
 	_head = Node3D.new()
 	_head.name = "Head"
@@ -118,6 +124,7 @@ func _build_avatar() -> void:
 	add_child(_head)
 	_add_sphere(_head, "Face", Vector3.ZERO, Vector3(0.225, 0.265, 0.215), skin)
 	_add_sphere(_head, "HairCap", Vector3(0, 0.145, 0.025), Vector3(0.232, 0.145, 0.222), hair)
+	_add_sphere(_head, "HairBack", Vector3(0, -0.045, 0.105), Vector3(0.218, 0.205, 0.145), hair)
 	_add_sphere(_head, "FrontHair", Vector3(0, 0.105, -0.16), Vector3(0.19, 0.105, 0.075), hair)
 	_add_sphere(_head, "LeftHairLock", Vector3(-0.19, -0.005, -0.005), Vector3(0.055, 0.19, 0.085), hair)
 	_add_sphere(_head, "RightHairLock", Vector3(0.19, -0.005, -0.005), Vector3(0.055, 0.19, 0.085), hair)
@@ -150,8 +157,12 @@ func _build_avatar() -> void:
 	_right_arm.rotation.z = 0.12
 	_add_capsule(_left_arm, "Sleeve", Vector3(0, 0.12, 0), 0.14, 0.48, shirt)
 	_add_capsule(_right_arm, "Sleeve", Vector3(0, 0.12, 0), 0.14, 0.48, shirt)
+	_add_capsule(_left_arm, "LeftCuff", Vector3(0, -0.13, 0), 0.119, 0.10, trim)
+	_add_capsule(_right_arm, "RightCuff", Vector3(0, -0.13, 0), 0.119, 0.10, trim)
 	_left_leg = _make_limb("LeftLeg", Vector3(-0.15, 0.72, 0), trousers, 0.145, 0.78)
 	_right_leg = _make_limb("RightLeg", Vector3(0.15, 0.72, 0), trousers, 0.145, 0.78)
+	_add_box(_left_leg, "ShoeSole", Vector3(0, -0.445, -0.07), Vector3(0.27, 0.055, 0.40), trim)
+	_add_box(_right_leg, "ShoeSole", Vector3(0, -0.445, -0.07), Vector3(0.27, 0.055, 0.40), trim)
 	_add_box(_left_leg, "Shoe", Vector3(0, -0.38, -0.07), Vector3(0.25, 0.13, 0.38), shoes)
 	_add_box(_right_leg, "Shoe", Vector3(0, -0.38, -0.07), Vector3(0.25, 0.13, 0.38), shoes)
 
