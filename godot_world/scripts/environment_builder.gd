@@ -22,6 +22,7 @@ func _ready() -> void:
 	_build_benches()
 	_build_community_interior()
 	_build_royal_hive_citadel()
+	_build_landscape_details()
 
 func apply_quality_density(trees: int, lamps: int, buildings: int) -> void:
 	tree_count = maxi(0, trees)
@@ -439,3 +440,75 @@ func _build_royal_hive_citadel() -> void:
 	sign.outline_modulate = Color(0.10, 0.12, 0.15, 1.0)
 	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	citadel.add_child(sign)
+
+
+func _build_landscape_details() -> void:
+	# Lightweight decorative pass for the current procedural world.
+	# This improves visual richness without pretending to replace final authored PBR art.
+	var details := Node3D.new()
+	details.name = "LandscapeDetails"
+	add_child(details)
+
+	var stone := _mat("garden_stone", Color(0.43, 0.48, 0.46), 0.94)
+	var shrub_materials: Array[Material] = [
+		_mat("shrub_deep", Color(0.12, 0.27, 0.19), 1.0),
+		_mat("shrub_mid", Color(0.20, 0.36, 0.23), 1.0),
+		_mat("shrub_light", Color(0.29, 0.43, 0.25), 1.0)
+	]
+	var flower_materials: Array[Material] = [
+		_mat("flower_cream", Color(0.91, 0.87, 0.70), 0.72),
+		_mat("flower_lavender", Color(0.56, 0.49, 0.72), 0.68),
+		_mat("flower_blue", Color(0.42, 0.65, 0.76), 0.68)
+	]
+	var leaf_material := _mat("flower_leaf", Color(0.19, 0.39, 0.24), 0.9)
+
+	# Small planted islands soften the hard edges around the central plaza.
+	for bed_index in range(10):
+		var side := -1.0 if bed_index % 2 == 0 else 1.0
+		var z := -6.0 - float(bed_index / 2) * 7.0
+		var x := side * _rng.randf_range(11.5, 14.0)
+		var bed := Node3D.new()
+		bed.name = "FlowerBed_%02d" % bed_index
+		bed.position = Vector3(x, -0.38, z)
+		details.add_child(bed)
+
+		var border := BoxMesh.new()
+		border.size = Vector3(3.4, 0.16, 2.0)
+		_mesh_node(bed, border, stone, Vector3.ZERO, "StonePlanter")
+		var soil := BoxMesh.new()
+		soil.size = Vector3(3.12, 0.08, 1.72)
+		_mesh_node(bed, soil, _mat("planter_soil", Color(0.20, 0.16, 0.12), 1.0), Vector3(0, 0.105, 0), "PlanterSoil")
+
+		for flower_index in range(7):
+			var fx := _rng.randf_range(-1.35, 1.35)
+			var fz := _rng.randf_range(-0.68, 0.68)
+			var stem_height := _rng.randf_range(0.28, 0.48)
+			_cylinder(bed, 0.025, stem_height, Vector3(fx, 0.12 + stem_height * 0.5, fz), leaf_material, "FlowerStem")
+			var leaf := SphereMesh.new()
+			leaf.radius = 0.10
+			leaf.height = 0.12
+			leaf.radial_segments = 7
+			leaf.rings = 4
+			_mesh_node(bed, leaf, leaf_material, Vector3(fx + 0.09, 0.22, fz), "FlowerLeaf")
+			var bloom := SphereMesh.new()
+			bloom.radius = _rng.randf_range(0.09, 0.14)
+			bloom.height = bloom.radius * 1.35
+			bloom.radial_segments = 8
+			bloom.rings = 5
+			_mesh_node(bed, bloom, flower_materials[flower_index % flower_materials.size()], Vector3(fx, 0.12 + stem_height, fz), "FlowerBloom")
+
+	# Low-cost shrub clusters add depth to the road edges without costly foliage simulation.
+	for shrub_index in range(22):
+		var side := -1.0 if shrub_index % 2 == 0 else 1.0
+		var x := side * _rng.randf_range(8.5, 17.5)
+		var z := _rng.randf_range(-145.0, 12.0)
+		if absf(z) < 17.0 and absf(x) < 13.0:
+			continue
+		var shrub := SphereMesh.new()
+		shrub.radius = _rng.randf_range(0.55, 0.9)
+		shrub.height = shrub.radius * 1.35
+		shrub.radial_segments = 9
+		shrub.rings = 5
+		var scale_value := Vector3(_rng.randf_range(1.0, 1.5), _rng.randf_range(0.7, 1.0), _rng.randf_range(0.9, 1.3))
+		var instance := _mesh_node(details, shrub, shrub_materials[shrub_index % shrub_materials.size()], Vector3(x, 0.1, z), "RoadsideShrub")
+		instance.scale = scale_value
