@@ -60,15 +60,32 @@ public final class FamilyColonyGodotPlugin extends GodotPlugin {
     }
 
     public void onSessionCredentialsRefreshed(String accessToken, String apiKey) {
-        if (accessToken == null || accessToken.isEmpty() || apiKey == null || apiKey.isEmpty()) {
+        if (accessToken == null || accessToken.trim().isEmpty()
+                || apiKey == null || apiKey.trim().isEmpty()) {
             onSessionRefreshFailed(true);
             return;
         }
-        emitSignal(SESSION_CREDENTIALS_REFRESHED.getName(), accessToken, apiKey);
+
+        // WebView's @JavascriptInterface callbacks run on a Binder-managed
+        // background thread. Godot plugin signals must be delivered from the
+        // Android UI thread to avoid racing the Godot engine lifecycle.
+        final String token = accessToken.trim();
+        final String publishableKey = apiKey.trim();
+        hostActivity.runOnUiThread(() -> {
+            if (hostActivity.isFinishing() || hostActivity.isDestroyed()) {
+                return;
+            }
+            emitSignal(SESSION_CREDENTIALS_REFRESHED.getName(), token, publishableKey);
+        });
     }
 
     public void onSessionRefreshFailed(boolean invalidated) {
-        emitSignal(SESSION_REFRESH_FAILED.getName(), invalidated);
+        hostActivity.runOnUiThread(() -> {
+            if (hostActivity.isFinishing() || hostActivity.isDestroyed()) {
+                return;
+            }
+            emitSignal(SESSION_REFRESH_FAILED.getName(), invalidated);
+        });
     }
 
     /** The project publishable key is not a secret; it is sent only in the HTTP apikey header. */
