@@ -144,10 +144,28 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
 #fcLiveAnnouncement{display:none;position:sticky;top:76px;z-index:20;margin:10px auto;max-width:1200px;width:calc(100% - 24px);padding:12px 15px;border:1px solid #e8bd6288;border-radius:13px;background:#2b2416;color:#f7df9c;box-shadow:0 10px 28px #0006}
 #fcMaintenanceOverlay{display:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(ellipse at 50% 0%,#263d59,#07101e 70%);align-items:center;justify-content:center;padding:22px}
 #fcMaintenanceOverlay .panel{width:min(560px,100%);text-align:center;border-color:#e8bd6288}
-\n#fcWorldCanvas{image-rendering:auto;max-height:520px}\n</style>
+\n#fcWorldCanvas{image-rendering:auto;max-height:520px}\n
+/* CDL PROJECT STUDIO identity */
+#cdlStudioIntro{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 38%,#163c70 0,#09182d 52%,#040a14 100%);transition:opacity .65s ease,visibility .65s ease}
+#cdlStudioIntro.cdl-hide{opacity:0;visibility:hidden;pointer-events:none}
+.cdl-intro-inner{width:min(520px,94vw);text-align:center;animation:cdlRise .9s ease both}
+.cdl-intro-inner img{width:100%;height:auto;filter:drop-shadow(0 18px 34px #0009)}
+.cdl-intro-caption{margin-top:8px;color:#dbe8f8;font-size:.72rem;letter-spacing:.24em;text-transform:uppercase}
+@keyframes cdlRise{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.cdl-studio-credit{padding:24px 16px 34px;text-align:center;color:#9fb0c5;font-size:.76rem;letter-spacing:.08em;border-top:1px solid var(--line);background:#07132388}
+.cdl-studio-credit strong{display:block;color:var(--gold2);font-size:.9rem;letter-spacing:.18em;margin-bottom:6px}
+.cdl-studio-credit span{display:block;margin-top:5px;color:#7f91a8;font-size:.68rem;letter-spacing:.12em}
+@media(prefers-reduced-motion:reduce){.cdl-intro-inner{animation:none}#cdlStudioIntro{transition:none}}
+</style>
 <script>window.FC_SUPABASE_URL="https://irwtnqekrwhgompulach.supabase.co";</script>
 </head>
 <body>
+<div id="cdlStudioIntro" role="dialog" aria-label="CDL Project Studio">
+  <div class="cdl-intro-inner">
+    <img src="cdl-project-studio.svg" alt="CDL Project Studio — Create, Play, Share">
+    <div class="cdl-intro-caption">Presents • FAMILY COLONY</div>
+  </div>
+</div>
 <header class="topbar"><div class="shell topbar-inner">
   <div class="brand"><button type="button" class="bee-mark" aria-label="Logo lebah FAMILY COLONY — ketuk 5 kali untuk akses Developer" title="Ketuk logo lebah 5 kali untuk akses Developer" onclick="developerLogoTap()">🐝</button><div><strong>FAMILY COLONY</strong><small>BEE KINGDOM • DIGITAL REALM</small></div></div>
   <div class="top-actions"><span id="topUser" class="tiny"></span><button id="devTestMemberBtn" class="btn small hidden" onclick="startDeveloperPreview(\'member\')">Uji Member</button><button id="devTestGuestBtn" class="btn small hidden" onclick="startDeveloperPreview(\'guest\')">Uji Tamu</button><button id="devTestReturnBtn" class="btn small hidden" onclick="returnDeveloperPreview()">Kembali Developer</button><button id="guestInviteBtn" class="btn small hidden" onclick="createGuestRecommendation()">Kode Rekomendasi Tamu</button><button id="homeBtn" class="btn ghost small hidden" onclick="goHome()">Beranda</button><button id="logoutBtn" class="btn small hidden" onclick="logout()">Keluar</button></div>
@@ -1732,5 +1750,15 @@ $("developerGate").addEventListener("click",e=>{if(e.target.id==="developerGate"
 if(!Array.isArray(db.members))db.members=[];if(!Array.isArray(db.requests))db.requests=[];if(!Array.isArray(db.announcements))db.announcements=[];if(!Array.isArray(db.activity))db.activity=[];ensureEconomyData();ensureMissionData();ensureHoneyChallengeData();ensureGuessWhoData();saveDB();try{const saved=JSON.parse(sessionStorage.getItem("fc_session")||"null");if(saved&&saved.guest&&saved.guestToken&&saved.expiresAt>Date.now()+30000){session=saved;$("landing").classList.add("hidden");$("workspace").classList.add("hidden");$("guestWorkspace").classList.remove("hidden");$("guestWelcome").textContent="Halo, "+saved.name+". Selamat menjelajahi fitur publik dan area demo FAMILY COLONY.";$("guestReferrer").textContent=saved.referrer||"Member Family Colony";$("guestExpiry").textContent="Sesi sampai "+new Date(saved.expiresAt).toLocaleString("id-ID");$("logoutBtn").classList.remove("hidden");$("topUser").textContent=saved.name+" · TAMU";guestOpen("overview")}else if(saved&&saved.accessToken&&saved.refreshToken){session=saved;window.FC_SUPABASE_ANON_KEY=saved.anonKey||"";refreshMemberSessionIfNeeded().then(ok=>{if(ok||Number(saved.expiresAt||0)>Date.now())enterApp();else showMemberFeedback("Sesi login perlu diperbarui. Periksa koneksi internet lalu masuk kembali.")})}}catch(e){}
 
 setInterval(fcPollAppStatus,45000);fcPollAppStatus();
+</script>
+
+<footer class="cdl-studio-credit">
+  <strong>CDL PROJECT STUDIO</strong>
+  Developed by CDL PROJECT STUDIO
+  <span>GAME • MUSIC • STORY • MORE</span>
+  <span>© 2026 CDL PROJECT STUDIO</span>
+</footer>
+<script>
+(()=>{const intro=document.getElementById("cdlStudioIntro");if(!intro)return;const close=()=>intro.classList.add("cdl-hide");intro.addEventListener("click",close,{once:true});window.setTimeout(close,2600)})();
 </script>
 </body></html>
