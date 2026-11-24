@@ -38,6 +38,8 @@ func _ready() -> void:
 		# Java plugin methods. Call the @UsedByGodot methods directly.
 		var initial_token := str(bridge.call("consumeInitialAccessToken"))
 		var publishable_key := str(bridge.call("consumeInitialPublishableKey"))
+		# Safe diagnostic marker: confirms the native singleton and both annotated Java methods are callable.
+		print("FC_NATIVE_BRIDGE_METHODS_OK")
 		if initial_token.is_empty() or publishable_key.is_empty():
 			_access_denied("native_session_credentials_missing")
 		else:
