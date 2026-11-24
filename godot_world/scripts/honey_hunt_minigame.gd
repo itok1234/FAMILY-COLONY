@@ -10,6 +10,8 @@ var _active := false
 var _time_left := 45.0
 var _score := 0
 var _targets: Array[MeshInstance3D] = []
+var _target_home_positions: Dictionary = {}
+var _elapsed := 0.0
 var _arena: Node3D
 var _hud: CanvasLayer
 var _status: Label
@@ -30,8 +32,15 @@ func _process(delta: float) -> void:
 	if not _active or not is_instance_valid(_player):
 		return
 	_time_left = maxf(0.0, _time_left - delta)
-	for target in _targets.duplicate():
-		if is_instance_valid(target) and _player.global_position.distance_to(target.global_position) < 1.55:
+	_elapsed += delta
+	for index in range(_targets.size()):
+		var target := _targets[index]
+		if not is_instance_valid(target):
+			continue
+		var home: Vector3 = _target_home_positions.get(target.get_instance_id(), target.position)
+		target.position.y = home.y + sin(_elapsed * 2.4 + float(index) * 0.7) * 0.22
+		target.rotation.y += delta * 1.8
+		if _player.global_position.distance_to(target.global_position) < 1.55:
 			_collect_target(target)
 	_update_status()
 	if _time_left <= 0.0 or _score >= TARGET_COUNT:
@@ -45,6 +54,7 @@ func start_honey_hunt(actor: Node) -> String:
 	_return_position = _player.global_position
 	_score = 0
 	_time_left = 45.0
+	_elapsed = 0.0
 	_active = true
 	_reset_targets()
 	_arena.visible = true
@@ -199,6 +209,7 @@ func _reset_targets() -> void:
 		if is_instance_valid(target):
 			target.queue_free()
 	_targets.clear()
+	_target_home_positions.clear()
 	for index in range(TARGET_COUNT):
 		var token := MeshInstance3D.new()
 		token.name = "HoneyToken_%02d" % index
@@ -212,6 +223,7 @@ func _reset_targets() -> void:
 		token.position = Vector3(_rng.randf_range(-13.0, 13.0), _rng.randf_range(0.8, 2.8), _rng.randf_range(-12.0, 12.0))
 		token.material_override = _material(Color(1.0, 0.67, 0.12), 0.28, 0.45)
 		_arena.add_child(token)
+		_target_home_positions[token.get_instance_id()] = token.position
 		var halo := MeshInstance3D.new()
 		var halo_mesh := TorusMesh.new()
 		halo_mesh.inner_radius = 0.72
@@ -225,6 +237,7 @@ func _reset_targets() -> void:
 
 func _collect_target(target: MeshInstance3D) -> void:
 	_targets.erase(target)
+	_target_home_positions.erase(target.get_instance_id())
 	target.queue_free()
 	_score += 1
 	_update_status()
