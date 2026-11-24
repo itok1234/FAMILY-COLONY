@@ -20,7 +20,9 @@ Status: implementation contract, not a completion claim. The repository now cont
 - Godot currently has LAN ENet host/client, room-scoped presence, chat, and remote-avatar foundations.
 
 ### Not yet implemented or verified
-- The Android/Godot client does not yet call `fc-world-matchmaking` or connect to its returned endpoint.
+- Runtime validation of the new Godot matchmaking HTTP request and response handling is pending CI/headless and real-device testing.
+- `WorldSessionClient` now calls `fc-world-matchmaking` after a member session is verified, using the same short-lived Supabase access token and publishable key. It validates the returned server/member payload and emits `matchmaking_ready` or `matchmaking_failed` signals.
+- The client currently treats matchmaking as best-effort and does not block the already verified local world entry if no cloud server is registered. It does not yet connect to the returned endpoint; transport and authoritative server deployment remain pending.
 - No dedicated authoritative Godot headless server deployment, public endpoint, heartbeat publisher, or server-side Supabase token validation is confirmed.
 - Existing LAN peer IDs are not canonical member identities and must not be presented as production cloud presence.
 - No successful two-device, different-network cloud multiplayer test has passed.
