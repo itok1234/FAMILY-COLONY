@@ -71,23 +71,29 @@ func _refresh_target() -> void:
 func _set_prompt(value: String) -> void:
 	_prompt.text = value
 	_prompt.visible = not value.is_empty()
-	_action_button.visible = not value.is_empty()
+	# The avatar action control remains available even when no world object is targeted.
+	_action_button.visible = true
 
 func _open_action_menu() -> void:
-	if not _is_target_interactable_and_in_range():
+	var has_target := _is_target_interactable_and_in_range()
+	var available_actions: Array = []
+	if has_target:
+		available_actions = ["use", "greet", "sit"]
+		if _target.has_method("get_available_actions"):
+			var configured_actions: Variant = _target.call("get_available_actions")
+			if configured_actions is Array:
+				available_actions = configured_actions
+	else:
 		_target = null
-		_set_prompt("")
-		return
-	var available_actions: Array = ["use", "greet"]
-	if _target.has_method("get_available_actions"):
-		var configured_actions: Variant = _target.call("get_available_actions")
-		if configured_actions is Array:
-			available_actions = configured_actions
+		available_actions = ["greet", "sit"]
+		var player := get_parent()
+		if player.has_method("is_seated") and player.call("is_seated"):
+			available_actions.append("stand")
 	for action_id in _menu_button_by_action:
 		var action_button: Button = _menu_button_by_action[action_id]
 		action_button.visible = available_actions.has(action_id)
 	if available_actions.is_empty():
-		_show_result("Tidak ada aksi yang tersedia untuk objek ini.")
+		_show_result("Tidak ada aksi yang tersedia.")
 		return
 	_menu.visible = true
 	_prompt.visible = false
@@ -95,9 +101,32 @@ func _open_action_menu() -> void:
 
 func _choose_action(action_id: String) -> void:
 	_menu.visible = false
-	if not _is_target_interactable_and_in_range():
+	var has_target := _is_target_interactable_and_in_range()
+	if not has_target:
 		_target = null
-		_show_result("Objek sudah terlalu jauh untuk dijangkau.")
+		var player := get_parent()
+		match action_id:
+			"greet":
+				var avatar := player.get_node_or_null("AvatarVisual")
+				if avatar != null and avatar.has_method("play_action"):
+					avatar.call("play_action", "wave")
+					_broadcast_social_action("wave")
+					_show_result("Kamu melambaikan tangan.")
+				else:
+					_show_result("Animasi avatar belum tersedia.")
+			"sit":
+				if player.has_method("set_seated"):
+					player.call("set_seated", true)
+					_broadcast_social_action("sit")
+					_show_result("Kamu duduk.")
+			"stand":
+				if player.has_method("set_seated"):
+					player.call("set_seated", false)
+					_broadcast_social_action("stand")
+					_show_result("Kamu berdiri kembali.")
+			_:
+				_show_result("Arahkan kamera ke objek untuk menggunakan interaksi.")
+		_action_button.visible = true
 		return
 	if _target.has_method("get_available_actions"):
 		var allowed_actions: Variant = _target.call("get_available_actions")
@@ -122,6 +151,7 @@ func _choose_action(action_id: String) -> void:
 	_show_result(message)
 	_target = null
 	_set_prompt("")
+	_action_button.visible = true
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
@@ -157,7 +187,7 @@ func _build_hud() -> void:
 	_action_button.anchor_bottom = 0.88
 	_action_button.add_theme_font_size_override("font_size", 17)
 	_action_button.pressed.connect(_open_action_menu)
-	_action_button.visible = false
+	_action_button.visible = true
 	layer.add_child(_action_button)
 
 	_menu = Control.new()
@@ -188,6 +218,7 @@ func _build_hud() -> void:
 	_add_menu_button("GUNAKAN", Vector2(-165, 0), "use")
 	_add_menu_button("SAPA", Vector2(0, 82), "greet")
 	_add_menu_button("DUDUK", Vector2(165, 0), "sit")
+	_add_menu_button("BERDIRI", Vector2(0, 82), "stand")
 
 	var cancel := Button.new()
 	cancel.text = "BATAL"
@@ -198,7 +229,10 @@ func _build_hud() -> void:
 	cancel.offset_left = -75
 	cancel.offset_right = 75
 	cancel.offset_bottom = 44
-	cancel.pressed.connect(func(): _menu.visible = false)
+	cancel.pressed.connect(func():
+		_menu.visible = false
+		_action_button.visible = true
+	)
 	_menu.add_child(cancel)
 
 	_result = Label.new()
