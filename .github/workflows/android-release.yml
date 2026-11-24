@@ -140,7 +140,7 @@ jobs:
             APK="$OUT/app-$ABI-release.apk"
             test -s "$APK"
             "$APKSIGNER" verify --verbose "$APK"
-            "$AAPT" dump badging "$APK" | grep -F "package: name='com.cdl.familycolonyv5d'"
+            "$AAPT" dump badging "$APK" | grep -F "package: name='com.cdl.familycolonyv5d.next'"
             "$AAPT" dump xmltree "$APK" AndroidManifest.xml | grep -F "com.cdl.familycolonyv5d.WorldActivity"
             unzip -l "$APK" | grep -F "assets/godot_world.zip"
             unzip -p "$APK" "assets/godot_world.zip" > "$RUNNER_TEMP/godot_world-$ABI.zip"
@@ -191,7 +191,7 @@ jobs:
               body: [
                 'FAMILY COLONY Android package for direct installation.',
                 '',
-                '- Package: com.cdl.familycolonyv5d',
+                '- Package: com.cdl.familycolonyv5d.next',
                 '- arm64-v8a: for most modern Android phones, including Redmi Note 8 Pro.',
                 '- armeabi-v7a: for older 32-bit ARM Android phones.',
                 '- Distribution: direct APK download; Google Play Store is not required.',
