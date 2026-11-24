@@ -36,7 +36,7 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Require Android build and Godot validation for this commit
+      - name: Wait for Android build and Godot validation for this commit
         uses: actions/github-script@v7
         with:
           script: |
@@ -44,23 +44,41 @@ jobs:
               { workflow: 'android-debug.yml', label: 'Android APK build and package validation' },
               { workflow: 'godot-validation.yml', label: 'Godot project validation' }
             ];
-            for (const item of required) {
-              const runs = await github.rest.actions.listWorkflowRuns({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                workflow_id: item.workflow,
-                branch: context.ref.replace('refs/heads/', ''),
-                per_page: 30
-              });
-              const passed = runs.data.workflow_runs.some(run =>
-                run.head_sha === context.sha &&
-                run.status === 'completed' &&
-                run.conclusion === 'success'
-              );
-              if (!passed) {
-                throw new Error('APK release blocked: ' + item.label + ' has not passed for exact commit ' + context.sha + '.');
+            const deadline = Date.now() + 12 * 60 * 1000;
+            while (Date.now() < deadline) {
+              let allPassed = true;
+              for (const item of required) {
+                const runs = await github.rest.actions.listWorkflowRuns({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  workflow_id: item.workflow,
+                  branch: context.ref.replace('refs/heads/', ''),
+                  per_page: 30
+                });
+                const exact = runs.data.workflow_runs.find(run => run.head_sha === context.sha);
+                if (!exact) {
+                  allPassed = false;
+                  core.info(item.label + ' has not started for ' + context.sha + '.');
+                  continue;
+                }
+                if (exact.status !== 'completed') {
+                  allPassed = false;
+                  core.info(item.label + ' is still running (' + exact.status + ').');
+                  continue;
+                }
+                if (exact.conclusion !== 'success') {
+                  throw new Error('APK release blocked: ' + item.label + ' finished with ' + exact.conclusion + ' for ' + context.sha + '.');
+                }
+                core.info(item.label + ' passed for ' + context.sha + '.');
               }
-              core.info(item.label + ' passed for ' + context.sha + '.');
+              if (allPassed) {
+                core.info('All required validations passed for the exact release commit.');
+                break;
+              }
+              await new Promise(resolve => setTimeout(resolve, 15000));
+            }
+            if (Date.now() >= deadline) {
+              throw new Error('APK release blocked: required validation workflows did not finish within 12 minutes.');
             }
 
       - name: Validate release signing secrets
