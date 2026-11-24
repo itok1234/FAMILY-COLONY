@@ -112,7 +112,7 @@ func _build_avatar() -> void:
 	}
 	_add_capsule(self, "Torso", Vector3(0, 1.12, 0), 0.28, 0.82, shirt)
 	# Layered clothing details keep the procedural preview readable at mobile distance.
-	var trim := _material(Color(0.78, 0.67, 0.43), 0.52, 0.18)
+	var trim := _material(Color(0.78, 0.67, 0.43), 0.52)
 	_add_box(self, "CollarFront", Vector3(0, 1.48, -0.245), Vector3(0.22, 0.075, 0.045), trim)
 	_add_box(self, "ShirtPlacket", Vector3(0, 1.16, -0.286), Vector3(0.035, 0.48, 0.025), trim)
 	for button_index in range(3):
