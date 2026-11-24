@@ -1,4 +1,5 @@
 name: Build FAMILY COLONY Signed Release Candidate v13
+# This workflow intentionally packages the tested feature/direct-3d-entry branch.
 
 on:
   workflow_dispatch:
