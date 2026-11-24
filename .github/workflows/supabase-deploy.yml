@@ -222,11 +222,6 @@ jobs:
           fi
           echo "Member authentication Edge Function deployed."
 
-      - name: Set up Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
       - name: Apply cloud world ticketing schema
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -256,7 +251,7 @@ jobs:
           SUPABASE_PROJECT_REF: irwtnqekrwhgompulach
         run: |
           set -euo pipefail
-          supabase functions deploy fc-world-matchmaking --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt --yes
+          npx --yes supabase@latest functions deploy fc-world-matchmaking --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt --yes
           echo "Cloud world matchmaking ticket endpoint deployed. A registered healthy game server is still required."
 
       - name: Deploy verified Godot world session Edge Function
@@ -265,7 +260,7 @@ jobs:
           SUPABASE_PROJECT_REF: irwtnqekrwhgompulach
         run: |
           set -euo pipefail
-          supabase functions deploy fc-world-session --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt --yes
+          npx --yes supabase@latest functions deploy fc-world-session --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt --yes
           echo "Verified Godot world session Edge Function deployed with its shared policy module."
           
       - name: Deployment summary
