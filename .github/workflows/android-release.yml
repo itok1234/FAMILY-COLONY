@@ -45,7 +45,7 @@ jobs:
               { workflow: 'godot-validation.yml', label: 'Godot project validation' },
               { workflow: 'android-emulator-smoke.yml', label: 'Android 11 release APK install and launch smoke test' }
             ];
-            const deadline = Date.now() + 12 * 60 * 1000;
+            const deadline = Date.now() + 50 * 60 * 1000;
             while (Date.now() < deadline) {
               let allPassed = true;
               for (const item of required) {
@@ -79,7 +79,7 @@ jobs:
               await new Promise(resolve => setTimeout(resolve, 15000));
             }
             if (Date.now() >= deadline) {
-              throw new Error('APK release blocked: required validation workflows did not finish within 12 minutes.');
+              throw new Error('APK release blocked: required validation workflows did not finish within 50 minutes.');
             }
 
       - name: Validate release signing secrets
