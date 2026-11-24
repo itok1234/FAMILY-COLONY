@@ -3,6 +3,7 @@ extends Node3D
 
 var _time := 0.0
 var _motion := 0.0
+var _motion_target := 0.0
 var _action := "idle"
 var _action_time := 0.0
 var _is_seated := false
@@ -18,7 +19,7 @@ func _ready() -> void:
 	_build_avatar()
 
 func set_motion_strength(value: float) -> void:
-	_motion = clampf(value, 0.0, 1.0)
+	_motion_target = clampf(value, 0.0, 1.0)
 
 func get_motion_strength() -> float:
 	return _motion
@@ -76,8 +77,14 @@ func is_seated() -> bool:
 func _process(delta: float) -> void:
 	_time += delta
 	_action_time += delta
-	var swing := sin(_time * 9.0) * 0.58 * _motion
-	var idle := sin(_time * 1.8) * 0.025
+	# Blend gait in and out to avoid abrupt limb movement.
+	_motion = move_toward(_motion, _motion_target, delta * 4.5)
+	var gait_rate := lerpf(5.2, 8.4, _motion)
+	var gait_phase := _time * gait_rate
+	var leg_swing := sin(gait_phase) * 0.48 * _motion
+	var arm_swing := -leg_swing * 0.72
+	var body_bob := absf(cos(gait_phase)) * 0.045 * _motion
+	var idle := sin(_time * 1.55) * 0.018
 	var wave_weight := 0.0
 	var sit_weight := 0.0
 	if _action == "wave":
@@ -87,12 +94,14 @@ func _process(delta: float) -> void:
 	elif _action == "sit":
 		sit_weight = 1.0
 	if _left_arm != null:
-		_left_arm.rotation.x = lerpf(swing, -0.28, sit_weight)
-		_right_arm.rotation.x = lerpf(-swing - wave_weight * 2.15 + sin(_time * 13.0) * 0.28 * wave_weight, -0.28, sit_weight)
-		_left_leg.rotation.x = lerpf(-swing, 0.9, sit_weight)
-		_right_leg.rotation.x = lerpf(swing, 0.9, sit_weight)
+		_left_arm.rotation.x = lerpf(arm_swing, -0.28, sit_weight)
+		_right_arm.rotation.x = lerpf(-arm_swing - wave_weight * 2.15 + sin(_time * 11.5) * 0.24 * wave_weight, -0.28, sit_weight)
+		_left_leg.rotation.x = lerpf(leg_swing, 0.9, sit_weight)
+		_right_leg.rotation.x = lerpf(-leg_swing, 0.9, sit_weight)
 		_head.rotation.x = idle * 0.35 - wave_weight * 0.08
-		position.y = idle * (1.0 - _motion) - sit_weight * 0.28
+		_head.rotation.y = sin(_time * 0.8) * 0.025
+		position.y = idle * (1.0 - _motion) + body_bob - sit_weight * 0.28
+		rotation.z = lerpf(rotation.z, sin(gait_phase) * 0.025 * _motion, minf(delta * 7.0, 1.0))
 
 func _build_avatar() -> void:
 	var skin := _material(Color(0.72, 0.48, 0.34), 0.82)
