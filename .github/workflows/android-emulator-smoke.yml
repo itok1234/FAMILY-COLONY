@@ -12,6 +12,7 @@ on:
       - ".github/workflows/android-emulator-smoke.yml"
       - ".github/workflows/android-release.yml"
       - ".github/workflows/android-debug.yml"
+      - ".github/workflows/godot-validation.yml"
       - "godot_world/**"
 
 permissions:
