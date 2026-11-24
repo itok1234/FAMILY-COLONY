@@ -1,6 +1,19 @@
 name: Publish FAMILY COLONY Android APK
 
 on:
+  push:
+    branches:
+      - feature/direct-3d-entry
+    paths:
+      - 'app/**'
+      - 'godot_world/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - '.github/workflows/android-release.yml'
+      - '.github/workflows/android-debug.yml'
+      - '.github/workflows/godot-validation.yml'
+      - '.github/workflows/android-emulator-smoke.yml'
   workflow_dispatch:
     inputs:
       release_tag:
@@ -136,8 +149,8 @@ jobs:
       - name: Publish direct-download GitHub Release
         uses: actions/github-script@v7
         env:
-          RELEASE_TAG: ${{ inputs.release_tag }}
-          PRERELEASE: ${{ inputs.prerelease }}
+          RELEASE_TAG: ${{ inputs.release_tag || format('v5.0.0-rc.{0}', github.run_number) }}
+          PRERELEASE: ${{ inputs.prerelease || github.event_name == 'push' }}
         with:
           script: |
             const fs = require('fs');
