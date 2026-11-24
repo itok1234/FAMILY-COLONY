@@ -1,30 +1,41 @@
 PROJECT: FAMILY COLONY V5D
 BRANCH: feature/direct-3d-entry
-LAST SOURCE COMMIT: b7665ec5a9bc1438afb560bf29401ce033847ffc
+LATEST SOURCE COMMIT: 5aa386f720d7d9889bc63f803813899fce0b480e
+
+LATEST AUTOMATED VALIDATION (2026-11-25):
+- Godot 3D World validation run 45505661281: SUCCESS for latest source commit.
+- Android debug build/package validation run 45505661315: SUCCESS for latest source commit.
+- Embedded Godot Android emulator smoke run 45505661262: IN PROGRESS at last check; emulator launch step running.
+- These checks validate source/build behavior only; they do not constitute a real-member physical-device or cloud multiplayer test.
 
 ANDROID INTERNAL BUILD:
-- GitHub Actions run: 45504103002
-- Result: SUCCESS
+- Earlier internal debug build run: 45504103002
 - Artifact: FAMILY-COLONY-INTERNAL-DEBUG-1cddcb99d2a7808ec986d3004c84eb124369ca25
-- Artifact ZIP size: 53,753,359 bytes
-- APK package identity and signature checks: passed
-- Embedded Godot project pack check: passed
+- Package identity, debug signature and embedded Godot pack checks passed.
 - This is a DEBUG/internal test build, NOT a signed final release.
 
 CURRENT IMPLEMENTATION FACTS:
 - Godot 4.4.1 is embedded in the Android application.
 - Supabase world-session verification is implemented in the client and backend.
+- After successful member verification, the client now requests cloud matchmaking using the existing Supabase access token.
+- Matchmaking response identity is validated against the verified member before the client emits matchmaking-ready.
+- Matchmaking remains best-effort and does not yet connect the player to a game server.
 - Supabase matchmaking Edge Function and private world-server registry migration exist in source.
-- Experimental one-time join-ticket table/mechanism is removed. Members use their existing authenticated account session; no paid/entrance ticket is required.
-- Client still uses LAN ENet transport and does not yet consume the matchmaking server endpoint.
-- No dedicated authoritative cloud game-server deployment/healthy endpoint is confirmed.
-- No authored GLB/GLTF/FBX/OBJ/BLEND character or environment assets are present in the repository.
-- Procedural avatar and environment remain blockout-quality.
+- Experimental one-time join-ticket table/mechanism is removed. Active linked members use their existing authenticated account session; no paid/entrance ticket is required.
+- The current gameplay transport remains LAN ENet. No dedicated authoritative cloud game-server deployment/healthy endpoint is confirmed.
+- No authored GLB/GLTF character or environment model assets are present in the repository; current avatar/environment are procedural blockout-quality.
 - No successful real-member physical-device or cross-network cloud multiplayer test is confirmed.
 - iOS export/signing/TestFlight pipeline is not confirmed.
 
+FINAL RELEASE BLOCKERS:
+1. Add authored, production-quality 3D character and environment GLB/GLTF assets. The release workflow explicitly blocks if either asset folder is empty.
+2. Deploy and register a healthy authoritative cloud game server, then connect the client transport to the returned endpoint.
+3. Complete real-member login, cross-network multiplayer and physical-device regression tests.
+4. Confirm release-signing GitHub secrets (keystore and passwords) are configured.
+5. Run the manual signed-release workflow and verify both ARM64 and ARM32 APK artifacts.
+
 RELEASE RULE:
-Do not label the internal debug APK as final. Final member release requires authored 3D assets, cloud server integration, real-member login, cross-network multiplayer, physical-device regression, and signed release artifact validation.
+Do not label an internal debug APK or a source-validation pass as the final APK. Do not trigger/publish a final release until the authored-asset gate, cloud-server integration, device tests, signing and release validations pass.
 
 LATEST DOCUMENTATION:
 - godot_world/docs/CLOUD_MULTIPLAYER_MEMBER_BETA.md
