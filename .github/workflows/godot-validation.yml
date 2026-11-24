@@ -10,6 +10,7 @@ on:
       - "godot_world/**"
       - "app/src/main/assets/**"
       - "app/build.gradle"
+      - "app/src/androidTest/**"
       - "build.gradle"
       - "settings.gradle"
       - "gradle.properties"
