@@ -42,7 +42,8 @@ jobs:
           script: |
             const required = [
               { workflow: 'android-debug.yml', label: 'Android APK build and package validation' },
-              { workflow: 'godot-validation.yml', label: 'Godot project validation' }
+              { workflow: 'godot-validation.yml', label: 'Godot project validation' },
+              { workflow: 'android-emulator-smoke.yml', label: 'Android 11 release APK install and launch smoke test' }
             ];
             const deadline = Date.now() + 12 * 60 * 1000;
             while (Date.now() < deadline) {
