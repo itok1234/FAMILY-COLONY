@@ -559,9 +559,9 @@ func _build_landscape_details() -> void:
 				_mesh_node(details, cap, flower_materials[0], Vector3(side * 7.6, 0.82, z), "PathLightCap")
 	# Low-cost shrub clusters add depth to the road edges without costly foliage simulation.
 	for shrub_index in range(22):
-		var side := -1.0 if shrub_index % 2 == 0 else 1.0
-		var x := side * _rng.randf_range(8.5, 17.5)
-		var z := _rng.randf_range(-145.0, 12.0)
+		var side: float = -1.0 if shrub_index % 2 == 0 else 1.0
+		var x: float = side * _rng.randf_range(8.5, 17.5)
+		var z: float = _rng.randf_range(-145.0, 12.0)
 		if absf(z) < 17.0 and absf(x) < 13.0:
 			continue
 		var shrub := SphereMesh.new()
