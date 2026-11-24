@@ -1,6 +1,30 @@
-PROJECT: FAMILY COLONY V5D — Android Project V4
-STATUS: Source project packaged; APK NOT built in this environment.
-SOURCE HTML: copied unchanged into app/src/main/assets/index.html
-BUILD CONFIG: Android Gradle Plugin 8.7.3 / Gradle 8.9 / JDK 17 / SDK 35
-LOCAL ENVIRONMENT: Android SDK and Gradle CLI were not available during packaging.
-NEXT: Build with the included GitHub Actions workflow or Android Studio, then test on a physical Android device.
+PROJECT: FAMILY COLONY V5D
+BRANCH: feature/direct-3d-entry
+LAST SOURCE COMMIT: b7665ec5a9bc1438afb560bf29401ce033847ffc
+
+ANDROID INTERNAL BUILD:
+- GitHub Actions run: 45504103002
+- Result: SUCCESS
+- Artifact: FAMILY-COLONY-INTERNAL-DEBUG-1cddcb99d2a7808ec986d3004c84eb124369ca25
+- Artifact ZIP size: 53,753,359 bytes
+- APK package identity and signature checks: passed
+- Embedded Godot project pack check: passed
+- This is a DEBUG/internal test build, NOT a signed final release.
+
+CURRENT IMPLEMENTATION FACTS:
+- Godot 4.4.1 is embedded in the Android application.
+- Supabase world-session verification is implemented in the client and backend.
+- Supabase matchmaking Edge Function and private world-server registry migration exist in source.
+- Experimental one-time join-ticket table/mechanism is removed. Members use their existing authenticated account session; no paid/entrance ticket is required.
+- Client still uses LAN ENet transport and does not yet consume the matchmaking server endpoint.
+- No dedicated authoritative cloud game-server deployment/healthy endpoint is confirmed.
+- No authored GLB/GLTF/FBX/OBJ/BLEND character or environment assets are present in the repository.
+- Procedural avatar and environment remain blockout-quality.
+- No successful real-member physical-device or cross-network cloud multiplayer test is confirmed.
+- iOS export/signing/TestFlight pipeline is not confirmed.
+
+RELEASE RULE:
+Do not label the internal debug APK as final. Final member release requires authored 3D assets, cloud server integration, real-member login, cross-network multiplayer, physical-device regression, and signed release artifact validation.
+
+LATEST DOCUMENTATION:
+- godot_world/docs/CLOUD_MULTIPLAYER_MEMBER_BETA.md
