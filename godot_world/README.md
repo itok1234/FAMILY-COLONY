@@ -140,3 +140,8 @@ Godot 4.x. Compatibility renderer is the initial baseline for broad Android supp
 - Real-member session verification has not yet passed on a physical Android device.
 - The Android release workflow now blocks release until authored character and environment GLB/GLTF files are added. This gate prevents a procedural blockout from being packaged as finished 3D art.
 - Do not distribute a member Beta until the art, cloud multiplayer, account verification, and physical-device acceptance gates are passed.
+
+
+## Cloud multiplayer member Beta contract
+- Added `docs/CLOUD_MULTIPLAYER_MEMBER_BETA.md` defining the dedicated authoritative world-server, short-lived ticket, matchmaking, identity, room, chat, anti-cheat and cross-network acceptance requirements.
+- This is an architecture contract only. No public game-server endpoint, matchmaking ticket function or cloud replication service is deployed yet. Current ENet is LAN-only and must not be advertised as an online shared world.
