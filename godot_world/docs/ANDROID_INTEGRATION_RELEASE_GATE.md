@@ -31,6 +31,13 @@ Status (2026-11-24): the existing Android application compiles with the Godot 4.
 8. Run regression tests for all existing app screens and member/admin/developer permissions.
 9. Only after all release gates pass, build and sign the final APK and publish it as a direct GitHub download.
 
+## Authored 3D asset gate
+The Android release workflow now fails closed until both of these asset groups contain at least one authored Godot-importable model:
+- `godot_world/assets/characters/` — character/avatar `.glb` or `.gltf`.
+- `godot_world/assets/environment/` — environment/building/landscape `.glb` or `.gltf`.
+
+Procedural primitives may remain for collision, interaction markers, and temporary greyboxing, but they cannot be the only character and environment art in a release candidate. Asset files must include valid licensing/source records and be imported and visually checked in Godot before the member Beta gate can be considered complete.
+
 ## Release blockers
 - Physical Android device test of the embedded Godot engine and secure session handoff.
 - Final visual assets and full gameplay implementation.
