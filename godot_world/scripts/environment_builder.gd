@@ -546,10 +546,11 @@ func _build_landscape_details() -> void:
 			_mesh_node(bed, bloom, flower_materials[flower_index % flower_materials.size()], Vector3(fx, 0.12 + stem_height, fz), "FlowerBloom")
 
 	# Repeated stone edging, seating islands and path lights create a readable landscaped public space.
-	for side in [-1.0, 1.0]:
+	for side_value in [-1.0, 1.0]:
+		var side: float = float(side_value)
 		for segment in range(7):
-			var z := -5.0 - float(segment) * 7.0
-			var x := side * 16.0
+			var z: float = -5.0 - float(segment) * 7.0
+			var x: float = side * 16.0
 			_box(details, Vector3(0.22, 0.24, 4.8), Vector3(x, -0.27, z), stone, "GardenKerb")
 			if segment % 2 == 0:
 				var post := _cylinder(details, 0.11, 1.15, Vector3(side * 7.6, 0.12, z), stone, "PathLightPost")
