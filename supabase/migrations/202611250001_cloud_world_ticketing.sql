@@ -1,6 +1,6 @@
--- Cloud world matchmaking registry and single-use member tickets.
--- This is backend groundwork; no world server is considered available until an
--- operator registers a healthy server heartbeat with service-role credentials.
+-- Private registry for authoritative Family Colony world servers.
+-- Members with an active linked account may join without a separate ticket.
+-- The game server validates the member's existing Supabase access token.
 
 create table if not exists public.fc_world_servers (
   server_id uuid primary key default gen_random_uuid(),
@@ -22,27 +22,12 @@ create table if not exists public.fc_world_servers (
 create index if not exists fc_world_servers_matchmaking_idx
   on public.fc_world_servers(status, world_id, current_players, heartbeat_at desc);
 
-create table if not exists public.fc_world_join_tickets (
-  ticket_hash text primary key,
-  member_id text not null references public.fc_members(member_id) on delete cascade,
-  server_id uuid not null references public.fc_world_servers(server_id) on delete cascade,
-  world_id text not null,
-  expires_at timestamptz not null,
-  consumed_at timestamptz,
-  created_at timestamptz not null default now()
-);
-
-create index if not exists fc_world_join_tickets_expiry_idx
-  on public.fc_world_join_tickets(expires_at)
-  where consumed_at is null;
+-- Remove the experimental one-time join-ticket mechanism.
+drop table if exists public.fc_world_join_tickets;
 
 alter table public.fc_world_servers enable row level security;
-alter table public.fc_world_join_tickets enable row level security;
-
-revoke all on public.fc_world_servers, public.fc_world_join_tickets from public, anon, authenticated;
-grant all on public.fc_world_servers, public.fc_world_join_tickets to service_role;
+revoke all on public.fc_world_servers from public, anon, authenticated;
+grant all on public.fc_world_servers to service_role;
 
 comment on table public.fc_world_servers is
-  'Private registry of dedicated authoritative game servers; heartbeat writes are server-operator only.';
-comment on table public.fc_world_join_tickets is
-  'Hashed, short-lived, single-use tickets; raw ticket values are never stored.';
+  'Private registry of authoritative game servers. Members join with their existing authenticated account session; no join ticket is required.';
