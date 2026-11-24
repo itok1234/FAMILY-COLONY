@@ -8,8 +8,6 @@ android {
     compileSdk 35
 
     defaultConfig {
-        // A test build for the target Redmi Note 8 Pro packages ARM64 only.
-        // Other builds retain the project's normal ARM ABI support.
         if (!project.hasProperty('fcSplitReleaseApks')) {
             ndk {
                 if (project.hasProperty('fcEmulatorX86_64')) {
@@ -29,10 +27,9 @@ android {
         targetSdk 35
         versionCode 15
         versionName '5.0'
-        testInstrumentationRunner 'android.test.InstrumentationTestRunner'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
-    // Publish separate APKs so each phone downloads only its own native Godot engine.
     splits {
         abi {
             enable project.hasProperty('fcSplitReleaseApks')
@@ -64,7 +61,6 @@ android {
 
     buildTypes {
         debug {
-            // Keep test package separate from the production app and previous test build.
             applicationIdSuffix '.onlinetest15'
             versionNameSuffix '-world-maintenance-test-15'
         }
@@ -90,10 +86,9 @@ dependencies {
     implementation 'org.godotengine:godot:4.4.1.stable'
     implementation 'androidx.fragment:fragment:1.8.6'
     androidTestImplementation 'androidx.test:runner:1.6.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
 }
 
-
-// Package the Godot project as a main pack inside the existing Android application.
 tasks.register("packageGodotWorld", Zip) {
     archiveFileName = "godot_world.zip"
     destinationDirectory = layout.projectDirectory.dir("src/main/assets")
