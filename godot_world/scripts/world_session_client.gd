@@ -137,6 +137,9 @@ func _on_request_completed(
 		_access_denied("session_network_unavailable")
 		return
 
+	# A response proves the request reached the configured Supabase endpoint.
+	# The smoke test uses deliberately invalid credentials; 401 is expected there.
+	print("FC_WORLD_SESSION_HTTP_RESPONSE_RECEIVED=" + str(response_code))
 	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
 	if typeof(parsed) != TYPE_DICTIONARY:
 		_access_denied("session_response_invalid")
