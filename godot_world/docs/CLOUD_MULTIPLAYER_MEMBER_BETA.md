@@ -1,6 +1,6 @@
 # FAMILY COLONY — Cloud Multiplayer Member Beta Gate
 
-Status: implementation contract, not a completion claim. The repository now contains a Supabase matchmaking Edge Function and a private world-server registry. The mobile client still uses the existing LAN ENet transport and does not yet consume the matchmaking response. No dedicated authoritative game-server deployment or healthy server endpoint is confirmed.
+Status: implementation contract, not a completion claim. The repository contains a Supabase matchmaking Edge Function and private world-server registry. After member-session verification, the mobile client now requests matchmaking, validates the returned access contract, server UUID, requested world ID, and canonical member ID, then emits `matchmaking_ready` or `matchmaking_failed`. The response is not yet connected to a gameplay transport. No dedicated authoritative game-server deployment or healthy server endpoint is confirmed.
 
 ## Non-negotiable member access decision
 
@@ -20,9 +20,9 @@ Status: implementation contract, not a completion claim. The repository now cont
 - Godot currently has LAN ENet host/client, room-scoped presence, chat, and remote-avatar foundations.
 
 ### Not yet implemented or verified
-- Runtime validation of the new Godot matchmaking HTTP request and response handling is pending CI/headless and real-device testing.
-- `WorldSessionClient` now calls `fc-world-matchmaking` after a member session is verified, using the same short-lived Supabase access token and publishable key. It validates the returned server/member payload and emits `matchmaking_ready` or `matchmaking_failed` signals.
-- The client currently treats matchmaking as best-effort and does not block the already verified local world entry if no cloud server is registered. It does not yet connect to the returned endpoint; transport and authoritative server deployment remain pending.
+- Automated Godot project validation, Android debug package validation, and embedded Godot Android emulator launch smoke test passed for source commit `5aa386f720d7d9889bc63f803813899fce0b480e`. This proves the app can launch the embedded world and exercise the invalid-credential HTTP rejection path; it does not prove a real member login or a successful matchmaking/server connection.
+- `WorldSessionClient` calls `fc-world-matchmaking` after a member session is verified, using the same short-lived Supabase access token and publishable key. It checks the `member_session`/`supabase_access_token` contract, server UUID, requested world ID, endpoint bounds, and returned member ID before emitting `matchmaking_ready`; failures emit `matchmaking_failed`.
+- The client treats matchmaking as best-effort and does not block already verified local world entry if no cloud server is registered. It does not yet connect to the returned endpoint; transport integration and authoritative server deployment remain pending.
 - No dedicated authoritative Godot headless server deployment, public endpoint, heartbeat publisher, or server-side Supabase token validation is confirmed.
 - Existing LAN peer IDs are not canonical member identities and must not be presented as production cloud presence.
 - No successful two-device, different-network cloud multiplayer test has passed.
