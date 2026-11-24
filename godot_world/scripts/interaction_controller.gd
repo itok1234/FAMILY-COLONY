@@ -218,7 +218,7 @@ func _build_hud() -> void:
 	_add_menu_button("GUNAKAN", Vector2(-165, 0), "use")
 	_add_menu_button("SAPA", Vector2(0, 82), "greet")
 	_add_menu_button("DUDUK", Vector2(165, 0), "sit")
-	_add_menu_button("BERDIRI", Vector2(0, 82), "stand")
+	_add_menu_button("BERDIRI", Vector2(0, -82), "stand")
 
 	var cancel := Button.new()
 	cancel.text = "BATAL"
