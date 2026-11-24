@@ -1,24 +1,25 @@
 PROJECT: FAMILY COLONY V5D
 BRANCH: feature/direct-3d-entry
-LATEST SOURCE COMMIT: 5aa386f720d7d9889bc63f803813899fce0b480e
+LATEST SOURCE COMMIT: e3f6b0b45f0172436458dee1dfda4e47c64ee9de
 
 LATEST AUTOMATED VALIDATION (2026-11-25):
-- Godot 3D World validation run 45505661281: SUCCESS for latest source commit.
-- Android debug build/package validation run 45505661315: SUCCESS for latest source commit.
-- Embedded Godot Android emulator smoke run 45505661262: IN PROGRESS at last check; emulator launch step running.
-- These checks validate source/build behavior only; they do not constitute a real-member physical-device or cloud multiplayer test.
+- Godot 3D World validation run 45506388542: SUCCESS for latest source commit.
+- Android debug APK build run 45506388770: SUCCESS for latest source commit.
+- Embedded Godot Android emulator smoke run 45506388660: IN PROGRESS at last check; emulator launch step is still running.
+- The successful Android artifact is an INTERNAL DEBUG APK, not a signed final release.
+- These checks do not prove real-member physical-device login or successful cloud multiplayer.
 
 ANDROID INTERNAL BUILD:
-- Earlier internal debug build run: 45504103002
-- Artifact: FAMILY-COLONY-INTERNAL-DEBUG-1cddcb99d2a7808ec986d3004c84eb124369ca25
-- Package identity, debug signature and embedded Godot pack checks passed.
-- This is a DEBUG/internal test build, NOT a signed final release.
+- Latest internal debug build run: 45506388770
+- Artifact: FAMILY-COLONY-INTERNAL-DEBUG-e3f6b0b45f0172436458dee1dfda4e47c64ee9de
+- Artifact archive size: 53,754,256 bytes.
+- Package/build validation passed. Do not call this a final release APK.
 
 CURRENT IMPLEMENTATION FACTS:
 - Godot 4.4.1 is embedded in the Android application.
 - Supabase world-session verification is implemented in the client and backend.
-- After successful member verification, the client now requests cloud matchmaking using the existing Supabase access token.
-- Matchmaking response identity is validated against the verified member before the client emits matchmaking-ready.
+- After successful member verification, the client requests cloud matchmaking using the existing Supabase access token.
+- The client validates the matchmaking access contract, server UUID, requested world ID, endpoint bounds, and returned canonical member ID.
 - Matchmaking remains best-effort and does not yet connect the player to a game server.
 - Supabase matchmaking Edge Function and private world-server registry migration exist in source.
 - Experimental one-time join-ticket table/mechanism is removed. Active linked members use their existing authenticated account session; no paid/entrance ticket is required.
