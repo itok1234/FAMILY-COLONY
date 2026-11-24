@@ -47,7 +47,7 @@ func _fill_ambient_music_buffer() -> void:
 		return
 	var chord_roots: Array[float] = [110.0, 82.41, 98.0, 73.42]
 	var melody_notes: Array[float] = [440.0, 392.0, 329.63, 392.0, 493.88, 440.0, 392.0, 329.63]
-	for frame_index in range(frames_available):
+	for frame_index in range(mini(frames_available, 2048)):
 		var time_seconds := float(_music_sample_cursor) / MUSIC_SAMPLE_RATE
 		var chord_index := int(floor(time_seconds / 8.0)) % chord_roots.size()
 		var chord_phase := fmod(time_seconds, 8.0) / 8.0
