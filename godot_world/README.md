@@ -18,7 +18,7 @@ An isolated Godot 4 project for the future FAMILY COLONY World engine.
 - Keyboard movement plus on-screen touch joystick scaffold.
 - Procedural neighborhood blockout: central paved plaza, road layout, community-building shells, trees, street lamps and benches.
 - Added a lightweight royal beehive citadel landmark with a hexagonal keep, golden crowns, honeycomb window motifs, a royal gate and garden approach; this is a recognizable first kingdom focal point, not final authored art.
-- Basic runtime graphics quality manager with saved user preference, an Android-first low-cost AUTO startup profile, and gradual promotion to Balanced only after sustained healthy frame rates.
+- Runtime graphics quality manager with saved user preference, Balanced Android AUTO startup, and adaptive fallback to Performance after sustained low frame rates.
 - Reusable world-interactable contract with configurable display name, action label and response.
 - Contextual interaction controller using a camera raycast that can detect Area3D targets, keyboard E action, and an on-screen Android interaction button.
 - Radial-style action selection with Use, Greet and Sit actions plus Cancel.
@@ -85,10 +85,11 @@ Godot 4.x. Compatibility renderer is the initial baseline for broad Android supp
 - This synchronizes the gesture event only. It does not validate FAMILY COLONY account identity, room membership, social permissions, seat ownership or anti-spam policy, and it is not a production multiplayer authority model.
 - This networking change has not been runtime-tested with multiple Godot clients.
 
-## Supabase member-session bridge contract
-- Added `docs/GODOT_SUPABASE_MEMBER_SESSION_BRIDGE.md` with the secure handoff sequence from the existing authenticated app to the Godot world.
-- The contract requires server-side token verification and canonical member resolution through `fc_members.auth_user_id`; client-supplied IDs and roles are never trusted.
-- This is documentation only. No login flow was modified, no new Edge Function was deployed, and Godot is not yet connected to Supabase member identity.
+## Supabase member-session bridge implementation
+- The Android app passes a short-lived access token and publishable key to the embedded Godot Activity after a signed-in non-guest session requests world entry.
+- `WorldSessionClient` calls the `fc-world-session` Edge Function; the server verifies the token and resolves the canonical active member through `fc_members.auth_user_id`.
+- Godot keeps player movement locked until the server returns an allowed member identity. The latest emulator smoke test confirms the credential handoff and HTTP response path only; its deliberately invalid test token receives HTTP 401. Real-member success on physical devices remains unverified.
+- See `docs/GODOT_SUPABASE_MEMBER_SESSION_BRIDGE.md` for the security boundary and acceptance tests.
 
 ## Avatar visual refinement milestone
 - Refined the procedural head blockout with layered eye whites and pupils, eyebrows, nose, mouth, ears and side hair locks to make facial orientation and expression landmarks clearer.
@@ -130,3 +131,12 @@ Godot 4.x. Compatibility renderer is the initial baseline for broad Android supp
 - The panel uses the existing room-scoped LAN chat manager; the host still checks room membership, message length and send interval before relaying messages.
 - The interface explicitly labels sender names as temporary connection peer IDs, not verified FAMILY COLONY account identities.
 - Messages remain in-memory only. This does not add private messaging, moderation/report/block tools, account identity binding, persistent history, or production server infrastructure.
+
+
+## Member Beta readiness — current blockers
+- Authored GLB/GLTF avatar and environment assets are not yet present. Current visuals remain procedural blockout; visual quality settings do not change that art status.
+- ENet multiplayer is LAN-only and host-authoritative in memory. There is no public cloud world server, durable matchmaking, or Internet-wide shared room service.
+- Presence and chat labels are peer IDs, not canonical verified member identities.
+- Real-member session verification has not yet passed on a physical Android device.
+- The Android release workflow now blocks release until authored character and environment GLB/GLTF files are added. This gate prevents a procedural blockout from being packaged as finished 3D art.
+- Do not distribute a member Beta until the art, cloud multiplayer, account verification, and physical-device acceptance gates are passed.
