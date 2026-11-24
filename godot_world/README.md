@@ -143,5 +143,7 @@ Godot 4.x. Compatibility renderer is the initial baseline for broad Android supp
 
 
 ## Cloud multiplayer member Beta contract
-- Added `docs/CLOUD_MULTIPLAYER_MEMBER_BETA.md` defining the dedicated authoritative world-server, short-lived ticket, matchmaking, identity, room, chat, anti-cheat and cross-network acceptance requirements.
-- This is an architecture contract only. No public game-server endpoint, matchmaking ticket function or cloud replication service is deployed yet. Current ENet is LAN-only and must not be advertised as an online shared world.
+- Added `docs/CLOUD_MULTIPLAYER_MEMBER_BETA.md` defining the dedicated authoritative world-server, existing member-session authentication, no-entrance-ticket access, matchmaking, identity, room, chat, anti-cheat and cross-network acceptance requirements.
+- The Supabase `fc-world-matchmaking` Edge Function and private server registry are present. `WorldSessionClient` now requests matchmaking after successful member verification using the existing short-lived Supabase access token; it emits `matchmaking_ready` or `matchmaking_failed` and does not block local world entry when no cloud server is available.
+- The client does not yet connect to the returned endpoint. No dedicated authoritative game-server deployment, heartbeat publisher, cross-network replication or successful cloud multiplayer test is confirmed. Current ENet remains LAN-only and must not be advertised as an online shared world.
+- No entrance ticket or paid access gate is required for active linked members. The Supabase access token is an authentication credential, not an entrance ticket.
