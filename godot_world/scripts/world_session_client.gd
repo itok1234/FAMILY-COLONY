@@ -38,11 +38,14 @@ func _ready() -> void:
 		# Java plugin methods. Call the @UsedByGodot methods directly.
 		var initial_token := str(bridge.call("consumeInitialAccessToken"))
 		var publishable_key := str(bridge.call("consumeInitialPublishableKey"))
-		# Safe diagnostic marker: confirms the native singleton and both annotated Java methods are callable.
+		# This marker confirms the native singleton methods are callable.
 		print("FC_NATIVE_BRIDGE_METHODS_OK")
 		if initial_token.is_empty() or publishable_key.is_empty():
+			push_error("FC_NATIVE_BRIDGE_CREDENTIALS_MISSING")
 			_access_denied("native_session_credentials_missing")
 		else:
+			# Separate from method registration: prove the Activity extras reached Godot.
+			print("FC_NATIVE_BRIDGE_CREDENTIALS_OK")
 			var request_error := verify_access_token(initial_token, publishable_key)
 			if request_error != OK:
 				push_warning("FAMILY COLONY: Could not start member session verification.")
