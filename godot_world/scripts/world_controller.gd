@@ -10,6 +10,7 @@ var _android_session_required := false
 var _gate_layer: CanvasLayer
 var _gate_status: Label
 var _world_exit_layer: CanvasLayer
+var _is_exiting := false
 
 
 func _ready() -> void:
@@ -168,9 +169,30 @@ func _set_player_enabled(enabled: bool) -> void:
 
 
 func _return_to_app() -> void:
+	if _is_exiting:
+		return
+	_is_exiting = true
+	_set_player_enabled(false)
+	# Release world resources before handing control back to the Android home UI.
+	var multiplayer_manager := get_node_or_null("MultiplayerManager")
+	if multiplayer_manager != null and multiplayer_manager.has_method("leave_game"):
+		multiplayer_manager.call("leave_game")
+	var session := get_node_or_null("WorldSessionClient")
+	if session != null and session.has_method("clear_session"):
+		session.call("clear_session")
+	var audio_settings := get_node_or_null("AudioStudioSettings")
+	if audio_settings != null:
+		_stop_audio_players(audio_settings)
 	if Engine.has_singleton("FamilyColonyBridge"):
 		var bridge: Object = Engine.get_singleton("FamilyColonyBridge")
 		# Android JNISingleton does not expose Java plugin methods through has_method().
 		bridge.call("requestExitToApp")
 		return
 	get_tree().quit()
+
+
+func _stop_audio_players(node: Node) -> void:
+	for child in node.get_children():
+		if child is AudioStreamPlayer or child is AudioStreamPlayer2D or child is AudioStreamPlayer3D:
+			child.stop()
+		_stop_audio_players(child)
