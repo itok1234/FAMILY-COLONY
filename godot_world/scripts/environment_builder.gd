@@ -127,13 +127,27 @@ func _build_buildings() -> void:
 		var wall_material: Material = walls[i % walls.size()]
 		_box(group, Vector3(width, height, depth), Vector3(0, height * 0.5, 0), wall_material, "BuildingShell")
 		_add_static_collision_box(group, Vector3(width, height, depth), Vector3(0, height * 0.5, 0), "BuildingShell")
-		_box(group, Vector3(width + 0.8, 0.45, depth + 0.8), Vector3(0, height + 0.22, 0), roof, "FlatRoof")
+		# Layered roof silhouette and eaves break up the primitive rectangular outline.
+		_box(group, Vector3(width + 1.15, 0.32, depth + 1.15), Vector3(0, height + 0.12, 0), roof, "RoofEaves")
+		var roof_mesh := CylinderMesh.new()
+		roof_mesh.top_radius = 0.12
+		roof_mesh.bottom_radius = maxf(width, depth) * 0.62
+		roof_mesh.height = 3.1
+		roof_mesh.radial_segments = 4
+		var roof_peak := _mesh_node(group, roof_mesh, roof, Vector3(0, height + 1.78, 0), "PitchedRoof")
+		roof_peak.rotation.y = PI * 0.25
+		var trim := _mat("building_trim", Color(0.88, 0.82, 0.68))
+		for column_x in [-width * 0.42, width * 0.42]:
+			_box(group, Vector3(0.24, height, 0.28), Vector3(column_x, height * 0.5, depth * 0.5 + 0.12), trim, "FacadePillar")
+		_box(group, Vector3(width * 0.78, 0.22, 0.24), Vector3(0, 3.75, depth * 0.5 + 0.13), trim, "FacadeBand")
 		for floor_index in range(2):
 			var y := 2.0 + float(floor_index) * 3.2
 			for window_index in range(3):
 				var wx := -width * 0.32 + float(window_index) * width * 0.32
-				_box(group, Vector3(1.5, 1.5, 0.08), Vector3(wx, y, depth * 0.5 + 0.045), glass, "FrontWindow")
+				_box(group, Vector3(1.75, 1.78, 0.12), Vector3(wx, y, depth * 0.5 + 0.07), trim, "WindowFrame")
+				_box(group, Vector3(1.42, 1.43, 0.07), Vector3(wx, y, depth * 0.5 + 0.15), glass, "FrontWindow")
 		_box(group, Vector3(2.1, 2.7, 0.12), Vector3(0, 1.35, depth * 0.5 + 0.06), roof, "EntryDoor")
+		_box(group, Vector3(2.8, 0.18, 0.8), Vector3(0, 2.78, depth * 0.5 + 0.38), trim, "EntryCanopy")
 
 func _build_trees() -> void:
 	var trees_root := Node3D.new()
@@ -147,13 +161,19 @@ func _build_trees() -> void:
 		if absf(x) < 9.0 or (absf(x) < 18.0 and absf(z) < 15.0) or (absf(x) < 22.0 and z < -48.0 and z > -92.0):
 			continue
 		var height := _rng.randf_range(2.8, 4.0)
-		_cylinder(trees_root, 0.22, height, Vector3(x, height * 0.5 - 0.48, z), bark, "TreeTrunk")
-		var crown := SphereMesh.new()
-		crown.radius = _rng.randf_range(1.5, 2.1)
-		crown.height = crown.radius * 2.0
-		crown.radial_segments = 12
-		crown.rings = 8
-		_mesh_node(trees_root, crown, leaves[i % leaves.size()], Vector3(x, height + 0.7, z), "TreeCanopy")
+		var trunk := _cylinder(trees_root, 0.22, height, Vector3(x, height * 0.5 - 0.48, z), bark, "TreeTrunk")
+		trunk.rotation.z = _rng.randf_range(-0.07, 0.07)
+		# Overlapping organic crowns replace the single spherical placeholder canopy.
+		var crown_material: Material = leaves[i % leaves.size()]
+		for cluster in range(5):
+			var crown := SphereMesh.new()
+			var radius := _rng.randf_range(1.05, 1.65)
+			crown.radius = radius
+			crown.height = radius * 2.0
+			crown.radial_segments = 16
+			crown.rings = 10
+			var offset := Vector3(_rng.randf_range(-1.0, 1.0), _rng.randf_range(-0.25, 1.15), _rng.randf_range(-0.9, 0.9))
+			_mesh_node(trees_root, crown, leaves[(i + cluster) % leaves.size()], Vector3(x, height + 0.45, z) + offset, "TreeCanopyCluster")
 
 func _build_lamps() -> void:
 	var lamps_root := Node3D.new()
