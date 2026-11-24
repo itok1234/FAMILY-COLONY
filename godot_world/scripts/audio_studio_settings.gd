@@ -60,6 +60,30 @@ func _build_settings_ui() -> void:
 	_settings_layer.add_child(toggle)
 	_mute_button = toggle
 
+	var volume_slider := HSlider.new()
+	volume_slider.name = "MasterVolumeSlider"
+	volume_slider.anchor_left = 0.035
+	volume_slider.anchor_right = 0.24
+	volume_slider.anchor_top = 0.195
+	volume_slider.anchor_bottom = 0.255
+	volume_slider.min_value = 0.0
+	volume_slider.max_value = 1.0
+	volume_slider.step = 0.05
+	volume_slider.value = _saved_linear_volume
+	volume_slider.custom_minimum_size = Vector2(150, 32)
+	volume_slider.value_changed.connect(_on_volume_changed)
+	_settings_layer.add_child(volume_slider)
+	_master_slider = volume_slider
+
+	var volume_label := Label.new()
+	volume_label.text = "VOLUME"
+	volume_label.anchor_left = 0.035
+	volume_label.anchor_right = 0.24
+	volume_label.anchor_top = 0.255
+	volume_label.anchor_bottom = 0.30
+	volume_label.add_theme_font_size_override("font_size", 12)
+	_settings_layer.add_child(volume_label)
+
 	var credits_button := Button.new()
 	credits_button.name = "StudioCreditsButton"
 	credits_button.text = "TENTANG STUDIO"
@@ -119,6 +143,12 @@ func _toggle_audio() -> void:
 	_save_preferences()
 	if is_instance_valid(_mute_button):
 		_mute_button.text = "SUARA: " + ("MATI" if _muted else "HIDUP")
+
+func _on_volume_changed(value: float) -> void:
+	_saved_linear_volume = clampf(value, 0.0, 1.0)
+	_apply_audio()
+	_save_preferences()
+
 
 func _toggle_credits() -> void:
 	if is_instance_valid(_credits_panel):
