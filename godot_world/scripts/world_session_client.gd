@@ -232,11 +232,10 @@ func request_world_matchmaking(world_id: String = "colony-main") -> Error:
 	var requested_world := world_id.strip_edges()
 	if not has_verified_session() or _access_token.is_empty() or _publishable_key.is_empty():
 		return ERR_UNAUTHORIZED
-	if requested_world.is_empty() or requested_world.length() > 64:
+	var world_id_pattern := RegEx.new()
+	world_id_pattern.compile("^[A-Za-z0-9_-]{1,64}$")
+	if world_id_pattern.search(requested_world) == null:
 		return ERR_INVALID_PARAMETER
-	for character in requested_world:
-		if not (character.is_ascii_alphanumeric() or character == "_" or character == "-"):
-			return ERR_INVALID_PARAMETER
 	if matchmaking_endpoint_url.strip_edges().is_empty():
 		return ERR_UNCONFIGURED
 	if _matchmaking_pending:
