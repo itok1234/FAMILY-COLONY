@@ -20,6 +20,7 @@ var _request_pending: bool = false
 var _matchmaking_pending: bool = false
 var _access_token: String = ""
 var _publishable_key: String = ""
+var _requested_world_id: String = ""
 var _current_member: Dictionary = {}
 var _current_permissions: Dictionary = {}
 var last_error_code: String = ""
@@ -241,6 +242,7 @@ func request_world_matchmaking(world_id: String = "colony-main") -> Error:
 	if _matchmaking_pending:
 		_matchmaking_http.cancel_request()
 		_matchmaking_pending = false
+	_requested_world_id = requested_world
 	var headers := PackedStringArray([
 		"Content-Type: application/json",
 		"Authorization: Bearer " + _access_token,
@@ -289,7 +291,15 @@ func _on_matchmaking_request_completed(
 		return
 	var server_data: Dictionary = server_value
 	var member_data: Dictionary = member_value
-	if str(server_data.get("server_id", "")).is_empty() or str(server_data.get("world_id", "")).is_empty() or str(server_data.get("endpoint", "")).is_empty():
+	if str(payload.get("access", "")) != "member_session" or str(payload.get("credential", "")) != "supabase_access_token":
+		matchmaking_failed.emit("matchmaking_access_contract_invalid")
+		return
+	var server_id := str(server_data.get("server_id", "")).strip_edges()
+	var response_world_id := str(server_data.get("world_id", "")).strip_edges()
+	var server_endpoint := str(server_data.get("endpoint", "")).strip_edges()
+	var server_id_pattern := RegEx.new()
+	server_id_pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$")
+	if server_id_pattern.search(server_id) == null or response_world_id != _requested_world_id or server_endpoint.is_empty() or server_endpoint.length() > 255:
 		matchmaking_failed.emit("matchmaking_server_payload_invalid")
 		return
 	if str(member_data.get("member_id", "")) != str(_current_member.get("member_id", "")):
