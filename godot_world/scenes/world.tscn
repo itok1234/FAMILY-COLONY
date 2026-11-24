@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3]
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://scripts/world_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/player_controller.gd" id="2"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://scripts/chat_manager.gd" id="13"]
 [ext_resource type="Script" path="res://scripts/world_session_client.gd" id="14"]
 [ext_resource type="Script" path="res://scripts/honey_hunt_minigame.gd" id="15"]
+[ext_resource type="Script" path="res://scripts/audio_studio_settings.gd" id="16"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.12, 0.27, 0.48, 1)
@@ -159,3 +160,6 @@ script = ExtResource("14")
 
 [node name="MiniGameManager" type="Node3D" parent="."]
 script = ExtResource("15")
+
+[node name="AudioStudioSettings" type="Node" parent="."]
+script = ExtResource("16")
