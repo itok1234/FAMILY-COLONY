@@ -102,11 +102,11 @@ func _on_quality_selected(index: int) -> void:
 
 
 func _resolve_auto_quality() -> Quality:
-	# Start Android on the low-cost profile to protect older phones and
-	# devices with limited thermal headroom. The AUTO monitor can promote
-	# to BALANCED only after sustained healthy frame rates.
+	# Start Android on a visually balanced profile. AUTO still adapts down
+	# after sustained low FPS, so capable mid-range devices are not forced
+	# to use the visibly reduced blockout profile at launch.
 	if OS.get_name() == "Android":
-		return Quality.PERFORMANCE
+		return Quality.BALANCED
 	return Quality.BALANCED
 
 
@@ -126,10 +126,10 @@ func _apply_resolved_quality(resolved: Quality) -> void:
 			_set_scene_density(10, 4, 3)
 			_set_effects(false, false)
 		Quality.BALANCED:
-			viewport.scaling_3d_scale = 0.85
-			viewport.msaa_3d = Viewport.MSAA_DISABLED
-			_set_scene_density(18, 7, 4)
-			_set_effects(false, false)
+			viewport.scaling_3d_scale = 0.90
+			viewport.msaa_3d = Viewport.MSAA_2X
+			_set_scene_density(22, 8, 4)
+			_set_effects(true, true)
 		Quality.HIGH:
 			viewport.scaling_3d_scale = 1.0
 			viewport.msaa_3d = Viewport.MSAA_2X
