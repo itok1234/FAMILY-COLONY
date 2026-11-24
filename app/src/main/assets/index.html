@@ -156,6 +156,22 @@ main{padding:30px 0 60px}.hero{display:grid;grid-template-columns:1.15fr .85fr;g
 .cdl-studio-credit strong{display:block;color:var(--gold2);font-size:.9rem;letter-spacing:.18em;margin-bottom:6px}
 .cdl-studio-credit span{display:block;margin-top:5px;color:#7f91a8;font-size:.68rem;letter-spacing:.12em}
 @media(prefers-reduced-motion:reduce){.cdl-intro-inner{animation:none}#cdlStudioIntro{transition:none}}
+
+/* FAMILY COLONY UI polish — responsive touch, focus, and reduced-motion safety */
+:root{color-scheme:dark;scroll-padding-top:84px}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;overscroll-behavior-y:contain}
+body{padding-bottom:env(safe-area-inset-bottom);-webkit-tap-highlight-color:transparent}
+button,.btn,.navbtn{min-height:42px;touch-action:manipulation}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[role="button"]:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
+.module-card,.stat,.panel,.game-tile,.game-question,.game-admin{min-width:0;overflow-wrap:anywhere}
+.module-card{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.module-card:active,.btn:active,.navbtn:active{transform:scale(.985)}
+.pagehead{gap:14px;min-width:0}.pagehead h1{overflow-wrap:anywhere}
+.game-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+.game-option{min-width:0;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:360px){.game-options{grid-template-columns:1fr}.game-meta{gap:6px}.game-meta span{font-size:.75rem}}
+@media(hover:hover) and (pointer:fine){.module-card:hover{transform:translateY(-3px);border-color:#e8bd6288;box-shadow:0 14px 32px #0005}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
 <script>window.FC_SUPABASE_URL="https://irwtnqekrwhgompulach.supabase.co";</script>
 </head>
@@ -540,7 +556,7 @@ function openPrivateDeveloperPanelIfOwner(value){
 function syncDeveloperLoginPanel(){openPrivateDeveloperPanelIfOwner($("memberName")?.value||"")}
 function bindPrivateDeveloperAccess(){const input=$("memberName");if(input){input.addEventListener("input",()=>openPrivateDeveloperPanelIfOwner(input.value));openPrivateDeveloperPanelIfOwner(input.value);}}
 function logout(){if(developerTestOriginalSession){returnDeveloperPreview();return;}if(session?.accessToken&&fcConfigReady())fetch(window.FC_SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":session.anonKey||window.FC_SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.accessToken}}).catch(()=>{});if(session)log("Logout",session.name);session=null;try{sessionStorage.removeItem("fc_session")}catch(e){}audio.pause();$("workspace").classList.add("hidden");$("guestWorkspace")?.classList.add("hidden");$("landing").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("homeBtn").classList.add("hidden");$("guestInviteBtn")?.classList.add("hidden");$("topUser").textContent="";if($("devGateCode"))$("devGateCode").value=""}
-function goHome(){currentPage="overview";renderPage()}
+function goHome(){if(currentPage==="games"){if(typeof guessWhoStopTimer==="function")guessWhoStopTimer();if(typeof rbStopOnNavigation==="function")rbStopOnNavigation();if(typeof rmClearTalk==="function"){rmClearTalk();rmGame=null;}}currentPage="overview";buildNav();renderPage();window.scrollTo({top:0,behavior:"auto"})}
 function syncDeveloperTestControls(){const dev=!!(developerTestOriginalSession||session?.role==="Developer");["devTestMemberBtn","devTestGuestBtn"].forEach(id=>$(id)?.classList.toggle("hidden",!dev||!!developerTestOriginalSession));$("devTestReturnBtn")?.classList.toggle("hidden",!developerTestOriginalSession);}
 function startDeveloperPreview(mode){if(!session||session.role!=="Developer"||!["member","guest"].includes(mode))return toast("Hanya Developer yang dapat membuka mode uji.");if(!developerTestOriginalSession)developerTestOriginalSession={...session};if(mode==="member"){session={name:"Pratinjau Member",role:"Member",testPreview:true};$("guestWorkspace")?.classList.add("hidden");enterApp();}else{session={name:"Pengunjung Uji",role:"Guest",guest:true,testPreview:true,guestToken:null,referrer:"Mode Uji Developer",expiresAt:Date.now()+30*60*1000};$("landing").classList.add("hidden");$("workspace").classList.add("hidden");$("guestWorkspace").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("homeBtn").classList.add("hidden");$("guestInviteBtn")?.classList.add("hidden");$("topUser").textContent="Pengunjung Uji · TAMU";$("guestWelcome").textContent="Mode simulasi Guest Premium. Tidak menggunakan akun tamu sungguhan."; $("guestReferrer").textContent="Mode Uji Developer";$("guestExpiry").textContent="Sesi demo 30 menit";guestOpen("overview");syncDeveloperTestControls();}}
 function returnDeveloperPreview(){if(!developerTestOriginalSession)return;session=developerTestOriginalSession;developerTestOriginalSession=null;try{sessionStorage.setItem("fc_session",JSON.stringify(session))}catch(e){}enterApp();syncDeveloperTestControls();}
@@ -614,7 +630,7 @@ function isStaff(){return ["Kepsuk","Deputi","Admin"].includes(session?.role)}
 function canManage(){return ["Kepsuk","Deputi","Admin"].includes(session?.role)}
 function visibleModules(){let arr=modules.filter(m=>m[0]!=="developer"&&m[0]!=="management"&&(m[0]!=="world"||getAppSettings().world3DEnabled));if(isStaff())arr.push(modules.find(m=>m[0]==="management"));if(session.role==="Developer"){arr.push(modules.find(m=>m[0]==="developer"));arr.push(modules.find(m=>m[0]==="cloudIntegration"));arr.push(modules.find(m=>m[0]==="finance"))}return arr}
 function buildNav(){const nav=$("sideNav");nav.innerHTML=visibleModules().map(m=>`<button class="navbtn ${m[0]===currentPage?"active":""}" onclick="navigate('${m[0]}')"><span class="ico">${m[1]}</span>${m[2]}</button>`).join("")}
-function navigate(page){if(page==="world"&&!getAppSettings().world3DEnabled){toast("Aktifkan fitur 3D World terlebih dahulu melalui Pengaturan.");return}if(!session||!authorizedMissionPage(page)){toast("Akses tidak diizinkan.");return}if(currentPage==="games"&&page!=="games"&&typeof rbStopOnNavigation==="function")rbStopOnNavigation();if(currentPage==="games"&&page!=="games"&&typeof rmClearTalk==="function"){rmClearTalk();rmGame=null;}currentPage=page;if(page==="games")recordMissionEvent("game_visit","Mengunjungi Royal Game Center");buildNav();renderPage();window.scrollTo({top:0,behavior:"smooth"})}
+function navigate(page){if(page==="world"&&!getAppSettings().world3DEnabled){toast("Aktifkan fitur 3D World terlebih dahulu melalui Pengaturan.");return}if(!session||!authorizedMissionPage(page)){toast("Akses tidak diizinkan.");return}if(currentPage==="games"&&page!=="games"){if(typeof guessWhoStopTimer==="function")guessWhoStopTimer();if(typeof rbStopOnNavigation==="function")rbStopOnNavigation();if(typeof rmClearTalk==="function"){rmClearTalk();rmGame=null;}}currentPage=page;if(page==="games")recordMissionEvent("game_visit","Mengunjungi Royal Game Center");buildNav();renderPage();window.scrollTo({top:0,behavior:"smooth"})}
 function pageHead(kicker,title,desc,actions=""){return `<div class="pagehead"><div><div class="eyebrow">${kicker}</div><h1>${title}</h1><div class="muted">${desc}</div></div><div class="toolbar">${actions}</div></div>`}
 function card(icon,title,desc,action,label="Buka"){return `<div class="module-card"><div><div class="bigico">${icon}</div><h3>${title}</h3><p>${desc}</p></div><button class="btn small" onclick="${action}">${label} →</button></div>`}
 
