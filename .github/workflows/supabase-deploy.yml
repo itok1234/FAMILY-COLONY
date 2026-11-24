@@ -27,7 +27,7 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Type-check world session and matchmaking functions
+      - name: Type-check world session and direct world access functions
         run: deno check supabase/functions/fc-world-session/index.ts supabase/functions/fc-world-matchmaking/index.ts supabase/functions/_shared/world-session-policy_test.ts
 
       - name: Test world session role policy
@@ -222,7 +222,7 @@ jobs:
           fi
           echo "Member authentication Edge Function deployed."
 
-      - name: Apply cloud world ticketing schema
+      - name: Apply world server registry schema
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_PROJECT_REF: irwtnqekrwhgompulach
@@ -232,14 +232,14 @@ jobs:
           import json
           from pathlib import Path
           sql = Path("supabase/migrations/202611250001_cloud_world_ticketing.sql").read_text()
-          Path("/tmp/fc-world-ticketing-query.json").write_text(json.dumps({"query": sql}))
+          Path("/tmp/fc-world-registry-query.json").write_text(json.dumps({"query": sql}))
           PY
-          code=$(curl -sS -w "%{http_code}" -o /tmp/fc-world-ticketing-result.json -X POST \
+          code=$(curl -sS -w "%{http_code}" -o /tmp/fc-world-registry-result.json -X POST \
             -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
             -H "Content-Type: application/json" \
             --data-binary @/tmp/fc-world-ticketing-query.json \
             "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")
-          echo "World ticketing schema HTTP status: $code"
+          echo "World server registry schema HTTP status: $code"
           if [[ "$code" != 2* ]]; then
             cat /tmp/fc-world-ticketing-result.json
             exit 1
@@ -252,7 +252,7 @@ jobs:
         run: |
           set -euo pipefail
           npx --yes supabase@latest functions deploy fc-world-matchmaking --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt --yes
-          echo "Cloud world matchmaking ticket endpoint deployed. A registered healthy game server is still required."
+          echo "Direct world access endpoint deployed. Active members use their existing login session; no join ticket is required. A registered healthy game server is still required."
 
       - name: Deploy verified Godot world session Edge Function
         env:
