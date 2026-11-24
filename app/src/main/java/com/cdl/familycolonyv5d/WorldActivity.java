@@ -83,6 +83,9 @@ public final class WorldActivity extends GodotActivity {
 
     @Override
     public List<String> getCommandLine() {
-        return new ArrayList<>(Arrays.asList("--main-pack", "godot_world.zip"));
+        List<String> commandLine = new ArrayList<>(super.getCommandLine());
+        commandLine.add("--main-pack");
+        commandLine.add("res://godot_world.zip");
+        return commandLine;
     }
 }
