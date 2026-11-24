@@ -166,7 +166,7 @@ jobs:
             APK="$OUT/app-$ABI-release.apk"
             test -s "$APK"
             "$APKSIGNER" verify --verbose "$APK"
-            "$AAPT" dump badging "$APK" | grep -F "package: name='com.cdl.familycolonyv5d.next.onlinetest15'"
+            "$AAPT" dump badging "$APK" | grep -F "package: name='com.cdl.familycolonyv5d.next'"
             unzip -l "$APK" | grep -F "lib/$ABI/libgodot_android.so"
             APK_BYTES="$(stat -c%s "$APK")"
             APK_MIB="$((APK_BYTES / 1024 / 1024))"
