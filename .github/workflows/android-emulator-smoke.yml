@@ -61,6 +61,7 @@ jobs:
           script: |
             gradle --no-daemon -PfcEmulatorX86_64 connectedDebugAndroidTest --stacktrace
             adb logcat -d > "$RUNNER_TEMP/family-colony-emulator-logcat.txt"
+            grep -F "FC_NATIVE_BRIDGE_METHODS_OK" "$RUNNER_TEMP/family-colony-emulator-logcat.txt"
             ! grep -E "FATAL EXCEPTION|SCRIPT ERROR:|Parse Error:|Failed to load main pack|Failed to load scene|Couldn't load project data|Unable to setup the Godot engine" "$RUNNER_TEMP/family-colony-emulator-logcat.txt"
 
       - name: Upload emulator logcat
