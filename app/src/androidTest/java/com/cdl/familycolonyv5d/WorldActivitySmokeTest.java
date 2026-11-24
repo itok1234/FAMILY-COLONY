@@ -20,6 +20,9 @@ public final class WorldActivitySmokeTest {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         Intent intent = new Intent(instrumentation.getTargetContext(), WorldActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        // Dummy credentials register the real host plugin without using any member account.
+        intent.putExtra(WorldActivity.EXTRA_ACCESS_TOKEN, "ci-invalid-access-token");
+        intent.putExtra(WorldActivity.EXTRA_API_KEY, "ci-invalid-publishable-key");
 
         WorldActivity activity = (WorldActivity) instrumentation.startActivitySync(intent);
         assertNotNull("WorldActivity must be created by the application itself", activity);
