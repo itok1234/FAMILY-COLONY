@@ -194,8 +194,9 @@ func _build_lamps() -> void:
 func _build_benches() -> void:
 	var wood := _mat("bench_wood", Color(0.38, 0.23, 0.13))
 	var metal := _mat("bench_frame", Color(0.12, 0.17, 0.19), 0.45, 0.65)
-	for z in [-8.0, 8.0, -34.0, 34.0]:
-		var x := -11.0 if z < 0.0 else 11.0
+	for z_value in [-8.0, 8.0, -34.0, 34.0]:
+		var z: float = float(z_value)
+		var x: float = -11.0 if z < 0.0 else 11.0
 		_box(self, Vector3(2.2, 0.16, 0.65), Vector3(x, 0.15, z), wood, "BenchSeat")
 		_box(self, Vector3(2.2, 0.72, 0.14), Vector3(x, 0.55, z - 0.24), wood, "BenchBack")
 		_box(self, Vector3(0.12, 0.48, 0.75), Vector3(x - 0.8, -0.05, z), metal, "BenchLeg")
@@ -399,7 +400,8 @@ func _build_royal_hive_citadel() -> void:
 	balcony.height = 0.22
 	balcony.radial_segments = 6
 	_mesh_node(citadel, balcony, honey, Vector3(0, 13.0, -4.0), "KeepBalconyRing")
-	for side in [-1.0, 1.0]:
+	for side_value in [-1.0, 1.0]:
+		var side: float = float(side_value)
 		var banner := _box(citadel, Vector3(1.05, 3.8, 0.10), Vector3(side * 5.3, 8.8, 2.62), teal, "RoyalBanner")
 		banner.rotation.z = side * -0.08
 		_box(citadel, Vector3(1.22, 0.12, 0.16), Vector3(side * 5.3, 10.75, 2.62), honey, "RoyalBannerTop")
@@ -412,7 +414,8 @@ func _build_royal_hive_citadel() -> void:
 			_mesh_node(citadel, tower_band, honey, Vector3(side * 9.0, 3.0 + float(level) * 3.0, -0.5), "TowerDecorativeBand")
 
 	# Two side towers frame the entrance and make the silhouette readable at a distance.
-	for side in [-1.0, 1.0]:
+	for side_value in [-1.0, 1.0]:
+		var side: float = float(side_value)
 		var tower := CylinderMesh.new()
 		tower.top_radius = 2.2
 		tower.bottom_radius = 2.7
@@ -430,7 +433,8 @@ func _build_royal_hive_citadel() -> void:
 	# A broad gate, colored glass panels and a honeycomb crest.
 	_box(citadel, Vector3(8.0, 0.55, 0.65), Vector3(0, 5.5, 2.1), honey, "RoyalGateLintel")
 	_box(citadel, Vector3(5.2, 4.2, 0.3), Vector3(0, 2.65, 2.35), deep_gold, "RoyalGate")
-	for side in [-1.0, 1.0]:
+	for side_value in [-1.0, 1.0]:
+		var side: float = float(side_value)
 		var window := CylinderMesh.new()
 		window.top_radius = 0.95
 		window.bottom_radius = 0.95
@@ -455,7 +459,8 @@ func _build_royal_hive_citadel() -> void:
 	crest_node.rotation.x = PI * 0.5
 
 	# Garden beds and golden path markers lead from the road to the royal gate.
-	for side in [-1.0, 1.0]:
+	for side_value in [-1.0, 1.0]:
+		var side: float = float(side_value)
 		_box(citadel, Vector3(4.0, 0.18, 12.0), Vector3(side * 12.5, 0.05, 7.0), garden, "RoyalGardenBed")
 		for index in range(5):
 			var flower := SphereMesh.new()
