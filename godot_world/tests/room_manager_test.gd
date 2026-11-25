@@ -84,7 +84,10 @@ func _run_room_manager_tests() -> void:
 	_expect(manager._sanitize_local_room_members("lobby", [1, 1]).is_empty(), "duplicate peer IDs must be rejected")
 	_expect(manager._sanitize_local_room_members("lobby", [0]).is_empty(), "peer IDs below one must be rejected")
 	_expect(manager._sanitize_local_room_members("lobby", ["2"]).is_empty(), "non-integer peer IDs must be rejected")
-	_expect(manager._sanitize_local_room_members("lobby", range(65)).is_empty(), "oversized membership arrays must be rejected")
+	var oversized_members: Array = []
+	for oversized_index in range(65):
+		oversized_members.append(oversized_index + 1)
+	_expect(manager._sanitize_local_room_members("lobby", oversized_members).is_empty(), "oversized membership arrays must be rejected")
 
 	# Client-side room snapshots must be cached and returned by the public API.
 	var sample_snapshot: Array = [{
