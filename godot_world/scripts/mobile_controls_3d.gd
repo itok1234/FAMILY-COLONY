@@ -1,4 +1,5 @@
 extends Node3D
+signal action_pressed
 ## Camera-mounted spatial touch controls. All visible controls are real 3D meshes.
 
 @export_range(30.0, 180.0, 1.0) var joystick_radius_px: float = 92.0
@@ -6,6 +7,8 @@ extends Node3D
 
 var _move_touch := -1
 var _sprint_touch := -1
+var _action_touch := -1
+var _action_label: Label3D
 var _move_origin := Vector2.ZERO
 var _move_output := Vector2.ZERO
 var _sprinting := false
@@ -92,12 +95,33 @@ func _build_spatial_controls() -> void:
 	_sprint_label.modulate = Color("#fff1cc")
 	sprint.add_child(_sprint_label)
 
+	var action := Node3D.new()
+	action.name = "SpatialActionControl"
+	action.position = Vector3(1.32, 0.35, -3.0)
+	add_child(action)
+	var action_orb := MeshInstance3D.new()
+	var action_mesh := SphereMesh.new()
+	action_mesh.radius = 0.34
+	action_mesh.height = 0.68
+	action_orb.mesh = action_mesh
+	action_orb.material_override = _make_material(Color("#527b91"), 0.4)
+	action.add_child(action_orb)
+	_action_label = Label3D.new()
+	_action_label.text = "AKSI"
+	_action_label.font_size = 22
+	_action_label.pixel_size = 0.0035
+	_action_label.position = Vector3(0, -0.5, 0)
+	_action_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_action_label.modulate = Color("#eaf6ff")
+	action.add_child(_action_label)
+
 
 func _notification(what: int) -> void:
 	# Clear held touch state if Android suspends the app or focus is interrupted.
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
 		_reset_move()
 		_sprint_touch = -1
+		_action_touch = -1
 		_set_sprinting(false)
 
 
@@ -116,6 +140,12 @@ func _input(event: InputEvent) -> void:
 				_move_origin = point
 				_update_move(point)
 				get_viewport().set_input_as_handled()
+			elif _action_touch == -1 and point.x >= viewport_size.x * 0.68 and point.y >= viewport_size.y * 0.12 and point.y < viewport_size.y * 0.48:
+				_action_touch = event.index
+				if is_instance_valid(_action_label):
+					_action_label.text = "..."
+				action_pressed.emit()
+				get_viewport().set_input_as_handled()
 			elif _sprint_touch == -1 and point.x >= viewport_size.x * 0.68 and point.y >= viewport_size.y * 0.48:
 				_sprint_touch = event.index
 				_set_sprinting(true)
@@ -123,6 +153,11 @@ func _input(event: InputEvent) -> void:
 		else:
 			if event.index == _move_touch:
 				_reset_move()
+				get_viewport().set_input_as_handled()
+			elif event.index == _action_touch:
+				_action_touch = -1
+				if is_instance_valid(_action_label):
+					_action_label.text = "AKSI"
 				get_viewport().set_input_as_handled()
 			elif event.index == _sprint_touch:
 				_sprint_touch = -1
