@@ -75,8 +75,9 @@ func verify_access_token(access_token: String, publishable_key: String) -> Error
 	var api_key := publishable_key.strip_edges()
 	if token.is_empty() or api_key.is_empty():
 		return ERR_INVALID_PARAMETER
-	if endpoint_url.strip_edges().is_empty():
-		return ERR_UNCONFIGURED
+	if not _is_trusted_supabase_endpoint(endpoint_url):
+		push_warning("FAMILY COLONY: Refusing an untrusted session endpoint.")
+		return ERR_UNAUTHORIZED
 
 	if _request_pending:
 		_http.cancel_request()
@@ -228,6 +229,14 @@ func _on_session_credentials_refreshed(access_token: String, api_key: String) ->
 
 
 
+
+## Only send bearer credentials to the configured project's HTTPS Supabase host.
+## This is defense-in-depth; server-side authorization remains mandatory.
+func _is_trusted_supabase_endpoint(value: String) -> bool:
+	var normalized := value.strip_edges().to_lower()
+	return normalized.begins_with("https://irwtnqekrwhgompulach.supabase.co/functions/v1/") and not normalized.contains("@") and not normalized.contains("\n") and not normalized.contains("\r")
+
+
 ## Requests a cloud server with the already verified member session.
 ## The existing Supabase access token is the credential; no entrance ticket is used.
 func request_world_matchmaking(world_id: String = "colony-main") -> Error:
@@ -238,8 +247,9 @@ func request_world_matchmaking(world_id: String = "colony-main") -> Error:
 	world_id_pattern.compile("^[A-Za-z0-9_-]{1,64}$")
 	if world_id_pattern.search(requested_world) == null:
 		return ERR_INVALID_PARAMETER
-	if matchmaking_endpoint_url.strip_edges().is_empty():
-		return ERR_UNCONFIGURED
+	if not _is_trusted_supabase_endpoint(matchmaking_endpoint_url):
+		push_warning("FAMILY COLONY: Refusing an untrusted matchmaking endpoint.")
+		return ERR_UNAUTHORIZED
 	if _matchmaking_pending:
 		_matchmaking_http.cancel_request()
 		_matchmaking_pending = false
