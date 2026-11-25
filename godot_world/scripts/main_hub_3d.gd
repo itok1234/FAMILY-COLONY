@@ -605,7 +605,6 @@ func _open_destination_panel(destination_id: String) -> void:
 		_create_hub_panel_button("BUAT ROOM", Vector3(1.62, -0.12, -0.24), "room:create", Vector3(2.55, 0.5, 0.16), Color("#a77a36"))
 		_create_hub_panel_button("MASUK LOBBY", Vector3(-1.62, -0.78, -0.24), "room:lobby", Vector3(2.55, 0.5, 0.16), Color("#397b70"))
 		_create_hub_panel_button("KELUAR ROOM", Vector3(1.62, -0.78, -0.24), "room:leave", Vector3(2.55, 0.5, 0.16), Color("#65568d"))
-		_create_hub_panel_button("GABUNG HOST LAN", Vector3(0, -1.42, -0.24), "room:connect", Vector3(2.9, 0.48, 0.16), Color("#52677a"))
 		_room_status_label = Label3D.new()
 		_room_status_label.name = "RoomStatus3D"
 		_room_status_label.text = "LAN: OFFLINE • Room: —"
