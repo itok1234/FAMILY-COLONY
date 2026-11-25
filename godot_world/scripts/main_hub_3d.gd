@@ -411,6 +411,36 @@ func _create_kiosk(item: Dictionary) -> void:
 	trim.material_override = _material(Color("#e5c27b"), 0.28, 0.32)
 	root.add_child(trim)
 
+	# Layered stone-and-brass plinth gives every feature station a grounded,
+	# readable silhouette instead of a floating rectangular menu block.
+	var pedestal := MeshInstance3D.new()
+	var pedestal_mesh := CylinderMesh.new()
+	pedestal_mesh.top_radius = 1.78
+	pedestal_mesh.bottom_radius = 1.92
+	pedestal_mesh.height = 0.34
+	pedestal.mesh = pedestal_mesh
+	pedestal.position.y = -0.48
+	pedestal.material_override = _material(Color("#263b49"), 0.62, 0.28)
+	root.add_child(pedestal)
+
+	var pedestal_rim := MeshInstance3D.new()
+	var rim_mesh := TorusMesh.new()
+	rim_mesh.inner_radius = 1.68
+	rim_mesh.outer_radius = 1.78
+	pedestal_rim.mesh = rim_mesh
+	pedestal_rim.rotation_degrees.x = 90.0
+	pedestal_rim.position.y = -0.28
+	pedestal_rim.material_override = _material(Color("#d7b36c"), 0.3, 0.5)
+	root.add_child(pedestal_rim)
+
+	var station_light := OmniLight3D.new()
+	station_light.position = Vector3(0, 2.85, 0.0)
+	station_light.light_color = item.color.lightened(0.35)
+	station_light.light_energy = 0.48
+	station_light.omni_range = 5.5
+	station_light.shadow_enabled = false
+	root.add_child(station_light)
+
 	var title := Label3D.new()
 	title.text = str(item.title)
 	title.font_size =  thirty_two()
@@ -439,8 +469,23 @@ func _create_kiosk(item: Dictionary) -> void:
 	marker_mesh.height = 0.36
 	marker.mesh = marker_mesh
 	marker.position = Vector3(0, 1.88, -0.31)
-	marker.material_override = _material(Color("#f2d38b"), 0.22, 0.45)
+	var marker_material := _material(Color("#f2d38b"), 0.22, 0.45)
+	marker_material.emission_enabled = true
+	marker_material.emission = Color("#f2d38b")
+	marker_material.emission_energy_multiplier = 0.7
+	marker.material_override = marker_material
 	root.add_child(marker)
+
+	# Slim side columns and inset face strips add depth while keeping the
+	# title and touch target unobstructed on phone-sized screens.
+	for side_x in [-1.42, 1.42]:
+		var side_trim := MeshInstance3D.new()
+		var side_mesh := BoxMesh.new()
+		side_mesh.size = Vector3(0.055, 1.92, 0.06)
+		side_trim.mesh = side_mesh
+		side_trim.position = Vector3(side_x, 0.95, -0.255)
+		side_trim.material_override = _material(Color("#d6b16c"), 0.32, 0.42)
+		root.add_child(side_trim)
 
 	add_child(root)
 
@@ -660,7 +705,7 @@ func _destination_description(destination_id: String) -> String:
 				return "PROFIL ANGGOTA\n" + display_name + "\\nPeran: " + role + "\\nData profil berasal dari sesi akun terverifikasi."
 			return "PROFIL ANGGOTA\n" + display_name + "\\n@" + username + "  •  " + role + "\\nData profil berasal dari sesi akun terverifikasi."
 		"chat": return "Bertemu • mengobrol • room\\nLayanan chat lintas jaringan dan panel 3D sedang dimigrasikan."
-		"games": return "Pilih permainan untuk masuk ke ruangnya.\\nHoney Hunt sudah memiliki arena 3D; game lain menunggu port mekanik."
+		"games": return "Pilih salah satu dari lima permainan 3D.\\nSetiap permainan memiliki ruang, aturan, dan papan hasil tersendiri."
 		"settings": return "Audio • kualitas grafis • kontrol\\nPengaturan 3D akan mengikuti kemampuan perangkat."
 		"world": return "Masuk ke dunia 3D dan jelajahi Bee Kingdom.\\nBerjalan, berinteraksi, dan bermain bersama."
 		_: return "Fitur sedang disiapkan."
