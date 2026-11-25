@@ -72,3 +72,8 @@ Do not label the product fully 3D until:
 - Replaced Honey Hunt's CanvasLayer score HUD and flat exit Button with a camera-mounted Label3D scoreboard and a ray-pickable 3D exit object. The exit remains active on the results screen.
 - Honey Hunt's arena, collectibles, portal, score/timer logic and collision-based collection are already 3D; its visible status/exit layer is now also spatial 3D.
 - The group chat HUD and other feature screens remain to be migrated. These changes are implementation progress, not a claim that the complete application is 3D.
+
+## Validation record (2026-11-25)
+- Commit `1cf54ea2ae520e7cba96cbfc0f3c305db3c5da8e`: Godot 4.4.1 editor import/parse and headless world startup smoke test passed in GitHub Actions run `45516983108`.
+- Android debug APK build, signed release APK build and embedded Android emulator smoke test were still running when this record was updated; no APK from these latest changes is declared ready here.
+- No physical Redmi Note 8 Pro test has been performed for the new 3D touch controls, interaction panel or Honey Hunt spatial HUD.
