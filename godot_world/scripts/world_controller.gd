@@ -22,6 +22,12 @@ func _ready() -> void:
 		push_warning("FAMILY COLONY: Player node is not assigned.")
 		return
 
+	var mobile_controls_action := get_node_or_null("Player/CameraPivot/Camera3D/MobileControls3D")
+	var interaction_controller := get_node_or_null("Player/InteractionController")
+	if mobile_controls_action != null and mobile_controls_action.has_signal("action_pressed") and interaction_controller != null:
+		if not mobile_controls_action.action_pressed.is_connected(_on_mobile_action_pressed):
+			mobile_controls_action.action_pressed.connect(_on_mobile_action_pressed.bind(interaction_controller))
+
 	_android_session_required = OS.has_feature("android")
 	if not _android_session_required:
 		return
@@ -496,3 +502,8 @@ func _stop_audio_players(node: Node) -> void:
 		if child is AudioStreamPlayer or child is AudioStreamPlayer2D or child is AudioStreamPlayer3D:
 			child.stop()
 		_stop_audio_players(child)
+
+
+func _on_mobile_action_pressed(interaction_controller: Node) -> void:
+	if interaction_controller != null and interaction_controller.has_method("_open_action_menu"):
+		interaction_controller.call("_open_action_menu")
