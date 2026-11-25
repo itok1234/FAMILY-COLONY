@@ -10,7 +10,7 @@
 
 - Deliver a complete playable 3D MVP first; preserve the agreed bright, readable 3D visual standard.
 - Defer non-core polish and advanced administration; do not defer core gameplay, safe authentication, or visible 3D environments.
-- Current active workstream: Room & Lobby foundation, then the shortest end-to-end playable path.
+- Current active workstream: Room & Lobby + room-chat input safety, then the shortest end-to-end playable path.
 - Current multiplayer foundation is LAN ENet and in-memory rooms; do not label it cloud-authoritative.
 
 ## Overall progress baseline
@@ -34,6 +34,7 @@
 | Native 3D hub and world entry | IMPLEMENTED SLICE | Full app flow and feature parity |
 | Avatar profile and wardrobe | IMPLEMENTED SLICE | Cloud persistence and device UX |
 | Room-scoped avatar appearance sync | IMPLEMENTED SLICE — CI PASSED | Multi-device real-world test and persistence |
+| Room chat input validation | IMPLEMENTATION UPDATED — rejects control characters on client, server submission and received messages | CI regression and device usability test |
 | Room & Lobby (active group 1) | 65% provisional — lobby sharding, capacity/cooldown controls and client room-snapshot cache; automated regression suite included in the Godot validation check above | Multi-device lifecycle, invitation/transition UI verification and cloud persistence |
 | Room management | LAN host-authoritative in-memory rooms; 64 custom-room cap; least-populated lobby shards; client snapshot cache | Cloud persistence and physical multi-device acceptance |
 | Member login and session | LEGACY WEBVIEW FLOW PRESERVED | Port login, refresh, logout and recovery to spatial 3D |
