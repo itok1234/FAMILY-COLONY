@@ -651,30 +651,21 @@ func _build_profile_card() -> void:
 	var status := str(_member_profile.get("status", "Aktif")).strip_edges()
 	var avatar_root := Node3D.new()
 	avatar_root.name = "ProfileAvatarPreview3D"
-	avatar_root.position = Vector3(-2.15, 0.15, -0.28)
-	var body := MeshInstance3D.new()
-	var body_mesh := CapsuleMesh.new()
-	body_mesh.radius = 0.42
-	body_mesh.height = 1.25
-	body.mesh = body_mesh
-	body.position.y = 0.12
-	body.material_override = _material(PROFILE_STYLES[_profile_style_index].body, 0.42, 0.18)
-	_profile_avatar_body = body
-	avatar_root.add_child(body)
-	var head := MeshInstance3D.new()
-	var head_mesh := SphereMesh.new()
-	head_mesh.radius = 0.34
-	head_mesh.height = 0.68
-	head.mesh = head_mesh
-	head.position.y = 0.93
-	head.material_override = _material(Color("#c99d7b"), 0.55)
-	avatar_root.add_child(head)
+	avatar_root.position = Vector3(-2.15, -0.05, -0.28)
+	var avatar_preview_script: Script = preload("res://scripts/avatar_visual.gd")
+	var avatar_preview := avatar_preview_script.new() as Node3D
+	avatar_preview.name = "VerifiedAvatarVisual"
+	avatar_preview.scale = Vector3.ONE * 0.78
+	avatar_preview.call("set_display_name", display_name)
+	avatar_preview.call("apply_appearance", get_profile_appearance())
+	avatar_root.add_child(avatar_preview)
+	_profile_avatar_body = null
 	var halo := MeshInstance3D.new()
 	var halo_mesh := TorusMesh.new()
 	halo_mesh.inner_radius = 0.52
 	halo_mesh.outer_radius = 0.59
 	halo.mesh = halo_mesh
-	halo.position.y = 1.42
+	halo.position.y = 1.88
 	halo.rotation_degrees.x = 90.0
 	halo.material_override = _material(PROFILE_STYLES[_profile_style_index].halo, 0.28, 0.35)
 	_profile_avatar_halo = halo
@@ -771,6 +762,10 @@ func _apply_profile_style(style_index: int) -> void:
 	if is_instance_valid(_profile_avatar_body):
 		var body_material := _material(PROFILE_STYLES[style_index].body, 0.42, 0.18)
 		_profile_avatar_body.material_override = body_material
+	if is_instance_valid(_destination_panel):
+		var preview := _destination_panel.find_child("VerifiedAvatarVisual", true, false)
+		if preview != null and preview.has_method("apply_appearance"):
+			preview.call("apply_appearance", get_profile_appearance())
 	if is_instance_valid(_profile_avatar_halo):
 		var halo_material := _material(PROFILE_STYLES[style_index].halo, 0.28, 0.35)
 		_profile_avatar_halo.material_override = halo_material
