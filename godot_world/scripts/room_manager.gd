@@ -348,12 +348,29 @@ func _rpc_receive_room_snapshot(snapshot: Array) -> void:
 	room_list_changed.emit(_client_room_snapshot.duplicate(true))
 
 
+func _sanitize_local_room_members(room_id: String, members: Array) -> Dictionary:
+	var clean_room_id := room_id.strip_edges()
+	if not _is_valid_room_id(clean_room_id) or members.size() > 64:
+		return {}
+	var clean_members: Array[int] = []
+	var seen: Dictionary = {}
+	for member_variant in members:
+		if not (member_variant is int):
+			return {}
+		var member_id := int(member_variant)
+		if member_id < 1 or seen.has(member_id):
+			return {}
+		seen[member_id] = true
+		clean_members.append(member_id)
+	return {"room_id": clean_room_id, "members": clean_members}
+
+
 @rpc("authority", "call_remote", "reliable")
 func _rpc_receive_local_room(room_id: String, members: Array) -> void:
-	var typed_members: Array[int] = []
-	for member_id in members:
-		typed_members.append(int(member_id))
-	local_room_changed.emit(room_id, typed_members)
+	var clean_state := _sanitize_local_room_members(room_id, members)
+	if clean_state.is_empty():
+		return
+	local_room_changed.emit(clean_state["room_id"], clean_state["members"])
 
 
 @rpc("authority", "call_remote", "reliable")
