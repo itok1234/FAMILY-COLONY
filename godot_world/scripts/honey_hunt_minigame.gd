@@ -756,6 +756,9 @@ var _royal_action_lock := false
 
 
 func _release_royal_action_lock() -> void:
+	# Keep the lock through the current frame so touch/mouse duplicate events
+	# cannot reach the same game action before state/UI updates settle.
+	await get_tree().process_frame
 	_royal_action_lock = false
 
 
