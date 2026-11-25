@@ -15,8 +15,14 @@
 
 ## Overall progress baseline
 
-- **55% completed / 45% remaining** — retained from the previously reported project baseline.
+- **57% completed / 43% remaining** — continuity baseline carried forward from the user's latest reported progress; provisional, not independently audited.
 - This is a continuity reference, not a newly audited measurement; it changes only after an agreed, evidence-based full audit.
+
+## Progress continuity & history
+
+- **2026-11-25: 55% → 57% continuity correction.** Restores the user's most recently reported dashboard value; this is not a newly completed code package or a fresh audit.
+- Dashboard refreshes, commits, and session changes must not reduce progress by themselves. Progress increases require documented work/evidence; corrections downward require an explained audit finding.
+- Track overall progress separately from individual package/workstream estimates.
 
 ## Automated validation
 
@@ -71,7 +77,7 @@
 
 ## Status rules
 
-- The 55% figure is a retained continuity baseline, not a newly audited exact measurement.
+- The 57% figure is the continuity baseline carried forward from the user's latest reported progress, not a newly audited exact measurement.
 - Feature statuses and CI outcomes are evidence-based; a workflow result applies only to its listed commit.
 - A workflow result applies only to the commit shown in its row.
 - "Implemented slice" does not mean the entire feature or application is complete.
