@@ -62,7 +62,7 @@ func leave_room() -> void:
 
 
 func get_room_snapshot() -> Array:
-	if multiplayer.is_server():
+	if multiplayer.is_server() and not multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
 		return _public_room_snapshot()
 	return _client_room_snapshot.duplicate(true)
 
