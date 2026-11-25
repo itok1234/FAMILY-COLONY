@@ -230,7 +230,9 @@ func _build_buildings() -> void:
 		_add_static_collision_box(group, Vector3(width, height, depth * 0.22), Vector3(0, height * 0.5, -depth * 0.39), "BuildingRearCollision")
 		_add_static_collision_box(group, Vector3(width * 0.18, height, depth * 0.76), Vector3(-width * 0.41, height * 0.5, depth * 0.12), "BuildingLeftCollision")
 		_add_static_collision_box(group, Vector3(width * 0.18, height, depth * 0.76), Vector3(width * 0.41, height * 0.5, depth * 0.12), "BuildingRightCollision")
-		_add_static_collision_box(group, Vector3(width * 0.64, height, depth * 0.18), Vector3(0, height * 0.5, depth * 0.41), "BuildingFrontCollision")
+		# Front wall segments flank the doorway instead of sealing its opening.
+		_add_static_collision_box(group, Vector3(width * 0.18, height, depth * 0.18), Vector3(-width * 0.41, height * 0.5, depth * 0.41), "BuildingFrontLeftCollision")
+		_add_static_collision_box(group, Vector3(width * 0.18, height, depth * 0.18), Vector3(width * 0.41, height * 0.5, depth * 0.41), "BuildingFrontRightCollision")
 		# Layered roof silhouette and eaves break up the primitive rectangular outline.
 		_box(group, Vector3(width + 1.15, 0.32, depth + 1.15), Vector3(0, height + 0.12, 0), roof, "RoofEaves")
 		var roof_mesh := CylinderMesh.new()
