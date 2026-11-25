@@ -848,6 +848,12 @@ func _show_royal_bomb() -> void:
 
 
 func _royal_bomb_action(action: String) -> void:
+	if not _royal_game_active or _royal_game_id != "royal_bomb":
+		return
+	if _royal_game_state.is_empty() or not _royal_game_state.has("round"):
+		return
+	if int(_royal_game_state.round) > 12 or int(_royal_game_state.bombs) <= 0:
+		return
 	if action == "defuse":
 		if int(_royal_game_state.defuse) > 0 and not bool(_royal_game_state.armed_defuse):
 			_royal_game_state.defuse -= 1
@@ -961,6 +967,12 @@ func _show_royal_dice() -> void:
 
 
 func _dice_action(action: String) -> void:
+	if not _royal_game_active or _royal_game_id != "royal_dice":
+		return
+	if _royal_game_state.is_empty() or not _royal_game_state.has("round"):
+		return
+	if int(_royal_game_state.round) > 5:
+		return
 	if action.begins_with("card:"):
 		_royal_game_state.card = action.trim_prefix("card:")
 		_royal_game_status.text = "Kartu dipilih: " + str(_royal_game_state.card) + "\nLempar dadu untuk memakai efek kartu."
