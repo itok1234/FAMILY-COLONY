@@ -373,6 +373,9 @@ func start_royal_game(game_id: String, actor: Node) -> String:
 		return "Mini-game tidak dikenal."
 	if _active or _royal_game_active:
 		return "Selesaikan permainan yang sedang aktif terlebih dahulu."
+	if not _royal_game_id.is_empty():
+		# Finished-game HUD/arena can remain until the player exits; clean it before a new session.
+		exit_royal_game()
 	_player = actor as CharacterBody3D
 	_royal_game_id = game_id
 	_royal_game_return_position = _player.global_position
