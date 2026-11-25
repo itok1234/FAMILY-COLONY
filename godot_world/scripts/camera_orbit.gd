@@ -16,7 +16,7 @@ func _notification(what: int) -> void:
 		_dragging_mouse = false
 		_active_touch = -1
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		_dragging_mouse = event.pressed
 		_last_position = event.position
