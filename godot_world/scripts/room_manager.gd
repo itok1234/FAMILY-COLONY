@@ -93,6 +93,14 @@ func _join_or_create_lobby(peer_id: int) -> void:
 
 
 func _create_room_for_peer(peer_id: int, room_name: String, capacity: int) -> void:
+	# Apply the same cooldown to the host and remote members. Previously the
+	# remote RPC enforced this, but the host-local path bypassed the limit.
+	var now := Time.get_ticks_msec() / 1000.0
+	var last_create := float(_last_room_create_at.get(peer_id, -10000.0))
+	if now - last_create < 5.0:
+		_send_result(peer_id, false, "Tunggu 5 detik sebelum membuat room lagi.")
+		return
+	_last_room_create_at[peer_id] = now
 	var room_id := "room_%d_%d" % [peer_id, Time.get_ticks_msec()]
 	_rooms[room_id] = {"name": room_name, "capacity": capacity, "members": []}
 	_join_room_for_peer(peer_id, room_id)
@@ -186,12 +194,6 @@ func _rpc_request_create_room(room_name: String, capacity: int) -> void:
 	if room_name.length() > 32 or room_name.strip_edges().length() < 2 or room_name.strip_edges().length() > 32:
 		_send_result(sender, false, "Nama room tidak valid.")
 		return
-	var now := Time.get_ticks_msec() / 1000.0
-	var last_create := float(_last_room_create_at.get(sender, -10000.0))
-	if now - last_create < 5.0:
-		_send_result(sender, false, "Tunggu 5 detik sebelum membuat room lagi.")
-		return
-	_last_room_create_at[sender] = now
 	_create_room_for_peer(sender, room_name.strip_edges(), clampi(capacity, 2, 64))
 
 
