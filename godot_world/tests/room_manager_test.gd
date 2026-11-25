@@ -15,6 +15,8 @@ func _expect(condition: bool, message: String) -> void:
 
 
 func _run_room_manager_tests() -> void:
+	# Exercise host-side snapshot behavior under Godot offline peer semantics.
+	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	var manager = RoomManagerScript.new()
 	root.add_child(manager)
 	manager.default_room_capacity = 2
