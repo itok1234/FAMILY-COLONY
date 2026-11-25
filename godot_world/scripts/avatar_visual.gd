@@ -269,6 +269,20 @@ func _build_avatar() -> void:
 	_add_box(_right_leg, "ShoeSole", Vector3(0, -0.445, -0.07), Vector3(0.27, 0.055, 0.40), trim)
 	_add_box(_left_leg, "Shoe", Vector3(0, -0.38, -0.07), Vector3(0.25, 0.13, 0.38), shoes)
 	_add_box(_right_leg, "Shoe", Vector3(0, -0.38, -0.07), Vector3(0.25, 0.13, 0.38), shoes)
+
+	# Tailored garment accents: shoulder seam piping, sleeve panels, knee details and shoe stitching.
+	var seam_material := _material(Color("#8fa6b4"), 0.68)
+	var cloth_shadow := _material(Color("#26384b"), 0.9)
+	for seam_side in [-1.0, 1.0]:
+		_add_box(self, "ShoulderSeam_%s" % str(seam_side), Vector3(seam_side * 0.24, 1.49, -0.155), Vector3(0.025, 0.20, 0.025), seam_material)
+		_add_box(self, "SleevePanel_%s" % str(seam_side), Vector3(seam_side * 0.37, 1.28, -0.115), Vector3(0.045, 0.18, 0.03), cloth_shadow)
+		_add_box(self, "KneeAccent_%s" % str(seam_side), Vector3(seam_side * 0.15, 0.42, -0.12), Vector3(0.19, 0.045, 0.035), seam_material)
+		_add_box(self, "AnkleTrim_%s" % str(seam_side), Vector3(seam_side * 0.15, 0.17, -0.01), Vector3(0.23, 0.035, 0.25), trim)
+	# Small segmented belt loops and a side utility tab.
+	for loop_side in [-1.0, 1.0]:
+		_add_box(self, "BeltLoop_%s" % str(loop_side), Vector3(loop_side * 0.17, 0.90, -0.24), Vector3(0.045, 0.09, 0.035), seam_material)
+	_add_box(self, "UtilityTab", Vector3(0.22, 0.82, -0.18), Vector3(0.09, 0.13, 0.08), backpack_trim)
+
 	for lace_index in range(3):
 		var lace_y := -0.34 - float(lace_index) * 0.035
 		_add_box(_left_leg, "LeftLace_%d" % lace_index, Vector3(0, lace_y, -0.255), Vector3(0.12, 0.018, 0.018), trim)
