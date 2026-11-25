@@ -95,7 +95,12 @@ func _process(delta: float) -> void:
 	_motion = move_toward(_motion, _motion_target, delta * 4.5)
 	var gait_rate := lerpf(5.2, 8.4, _motion)
 	var gait_phase := _time * gait_rate
-	if _wing_left != null and _wing_right != null:\n\t\tvar wing_flap := sin(_time * 8.0) * 0.10 + sin(_time * 3.0) * 0.035\n\t\t_wing_left.rotation.z = 0.32 + wing_flap\n\t\t_wing_right.rotation.z = -0.32 - wing_flap\n\t\t_wing_left.rotation.x = sin(_time * 5.5) * 0.12\n\t\t_wing_right.rotation.x = -sin(_time * 5.5) * 0.12\n\tvar leg_swing := sin(gait_phase) * 0.48 * _motion
+	if _wing_left != null and _wing_right != null:
+		var wing_flap := sin(_time * 8.0) * 0.10 + sin(_time * 3.0) * 0.035
+		_wing_left.rotation.z = 0.32 + wing_flap
+		_wing_right.rotation.z = -0.32 - wing_flap
+		_wing_left.rotation.x = sin(_time * 5.5) * 0.12
+		_wing_right.rotation.x = -sin(_time * 5.5) * 0.12\n\tvar leg_swing := sin(gait_phase) * 0.48 * _motion
 	var arm_swing := -leg_swing * 0.72
 	var body_bob := absf(cos(gait_phase)) * 0.045 * _motion
 	var idle := sin(_time * 1.55) * 0.018
