@@ -6,6 +6,7 @@ extends Node3D
 signal destination_requested(destination_id: String)
 signal developer_login_requested()
 signal developer_authenticated(member: Dictionary, access_token: String, refresh_token: String, anon_key: String)
+signal minigame_requested(game_id: String)
 
 const FC_AUTH_URL := "https://irwtnqekrwhgompulach.supabase.co/functions/v1/fc-member-auth"
 
@@ -29,6 +30,9 @@ var _developer_pin_status: Label3D
 var _developer_pin_display: Label3D
 var _developer_auth_request: HTTPRequest
 var _developer_login_busy := false
+var _destination_panel: Node3D
+var _panel_title: Label3D
+var _panel_body: Label3D
 
 
 func _ready() -> void:
@@ -488,10 +492,120 @@ func _pick_destination(screen_position: Vector2) -> void:
 	if collider is Area3D and collider.has_meta("developer_key"):
 		_handle_developer_key(str(collider.get_meta("developer_key")))
 		return
+	if collider is Area3D and collider.has_meta("hub_panel_action"):
+		_handle_hub_panel_action(str(collider.get_meta("hub_panel_action")))
+		return
 	if collider is Area3D and collider.has_meta("destination_id"):
 		var destination := str(collider.get_meta("destination_id"))
-		_hint.text = "Dipilih: " + destination.to_upper() + " • integrasi fitur sedang dimigrasikan."
-		destination_requested.emit(destination)
+		_open_destination_panel(destination)
+
+
+func _open_destination_panel(destination_id: String) -> void:
+	if is_instance_valid(_destination_panel):
+		_destination_panel.queue_free()
+	_destination_panel = Node3D.new()
+	_destination_panel.name = "SpatialFeaturePanel"
+	_destination_panel.position = Vector3(0, 2.9, 5.0)
+	var panel_mesh := MeshInstance3D.new()
+	var panel_box := BoxMesh.new()
+	panel_box.size = Vector3(7.2, 5.7, 0.18)
+	panel_mesh.mesh = panel_box
+	panel_mesh.material_override = _material(Color("#10263b"), 0.28, 0.28)
+	_destination_panel.add_child(panel_mesh)
+
+	_panel_title = Label3D.new()
+	_panel_title.text = _destination_title(destination_id)
+	_panel_title.font_size = 42
+	_panel_title.pixel_size = 0.004
+	_panel_title.position = Vector3(0, 2.15, -0.12)
+	_panel_title.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_panel_title.modulate = Color("#f3d99a")
+	_destination_panel.add_child(_panel_title)
+
+	_panel_body = Label3D.new()
+	_panel_body.text = _destination_description(destination_id)
+	_panel_body.font_size = 21
+	_panel_body.pixel_size = 0.004
+	_panel_body.position = Vector3(0, 1.28, -0.12)
+	_panel_body.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_panel_body.modulate = Color("#e5edf4")
+	_destination_panel.add_child(_panel_body)
+
+	if destination_id == "games":
+		_create_hub_panel_button("HONEY HUNT", Vector3(-2.15, 0.15, -0.24), "game:honey_hunt", Vector3(2.0, 0.58, 0.16), Color("#a77a36"))
+		_create_hub_panel_button("GUESS WHO?", Vector3(0.0, 0.15, -0.24), "game:guess_who", Vector3(2.0, 0.58, 0.16))
+		_create_hub_panel_button("ROYAL BOMB", Vector3(2.15, 0.15, -0.24), "game:royal_bomb", Vector3(2.0, 0.58, 0.16))
+		_create_hub_panel_button("MURDER MYSTERY", Vector3(-1.15, -0.72, -0.24), "game:royal_murder_mystery", Vector3(2.25, 0.58, 0.16))
+		_create_hub_panel_button("ROYAL DICE", Vector3(1.15, -0.72, -0.24), "game:royal_dice", Vector3(2.25, 0.58, 0.16))
+	_create_hub_panel_button("KEMBALI KE HUB", Vector3(0, -2.05, -0.24), "back", Vector3(2.6, 0.62, 0.16), Color("#315b70"))
+	add_child(_destination_panel)
+	_hint.text = "Panel 3D terbuka: " + destination_id.to_upper()
+
+
+func _destination_title(destination_id: String) -> String:
+	match destination_id:
+		"profile": return "PROFIL ANGGOTA"
+		"chat": return "ALUN-ALUN CHAT"
+		"games": return "ROYAL GAME CENTER"
+		"settings": return "PENGATURAN KOLONI"
+		"world": return "DUNIA KOLONI"
+		_: return "FAMILY COLONY"
+
+
+func _destination_description(destination_id: String) -> String:
+	match destination_id:
+		"profile": return "Identitas anggota • avatar • koleksi\\nRuang profil 3D sedang disiapkan untuk integrasi data akun."
+		"chat": return "Bertemu • mengobrol • room\\nLayanan chat lintas jaringan dan panel 3D sedang dimigrasikan."
+		"games": return "Pilih permainan untuk masuk ke ruangnya.\\nHoney Hunt sudah memiliki arena 3D; game lain menunggu port mekanik."
+		"settings": return "Audio • kualitas grafis • kontrol\\nPengaturan 3D akan mengikuti kemampuan perangkat."
+		"world": return "Masuk ke dunia 3D dan jelajahi Bee Kingdom."
+		_: return "Fitur sedang disiapkan."
+
+
+func _create_hub_panel_button(label_text: String, local_position: Vector3, action_id: String, dimensions: Vector3, color: Color = Color("#315b70")) -> void:
+	var area := Area3D.new()
+	area.name = "HubPanelAction_" + action_id.replace(":", "_")
+	area.position = local_position
+	area.input_ray_pickable = true
+	area.collision_layer = 2
+	area.collision_mask = 0
+	area.set_meta("hub_panel_action", action_id)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = dimensions
+	collision.shape = shape
+	area.add_child(collision)
+	var mesh := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = dimensions * Vector3(0.96, 0.94, 0.72)
+	mesh.mesh = box
+	mesh.material_override = _material(color, 0.32, 0.2)
+	area.add_child(mesh)
+	var label := Label3D.new()
+	label.text = label_text
+	label.font_size = 18 if label_text.length() > 10 else 23
+	label.pixel_size = 0.0035
+	label.position.z = -dimensions.z * 0.42
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.modulate = Color("#ffffff")
+	area.add_child(label)
+	_destination_panel.add_child(area)
+
+
+func _handle_hub_panel_action(action_id: String) -> void:
+	if action_id == "back":
+		if is_instance_valid(_destination_panel):
+			_destination_panel.queue_free()
+		_destination_panel = null
+		_hint.text = "Pilih bangunan 3D untuk membuka fitur."
+		return
+	if action_id.begins_with("game:"):
+		var game_id := action_id.trim_prefix("game:")
+		if game_id == "honey_hunt":
+			destination_requested.emit("world")
+			minigame_requested.emit(game_id)
+			return
+		_hint.text = "Game " + game_id.replace("_", " ").to_upper() + " belum selesai dipindahkan ke mekanik 3D."
 
 
 func _material(color: Color, roughness: float = 0.65, metallic: float = 0.0) -> StandardMaterial3D:
