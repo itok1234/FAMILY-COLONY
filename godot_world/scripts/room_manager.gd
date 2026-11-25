@@ -108,12 +108,17 @@ func _join_or_create_lobby(peer_id: int) -> void:
 			selected_lobby = room_id
 			selected_count = members.size()
 	if selected_lobby.is_empty():
+		# Keep the first shard on the canonical "lobby" ID so existing
+		# invitations and UI links continue to resolve to the primary Lobby.
+		# Additional shards use lobby_2, lobby_3, ... with matching labels.
 		var shard_number := 1
-		while _rooms.has("lobby_%d" % shard_number):
+		selected_lobby = "lobby"
+		while _rooms.has(selected_lobby):
 			shard_number += 1
-		selected_lobby = "lobby_%d" % shard_number
+			selected_lobby = "lobby_%d" % shard_number
+		var lobby_label := "Lobby" if shard_number == 1 else "Lobby %d" % shard_number
 		_rooms[selected_lobby] = {
-			"name": "Lobby %d" % (shard_number + 1),
+			"name": lobby_label,
 			"capacity": default_room_capacity,
 			"members": []
 		}
