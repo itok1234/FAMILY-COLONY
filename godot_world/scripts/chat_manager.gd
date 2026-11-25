@@ -413,7 +413,7 @@ func _update_chat_messages() -> void:
 		lines.append("%s: %s" % [str(message.get("sender_label", "Anggota")), str(message.get("text", ""))])
 	if lines.is_empty():
 		lines.append("Belum ada pesan di room ini.")
-	_chat_messages.text = "\\n".join(lines)
+	_chat_messages.text = "\n".join(lines)
 
 
 func _on_message_received(_message: Dictionary) -> void:
