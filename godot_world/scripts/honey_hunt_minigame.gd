@@ -61,6 +61,7 @@ func _process(delta: float) -> void:
 	if _royal_game_active:
 		if _royal_game_id == "guess_who" and not _royal_game_state.is_empty() and not bool(_royal_game_state.get("finished", false)):
 			_royal_game_state.seconds = maxf(0.0, float(_royal_game_state.seconds) - delta)
+			_update_guess_who_clock()
 			if _royal_game_state.seconds <= 0.0:
 				_royal_game_state.wrong += 1
 				_guess_who_next()
@@ -762,6 +763,13 @@ func _start_guess_who() -> void:
 	pool.shuffle()
 	_royal_game_state = {"pool":pool,"index":0,"score":0,"correct":0,"wrong":0,"hints":0,"clue":2,"seconds":25,"finished":false}
 	_show_guess_who_question()
+
+
+func _update_guess_who_clock() -> void:
+	if not is_instance_valid(_royal_game_status) or _royal_game_state.is_empty():
+		return
+	var question: Dictionary = _royal_game_state.pool[_royal_game_state.index]
+	_royal_game_status.text = "SOAL %d/%d   •   SKOR %d   •   %02d DETIK\\nKategori: %s\\nPetunjuk 1: %s\\nPetunjuk 2: %s" % [_royal_game_state.index + 1, _royal_game_state.pool.size(), _royal_game_state.score, ceili(_royal_game_state.seconds), question.category, question.clues[0], question.clues[1]]
 
 
 func _show_guess_who_question() -> void:
