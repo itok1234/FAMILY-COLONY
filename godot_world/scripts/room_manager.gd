@@ -228,8 +228,13 @@ func _broadcast_room_state() -> void:
 	for connected_id in multiplayer.get_peers():
 		connected_peers.append(int(connected_id))
 	if connected_peers.is_empty():
-		for peer_id in _peer_room.keys():
+		for peer_id in _peer_room.keys().duplicate():
 			var local_room_id := String(_peer_room[peer_id])
+			# Defensive repair: discard stale membership indexes before snapshot
+			# generation, rather than indexing a room that no longer exists.
+			if not _rooms.has(local_room_id):
+				_peer_room.erase(peer_id)
+				continue
 			var local_ids: Array[int] = []
 			for member_id in _rooms[local_room_id]["members"]:
 				local_ids.append(int(member_id))
