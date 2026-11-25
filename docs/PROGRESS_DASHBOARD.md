@@ -45,6 +45,9 @@ The old fixed **55%** was a continuity estimate, not an audited measurement, and
 ## Known scope boundary
 Multiplayer currently means LAN ENet/in-memory host-authoritative rooms, not cloud-authoritative persistent multiplayer. The 3D login/session port, operational Developer Center, device acceptance and final release sign-off remain open. APK generation is not device testing.
 
+## Latest gameplay change
+- Commit `d2f1628`: Royal Bomb turn-skip now resolves the simulated bot-table progression (bonus survival or bot elimination) instead of allowing a consequence-free skipped turn. CI validation is pending for this change.
+
 ## Next FAST TRACK priorities
 1. Complete and verify current Android build/smoke checks on `ebbb7e1`.
 2. Fix test/build blockers, if any, and record results by commit.
