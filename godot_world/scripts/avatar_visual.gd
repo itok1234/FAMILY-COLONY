@@ -41,6 +41,16 @@ func set_motion_strength(value: float) -> void:
 func get_motion_strength() -> float:
 	return _motion
 
+func set_movement_direction(direction: Vector2) -> void:
+	_movement_direction = direction.limit_length(1.0)
+	_motion_target = _movement_direction.length()
+
+func set_expression(expression_name: String) -> void:
+	_expression = expression_name if expression_name in ["neutral", "happy", "sad", "surprised"] else "neutral"
+
+func get_animation_state() -> Dictionary:
+	return {"motion": _motion, "action": _action, "seated": _is_seated, "expression": _expression, "direction": _movement_direction}
+
 
 func apply_appearance(appearance: Dictionary) -> void:
 	## Local preview only. Trusted backend must grant and load owned cosmetics.
@@ -88,6 +98,9 @@ func play_action(action_name: String) -> void:
 	elif action_name == "wave" and not _is_seated:
 		_action = "wave"
 		_action_time = 0.0
+	elif action_name in ["jump", "dance"] and not _is_seated:
+		_action = action_name
+		_action_time = 0.0
 
 func stand_up() -> void:
 	_is_seated = false
@@ -122,6 +135,8 @@ func _process(delta: float) -> void:
 	var idle := sin(_time * 1.55) * 0.018
 	var wave_weight := 0.0
 	var sit_weight := 0.0
+	var jump_weight := 0.0
+	var dance_weight := 0.0
 	# Natural periodic blink; keep it subtle and inexpensive for mobile devices.
 	_blink_clock += delta
 	var blink := 0.0
@@ -142,8 +157,17 @@ func _process(delta: float) -> void:
 		wave_weight = 1.0 if _action_time < 1.5 else maxf(0.0, 1.0 - (_action_time - 1.5) * 2.0)
 		if wave_weight <= 0.0:
 			_action = "idle"
+
 	elif _action == "sit":
 		sit_weight = 1.0
+	elif _action == "jump":
+		jump_weight = maxf(0.0, sin(PI * minf(_action_time, 0.8) / 0.8))
+		if _action_time >= 0.8:
+			_action = "idle"
+	elif _action == "dance":
+		dance_weight = 1.0 if _action_time < 3.0 else maxf(0.0, 1.0 - (_action_time - 3.0) * 2.0)
+		if dance_weight <= 0.0:
+			_action = "idle"
 	if _left_arm != null:
 		_left_arm.rotation.x = lerpf(arm_swing, -0.28, sit_weight)
 		_right_arm.rotation.x = lerpf(-arm_swing - wave_weight * 2.15 + sin(_time * 11.5) * 0.24 * wave_weight, -0.28, sit_weight)
@@ -152,7 +176,7 @@ func _process(delta: float) -> void:
 		_head.rotation.x = idle * 0.35 - wave_weight * 0.08 + sin(gait_phase * 0.5) * 0.035 * _motion
 		_head.rotation.y = sin(_time * 0.8) * 0.025 + sin(gait_phase * 0.5) * 0.04 * _motion
 		_head.rotation.z = sin(_time * 1.1) * 0.018 * (1.0 - _motion) + sin(gait_phase) * 0.018 * _motion
-		position.y = idle * (1.0 - _motion) + body_bob - sit_weight * 0.28
+		position.y = idle * (1.0 - _motion) + body_bob + jump_weight * 0.48 + sin(_action_time * 7.0) * 0.07 * dance_weight - sit_weight * 0.28
 		position.x = sin(gait_phase * 0.5) * 0.035 * _motion
 		rotation.z = lerpf(rotation.z, sin(gait_phase) * 0.025 * _motion, minf(delta * 7.0, 1.0))
 		rotation.y = lerpf(rotation.y, sin(gait_phase * 0.5) * 0.035 * _motion, minf(delta * 5.0, 1.0))
@@ -167,6 +191,9 @@ func _process(delta: float) -> void:
 		# Restore arm pose smoothly after wave and seated pose.
 		_left_arm.rotation.z = lerpf(_left_arm.rotation.z, -0.12, minf(delta * 3.0, 1.0))
 		_right_arm.rotation.z = lerpf(_right_arm.rotation.z, 0.12, minf(delta * 3.0, 1.0))
+		if dance_weight > 0.0:
+			_left_arm.rotation.z = sin(_action_time * 6.5) * 0.65 * dance_weight
+			_right_arm.rotation.z = -sin(_action_time * 6.5 + 1.0) * 0.65 * dance_weight
 
 func _build_avatar() -> void:
 	var skin := _material(Color(0.72, 0.48, 0.34), 0.82)
