@@ -726,14 +726,14 @@ func _handle_hub_panel_action(action_id: String) -> void:
 		return
 	if action_id.begins_with("game:"):
 		var game_id := action_id.trim_prefix("game:")
-		if game_id == "honey_hunt":
+		if ["honey_hunt", "guess_who", "royal_bomb", "royal_murder_mystery", "royal_dice"].has(game_id):
 			if is_instance_valid(_destination_panel):
 				_destination_panel.queue_free()
 			_destination_panel = null
 			destination_requested.emit("world")
 			minigame_requested.emit(game_id)
 			return
-		_hint.text = "Game " + game_id.replace("_", " ").to_upper() + " belum selesai dipindahkan ke mekanik 3D."
+		_hint.text = "Mini-game tidak dikenali: " + game_id
 
 
 func _material(color: Color, roughness: float = 0.65, metallic: float = 0.0) -> StandardMaterial3D:
