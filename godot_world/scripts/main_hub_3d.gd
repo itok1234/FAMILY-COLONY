@@ -4,6 +4,7 @@ extends Node3D
 ## migrated; it does not replace the current launcher scene prematurely.
 
 signal destination_requested(destination_id: String)
+signal developer_login_requested()
 
 const HUB_ITEMS := [
 	{"id":"profile","title":"PROFIL ANGGOTA","subtitle":"Identitas • Avatar • Koleksi","position":Vector3(-6.0,1.35,-2.0),"color":Color("#4b7891")},
@@ -17,12 +18,16 @@ var _camera: Camera3D
 var _hint: Label
 var _ray_length := 40.0
 var _touch_start := Vector2.ZERO
+var _bee_tap_count := 0
+var _bee_last_tap_ms := 0
+var _developer_panel: Node3D
 
 
 func _ready() -> void:
 	_build_environment()
 	_build_camera()
 	_build_central_hall()
+	_build_developer_bee()
 	_build_kiosks()
 	_build_hud()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -126,6 +131,107 @@ func _build_central_hall() -> void:
 	ring.material_override = _material(Color("#e3bd70"), 0.3, 0.3)
 	add_child(ring)
 
+func _build_developer_bee() -> void:
+	# Five taps reveal the developer login hologram; this is not authentication.
+	var bee := Area3D.new()
+	bee.name = "DeveloperBeeEmblem"
+	bee.position = Vector3(0, 3.15, -0.8)
+	bee.input_ray_pickable = true
+	bee.collision_layer = 2
+	bee.collision_mask = 0
+	bee.set_meta("developer_bee", true)
+	var hit_shape := CollisionShape3D.new()
+	var sphere_shape := SphereShape3D.new()
+	sphere_shape.radius = 0.95
+	hit_shape.shape = sphere_shape
+	bee.add_child(hit_shape)
+	var body := MeshInstance3D.new()
+	var body_mesh := SphereMesh.new()
+	body_mesh.radius = 0.58
+	body_mesh.height = 0.9
+	body.mesh = body_mesh
+	body.scale = Vector3(1.25, 0.72, 0.8)
+	body.material_override = _material(Color("#e7b94f"), 0.28, 0.28)
+	bee.add_child(body)
+	for stripe_x in [-0.22, 0.22]:
+		var stripe := MeshInstance3D.new()
+		var stripe_mesh := BoxMesh.new()
+		stripe_mesh.size = Vector3(0.12, 0.65, 0.72)
+		stripe.mesh = stripe_mesh
+		stripe.position.x = stripe_x
+		stripe.material_override = _material(Color("#202b36"), 0.4, 0.12)
+		bee.add_child(stripe)
+	for wing_x in [-0.48, 0.48]:
+		var wing := MeshInstance3D.new()
+		var wing_mesh := SphereMesh.new()
+		wing_mesh.radius = 0.34
+		wing_mesh.height = 0.16
+		wing.mesh = wing_mesh
+		wing.position = Vector3(wing_x, 0.42, 0.08)
+		wing.rotation_degrees.z = -24.0 if wing_x < 0.0 else 24.0
+		wing.material_override = _material(Color("#c8e0e8"), 0.18, 0.12)
+		bee.add_child(wing)
+	var label := Label3D.new()
+	label.text = "FAMILY COLONY"
+	label.font_size = 18
+	label.pixel_size = 0.003
+	label.position.y = -0.9
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.modulate = Color("#f6dfa8")
+	bee.add_child(label)
+	add_child(bee)
+
+
+func _register_bee_tap() -> void:
+	var now := Time.get_ticks_msec()
+	if now - _bee_last_tap_ms > 2200:
+		_bee_tap_count = 0
+	_bee_tap_count += 1
+	_bee_last_tap_ms = now
+	if _bee_tap_count >= 5:
+		_bee_tap_count = 0
+		_show_developer_hologram()
+		developer_login_requested.emit()
+		_hint.text = "AKSES DEVELOPER • Panel login rahasia terbuka."
+
+
+func _show_developer_hologram() -> void:
+	if is_instance_valid(_developer_panel):
+		_developer_panel.queue_free()
+	_developer_panel = Node3D.new()
+	_developer_panel.name = "DeveloperLoginHologram"
+	_developer_panel.position = Vector3(0, 2.0, 3.0)
+	var panel_mesh := MeshInstance3D.new()
+	var plane := BoxMesh.new()
+	plane.size = Vector3(4.8, 2.4, 0.12)
+	panel_mesh.mesh = plane
+	var glass := StandardMaterial3D.new()
+	glass.albedo_color = Color(0.035, 0.12, 0.19, 0.92)
+	glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	glass.metallic = 0.35
+	glass.roughness = 0.22
+	glass.emission_enabled = true
+	glass.emission = Color("#287b9b")
+	glass.emission_energy_multiplier = 0.35
+	panel_mesh.material_override = glass
+	_developer_panel.add_child(panel_mesh)
+	var heading := Label3D.new()
+	heading.text = "DEVELOPER ACCESS"
+	heading.font_size = 48
+	heading.pixel_size = 0.004
+	heading.position = Vector3(0, 0.48, -0.09)
+	heading.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	heading.modulate = Color("#f5d994")
+	_developer_panel.add_child(heading)
+	var message := Label3D.new()
+	message.text = "LOGIN DEVELOPER\nLanjutkan ke verifikasi akun"
+	message.font_size = 26
+	message.pixel_size = 0.004
+	message.position = Vector3(0, -0.38, -0.09)
+	message.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	message.modulate = Color("#e5f4ff")
+	_developer_panel.add_child(message)
+	add_child(_developer_panel)
 
 func _build_kiosks() -> void:
 	for item in HUB_ITEMS:
@@ -239,6 +345,9 @@ func _pick_destination(screen_position: Vector2) -> void:
 	if hit.is_empty():
 		return
 	var collider: Object = hit.get("collider")
+	if collider is Area3D and collider.has_meta("developer_bee"):
+		_register_bee_tap()
+		return
 	if collider is Area3D and collider.has_meta("destination_id"):
 		var destination := str(collider.get_meta("destination_id"))
 		_hint.text = "Dipilih: " + destination.to_upper() + " • integrasi fitur sedang dimigrasikan."
