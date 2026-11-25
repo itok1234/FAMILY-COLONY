@@ -104,3 +104,12 @@ Do not label the product fully 3D until:
 - Studio credits are displayed as Label3D inside the same spatial board.
 - This removes the flat audio settings UI from the Godot world settings feature, but does not imply that the legacy WebView/HTML launcher and all remaining 2D app surfaces have been migrated.
 - Latest source commits: 20ea1f4 (hub actions), 2ecb52a (world routing), 17945a2 (spatial audio settings). Godot import/startup, Android debug, embedded Android smoke and signed-release workflows were triggered for the latest source. Results must be checked before marking this slice validated.
+
+
+## Parallel 3D mini-game implementation slice (2026-11-25)
+- Game Center selection now routes all five entries into the Godot mini-game manager: Honey Hunt, Guess Who, Royal Bomb, Royal Murder Mystery and Royal Dice.
+- Honey Hunt retains its existing 3D collection arena and spatial score/exit HUD.
+- Added initial playable local 3D loops for Guess Who (clue reveal, answer selection, score and question timer), Royal Bomb (draw/defuse/survival loop with simulated opponents), Royal Murder Mystery (three clue-and-suspect cases), and Royal Dice (five rounds, dice rolls, card selection and bot scoring).
+- New game controls, labels, result feedback and exit actions are camera-mounted spatial 3D objects using ray-pickable Area3D surfaces; no CanvasLayer or flat Control HUD is used by these new loops.
+- This is a first integrated gameplay slice, not feature-complete parity with every legacy HTML game rule. Royal Bomb opponents and Royal Dice/Murder opponents are local simulations; there is no cross-device multiplayer, server-authoritative result validation, member rewards, admin question CRUD sync, or cloud persistence in these new 3D loops yet.
+- Godot parse/startup, Android build, embedded smoke and signed-release workflows were triggered for validation. Do not treat an APK as ready until the latest workflows pass and physical-device play checks are completed.
