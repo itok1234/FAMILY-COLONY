@@ -76,6 +76,16 @@ func _run_room_manager_tests() -> void:
 		rejoin_occurrences += manager._rooms[room_id]["members"].count(5)
 	_expect(rejoin_occurrences == 1, "rejoining peer must occur exactly once")
 
+	# Incoming local-room membership snapshots are normalized and reject invalid data.
+	var local_room_state := manager._sanitize_local_room_members(" lobby ", [1, 2, 3])
+	_expect(local_room_state.room_id == "lobby", "local room IDs must be trimmed")
+	_expect(local_room_state.members.size() == 3, "valid local room members must be retained")
+	_expect(manager._sanitize_local_room_members("bad room", [1]).is_empty(), "invalid local room IDs must be rejected")
+	_expect(manager._sanitize_local_room_members("lobby", [1, 1]).is_empty(), "duplicate peer IDs must be rejected")
+	_expect(manager._sanitize_local_room_members("lobby", [0]).is_empty(), "peer IDs below one must be rejected")
+	_expect(manager._sanitize_local_room_members("lobby", ["2"]).is_empty(), "non-integer peer IDs must be rejected")
+	_expect(manager._sanitize_local_room_members("lobby", range(65)).is_empty(), "oversized membership arrays must be rejected")
+
 	# Client-side room snapshots must be cached and returned by the public API.
 	var sample_snapshot: Array = [{
 		"id": "lobby",
