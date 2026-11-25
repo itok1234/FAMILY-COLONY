@@ -36,6 +36,16 @@ func _run() -> void:
 	_expect(avatar.get_node("VerifiedMemberName").text == "Regression Member", "member display name should update")
 	avatar.call("play_action", "wave")
 	_expect(avatar.get_node_or_null("Head") != null, "wave action must preserve avatar structure")
+	avatar.call("play_action", "sit")
+	_expect(avatar.call("is_seated") == true, "sit action should set seated state")
+	avatar.call("stand_up")
+	_expect(avatar.call("is_seated") == false, "stand_up should clear seated state")
+	avatar.call("set_motion_strength", 0.75)
+	_expect(is_equal_approx(avatar.call("get_motion_strength"), 0.0), "motion strength should blend rather than jump immediately")
+	avatar.call("apply_appearance", {"top": "#ff0000", "shoes": "#00ff00"})
+	var updated_appearance: Dictionary = avatar.call("get_appearance_snapshot")
+	_expect(updated_appearance.has("top") and updated_appearance.has("shoes"), "appearance preview should retain clothing slots")
+	_expect(updated_appearance["top"] != "#16004bff", "appearance preview should apply requested clothing color")
 	if failures == 0:
 		print("AVATAR_3D_TEST: PASS — head, name label, materials, shoulder and shoe details")
 	else:
