@@ -97,8 +97,8 @@ func _run_room_manager_tests() -> void:
 		"member_count": 2
 	}]
 	manager._rpc_receive_room_snapshot(sample_snapshot)
-	_expect(manager.get_room_snapshot().size() == 1, "client snapshot API must return cached room data")
-	_expect(manager.get_room_snapshot()[0]["id"] == "lobby", "cached snapshot must preserve room identity")
+	_expect(manager._client_room_snapshot.size() == 1, "client snapshot handler must cache room data")
+	_expect(manager._client_room_snapshot[0]["id"] == "lobby", "cached snapshot must preserve room identity")
 
 
 	# Client snapshot normalization rejects malformed, duplicate, and oversized data.
@@ -164,7 +164,7 @@ func _run_room_manager_tests() -> void:
 	manager._rooms.clear()
 	manager._peer_room.clear()
 	manager._last_room_create_at[1] = -10000.0
-	manager._create_room_for_peer(1, "Bad\\nName", 2)
+	manager._create_room_for_peer(1, "Bad\nName", 2)
 	_expect(manager._rooms.is_empty(), "internal room creation must reject control-character names")
 	manager._create_room_for_peer(1, "  Valid Internal  ", 100)
 	var internal_room_id := String(manager._peer_room.get(1, ""))
