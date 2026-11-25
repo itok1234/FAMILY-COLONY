@@ -224,6 +224,34 @@ func _build_buildings() -> void:
 				var wx := -width * 0.32 + float(window_index) * width * 0.32
 				_box(group, Vector3(1.75, 1.78, 0.12), Vector3(wx, y, depth * 0.5 + 0.07), trim, "WindowFrame")
 				_box(group, Vector3(1.42, 1.43, 0.07), Vector3(wx, y, depth * 0.5 + 0.15), glass, "FrontWindow")
+
+				# Window crossbars and sill give the facade layered, architectural detail.
+				_box(group, Vector3(1.46, 0.055, 0.09), Vector3(wx, y, depth * 0.5 + 0.205), trim, "WindowCrossbar")
+				_box(group, Vector3(1.9, 0.14, 0.24), Vector3(wx, y - 0.96, depth * 0.5 + 0.20), trim, "WindowSill")
+		# Compact facade sconces flanking the entrance; emissive but not real-time lights.
+		var sconce_material := _mat("building_sconce_glow", Color("#f3d49a"), 0.32, 0.1)
+		sconce_material.emission_enabled = true
+		sconce_material.emission = Color("#f3d49a")
+		sconce_material.emission_energy_multiplier = 0.55
+		for sconce_side in [-1.0, 1.0]:
+			var sconce_x: float = float(sconce_side) * 1.85
+			_box(group, Vector3(0.22, 0.42, 0.16), Vector3(sconce_x, 2.05, depth * 0.5 + 0.16), roof, "EntranceSconceHousing")
+			_box(group, Vector3(0.12, 0.25, 0.08), Vector3(sconce_x, 2.05, depth * 0.5 + 0.25), sconce_material, "EntranceSconceGlow")
+		# Slim balcony-like ledges below the upper facade windows.
+		_box(group, Vector3(width * 0.76, 0.12, 0.42), Vector3(0, 4.78, depth * 0.5 + 0.27), trim, "FacadeWindowLedge")
+		# Low planter boxes on the entrance sides.
+		var planter_material := _mat("facade_planter", Color("#536c60"), 0.85)
+		var planter_green := _mat("facade_planter_green", Color("#315c3d"), 0.95)
+		for planter_side in [-1.0, 1.0]:
+			var planter_x: float = float(planter_side) * 2.55
+			_box(group, Vector3(0.78, 0.42, 0.62), Vector3(planter_x, 0.16, depth * 0.5 + 0.82), planter_material, "EntrancePlanter")
+			for shrub_index in range(3):
+				var shrub_mesh := SphereMesh.new()
+				shrub_mesh.radius = 0.20
+				shrub_mesh.height = 0.32
+				shrub_mesh.radial_segments = 8
+				shrub_mesh.rings = 5
+				_mesh_node(group, shrub_mesh, planter_green, Vector3(planter_x - 0.22 + float(shrub_index) * 0.22, 0.46, depth * 0.5 + 0.82), "EntrancePlanterShrub")
 		_box(group, Vector3(2.1, 2.7, 0.12), Vector3(0, 1.35, depth * 0.5 + 0.06), roof, "EntryDoor")
 		_box(group, Vector3(2.8, 0.18, 0.8), Vector3(0, 2.78, depth * 0.5 + 0.38), trim, "EntryCanopy")
 		# Entrance platform, step and readable building identity.
