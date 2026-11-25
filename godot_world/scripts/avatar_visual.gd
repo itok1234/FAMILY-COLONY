@@ -100,7 +100,8 @@ func _process(delta: float) -> void:
 		_wing_left.rotation.z = 0.32 + wing_flap
 		_wing_right.rotation.z = -0.32 - wing_flap
 		_wing_left.rotation.x = sin(_time * 5.5) * 0.12
-		_wing_right.rotation.x = -sin(_time * 5.5) * 0.12\n\tvar leg_swing := sin(gait_phase) * 0.48 * _motion
+		_wing_right.rotation.x = -sin(_time * 5.5) * 0.12
+	var leg_swing := sin(gait_phase) * 0.48 * _motion
 	var arm_swing := -leg_swing * 0.72
 	var body_bob := absf(cos(gait_phase)) * 0.045 * _motion
 	var idle := sin(_time * 1.55) * 0.018
