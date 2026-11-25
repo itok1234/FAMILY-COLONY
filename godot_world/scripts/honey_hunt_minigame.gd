@@ -669,11 +669,15 @@ func _guess_who_action(action: String) -> void:
 	if action == "hint":
 		var q: Dictionary = _royal_game_state.pool[_royal_game_state.index]
 		var clue_index: int = int(_royal_game_state.clue)
-		if clue_index < q.clues.size():
-			_royal_game_state.clue = clue_index + 1
-			_royal_game_state.hints += 1
-			_royal_game_state.score = maxi(0, int(_royal_game_state.score) - 5)
-			_royal_game_status.text += "\nPetunjuk %d: %s" % [clue_index + 1, q.clues[clue_index]]
+		# Only charge for an actual clue; repeated taps after the clue limit
+		# must not drain points or inflate the hint counter.
+		if clue_index >= q.clues.size():
+			_royal_game_status.text += "\nSem petunjuk tambahan."
+			return
+		_royal_game_state.clue = clue_index + 1
+		_royal_game_state.hints += 1
+		_royal_game_state.score = maxi(0, int(_royal_game_state.score) - 5)
+		_royal_game_status.text += "\nPetunjuk %d: %s" % [clue_index + 1, q.clues[clue_index]]
 		return
 	if action == "skip":
 		_royal_game_state.wrong += 1
