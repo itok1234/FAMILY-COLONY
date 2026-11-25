@@ -1025,7 +1025,7 @@ func _handle_hub_panel_action(action_id: String) -> void:
 		return
 	if action_id.begins_with("game:"):
 		var game_id := action_id.trim_prefix("game:")
-		if ["honey_hunt", "guess_who", "royal_bomb", "royal_murder_mystery", "royal_dice"].has(game_id):
+		if ["guess_who", "royal_bomb", "royal_murder_mystery", "royal_dice"].has(game_id):
 			if is_instance_valid(_destination_panel):
 				_destination_panel.queue_free()
 			_destination_panel = null
