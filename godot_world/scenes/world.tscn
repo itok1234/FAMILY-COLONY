@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/world_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/player_controller.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/quality_manager.gd" id="3"]
-[ext_resource type="Script" path="res://scripts/mobile_joystick.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/mobile_controls_3d.gd" id="4"]
 [ext_resource type="Script" path="res://scripts/environment_builder.gd" id="5"]
 [ext_resource type="Script" path="res://scripts/camera_orbit.gd" id="6"]
 [ext_resource type="Script" path="res://scripts/avatar_visual.gd" id="7"]
@@ -139,14 +139,7 @@ script = ExtResource("12")
 [node name="QualityManager" type="Node" parent="."]
 script = ExtResource("3")
 
-[node name="MobileHUD" type="CanvasLayer" parent="."]
-
-[node name="MoveJoystick" type="Control" parent="MobileHUD"]
-anchors_preset = 0
-anchor_left = 0.04
-anchor_top = 0.68
-anchor_right = 0.28
-anchor_bottom = 0.98
+[node name="MobileControls3D" type="Node3D" parent="Player/CameraPivot/Camera3D"]
 script = ExtResource("4")
 
 [node name="EnvironmentBuilder" type="Node3D" parent="."]
