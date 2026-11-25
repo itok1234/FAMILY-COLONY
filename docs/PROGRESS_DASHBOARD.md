@@ -15,17 +15,16 @@
 
 ## Overall progress baseline
 
-- **55% completed / 45% remaining** — retained from the previously reported project baseline.
-- This is a continuity reference, not a newly audited measurement; it changes only after an agreed, evidence-based full audit.
+- **57% completed / 43% remaining — FAST TRACK provisional progress.** This is a scoped progress update based on verified recent code fixes, passing Android build and signed APK pipelines on commit `5ac11f1`, and the Room/Lobby regression harness correction now under validation. It is not full device acceptance; remaining work is still substantial.
 
 ## Automated validation
 
 | Check | Latest branch result | Commit tested |
 |---|---|---|
 | Validate FAMILY COLONY 3D World | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45551216292) | 5ac11f1 |
-| Validate FAMILY COLONY Android Build | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45551216296) | 5ac11f1 |
+| Validate FAMILY COLONY Android Build | [PASS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45551216296) | 5ac11f1 |
 | FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45551216297) | 5ac11f1 |
-| Build FAMILY COLONY Signed Release APK | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45551216316) | 5ac11f1 |
+| Build FAMILY COLONY Signed Release APK | [PASS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45551216316) | 5ac11f1 |
 
 ## Implementation status
 
@@ -71,7 +70,7 @@
 
 ## Status rules
 
-- The 55% figure is a retained continuity baseline, not a newly audited exact measurement.
+- The 57% figure is a provisional FAST TRACK scope progress update, not device-acceptance completion; update it with evidence as implementation gates pass.
 - Feature statuses and CI outcomes are evidence-based; a workflow result applies only to its listed commit.
 - A workflow result applies only to the commit shown in its row.
 - "Implemented slice" does not mean the entire feature or application is complete.
