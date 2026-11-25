@@ -29,7 +29,9 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _royal_game_active:
+	# Keep the spatial result screen interactive after a royal mini-game ends:
+	# the player must still be able to ray-pick KELUAR and return to Game Center.
+	if not _royal_game_id.is_empty() and is_instance_valid(_royal_game_hud):
 		_unhandled_royal_game_input(event)
 		return
 	if not is_instance_valid(_player) or not is_instance_valid(_hud) or not _hud.visible:
