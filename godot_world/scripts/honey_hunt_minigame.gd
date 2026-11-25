@@ -1070,6 +1070,7 @@ func exit_royal_game() -> void:
 	if arena != null:
 		arena.queue_free()
 	_royal_game_active = false
+	_royal_action_lock = false
 	_royal_game_id = ""
 	_royal_game_state.clear()
 	_player = null
