@@ -26,6 +26,7 @@ func _ready() -> void:
 	_build_landscape_details()
 	_build_fountain_walkway()
 	_build_plaza_ring_details()
+	_build_reference_social_gardens()
 
 func apply_quality_density(trees: int, lamps: int, buildings: int) -> void:
 	tree_count = maxi(0, trees)
@@ -421,6 +422,50 @@ func _build_lamps() -> void:
 		foot.height = 0.16
 		foot.radial_segments = 12
 		_mesh_node(lamps_root, foot, metal, Vector3(x, -0.42, z), "LampBase")
+
+func _build_reference_social_gardens() -> void:
+	## Symmetric landscaped social islands inspired by the FAMILY COLONY concept board.
+	## Raised beds, flower accents and short stone paths frame the plaza without blocking sightlines.
+	var garden_root := Node3D.new()
+	garden_root.name = "ReferenceSocialGardens"
+	add_child(garden_root)
+	var stone := _mat("social_garden_stone", Color("#c8c9c0"), 0.88)
+	var edge := _mat("social_garden_edge", Color("#b6a27a"), 0.58, 0.12)
+	var soil := _mat("social_garden_soil", Color("#3b3024"), 1.0)
+	var green_a := _mat("social_garden_green_a", Color("#315b3c"), 0.94)
+	var green_b := _mat("social_garden_green_b", Color("#477b4e"), 0.94)
+	var flower_a := _mat("social_garden_flower_a", Color("#d9c8a7"), 0.68)
+	var flower_b := _mat("social_garden_flower_b", Color("#82b9d4"), 0.66)
+	for island in range(6):
+		var side := -1.0 if island % 2 == 0 else 1.0
+		var row := float(island / 2)
+		var x := side * (13.2 + (row * 0.55))
+		var z := -12.0 - row * 15.0
+		var bed := Node3D.new()
+		bed.name = "SocialGardenIsland_%02d" % island
+		bed.position = Vector3(x, -0.38, z)
+		garden_root.add_child(bed)
+		_box(bed, Vector3(3.6, 0.18, 2.25), Vector3.ZERO, stone, "GardenIslandBase")
+		_box(bed, Vector3(3.35, 0.08, 2.0), Vector3(0, 0.13, 0), soil, "GardenIslandSoil")
+		_box(bed, Vector3(3.7, 0.08, 0.14), Vector3(0, 0.18, -1.12), edge, "GardenIslandTrim")
+		_box(bed, Vector3(3.7, 0.08, 0.14), Vector3(0, 0.18, 1.12), edge, "GardenIslandTrim")
+		for plant in range(9):
+			var px := -1.3 + float(plant % 3) * 1.3
+			var pz := -0.65 + float(plant / 3) * 0.65
+			var shrub := SphereMesh.new()
+			shrub.radius = 0.28 + float(plant % 2) * 0.05
+			shrub.height = shrub.radius * 1.65
+			shrub.radial_segments = 10
+			shrub.rings = 6
+			_mesh_node(bed, shrub, green_a if plant % 2 == 0 else green_b, Vector3(px, 0.35, pz), "GardenShrub")
+			if plant % 3 == 0:
+				var bloom := SphereMesh.new()
+				bloom.radius = 0.13
+				bloom.height = 0.22
+				bloom.radial_segments = 8
+				bloom.rings = 5
+				_mesh_node(bed, bloom, flower_a if island % 2 == 0 else flower_b, Vector3(px + 0.18, 0.65, pz + 0.12), "GardenBloom")
+		_add_static_collision_box(bed, Vector3(3.6, 0.24, 2.25), Vector3(0, 0, 0), "SocialGardenIsland")
 
 func _build_benches() -> void:
 	var wood := _mat("bench_wood", Color(0.38, 0.23, 0.13))
