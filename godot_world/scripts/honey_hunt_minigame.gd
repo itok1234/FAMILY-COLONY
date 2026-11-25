@@ -911,9 +911,14 @@ func _show_murder_case() -> void:
 
 
 func _murder_action(action: String) -> void:
-	if not action.begins_with("suspect:"):
+	if not _royal_game_active or not action.begins_with("suspect:"):
 		return
-	var c: Dictionary = _royal_game_state.cases[_royal_game_state.index]
+	if _royal_game_state.is_empty() or not _royal_game_state.has("cases"):
+		return
+	var case_index := int(_royal_game_state.get("index", -1))
+	if case_index < 0 or case_index >= _royal_game_state.cases.size():
+		return
+	var c: Dictionary = _royal_game_state.cases[case_index]
 	if action.trim_prefix("suspect:") == str(c.answer):
 		_royal_game_state.correct += 1
 		_royal_game_state.score += 100
