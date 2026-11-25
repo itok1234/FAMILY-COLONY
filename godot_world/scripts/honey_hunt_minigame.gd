@@ -865,7 +865,12 @@ func _guess_who_action(action: String) -> void:
 
 
 func _guess_who_next() -> void:
-	_royal_game_state.index += 1
+	if _royal_game_state.is_empty() or not _royal_game_state.has("pool"):
+		return
+	var current_index := int(_royal_game_state.get("index", -1))
+	if current_index < 0 or current_index >= _royal_game_state.pool.size():
+		return
+	_royal_game_state.index = current_index + 1
 	if _royal_game_state.index >= _royal_game_state.pool.size():
 		_finish_royal_game("GUESS WHO SELESAI\nSkor: %d\nBenar: %d   Salah: %d\nPetunjuk dipakai: %d" % [_royal_game_state.score, _royal_game_state.correct, _royal_game_state.wrong, _royal_game_state.hints])
 	else:
@@ -949,8 +954,13 @@ func _start_murder_mystery() -> void:
 
 
 func _show_murder_case() -> void:
+	if _royal_game_state.is_empty() or not _royal_game_state.has("cases"):
+		return
+	var case_index := int(_royal_game_state.get("index", -1))
+	if case_index < 0 or case_index >= _royal_game_state.cases.size():
+		return
 	_clear_royal_game_panel()
-	var c: Dictionary = _royal_game_state.cases[_royal_game_state.index]
+	var c: Dictionary = _royal_game_state.cases[case_index]
 	_royal_game_status.text = "KASUS %d/3  •  DETEKTIF KERAJAAN\n%s\n\nBUKTI: %s\n\nPilih tersangka yang paling mungkin." % [_royal_game_state.index + 1, c.title, c.clue]
 	var opts: Array = c.options.duplicate()
 	opts.shuffle()
@@ -1005,6 +1015,10 @@ func _start_royal_dice() -> void:
 
 
 func _show_royal_dice() -> void:
+	if _royal_game_state.is_empty() or not _royal_game_state.has("round"):
+		return
+	if int(_royal_game_state.get("round", 0)) < 1 or int(_royal_game_state.get("round", 0)) > 5:
+		return
 	_clear_royal_game_panel()
 	_royal_game_status.text = "RONDE %d/5\nKamu: %d poin   •   Royal Bot: %d poin\nKartu aktif: %s\nLempar dadu untuk menentukan hasil ronde." % [_royal_game_state.round, _royal_game_state.score, _royal_game_state.bot_score, _royal_game_state.card]
 	_add_royal_button("LEMPAR DADU", Vector3(0, 0.1, -0.24), "roll", Vector3(3.0, 0.72, 0.16), Color("#a77a36"))
