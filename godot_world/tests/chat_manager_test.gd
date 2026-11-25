@@ -20,7 +20,11 @@ func _run_tests() -> void:
 	_expect(not manager._is_safe_chat_text("line one\nline two"), "line feed must be rejected")
 	_expect(not manager._is_safe_chat_text("line one\rline two"), "carriage return must be rejected")
 	_expect(not manager._is_safe_chat_text("tab\ttext"), "tab must be rejected")
-	_expect(not manager._is_safe_chat_text("nul" + char(0)), "NUL must be rejected")
+	# Godot String may truncate at embedded NUL before this function receives it.
+	# Only assert rejection if the test payload survives as a character in the String.
+	var nul_payload := "nul" + char(0)
+	if nul_payload.length() > 3:
+		_expect(not manager._is_safe_chat_text(nul_payload), "embedded NUL must be rejected when representable")
 	_expect(not manager._is_safe_chat_text("del" + char(127)), "DEL must be rejected")
 	# Incoming packets are normalized; sender labels and extra payload fields cannot be spoofed.
 	var incoming := manager._sanitize_received_message({
