@@ -160,7 +160,7 @@ func _process(delta: float) -> void:
 			expression_height = 0.010
 		elif _expression == "surprised":
 			expression_height = 0.032
-		_mouth.scale.y = expression_height)
+		_mouth.scale.y = expression_height
 	if _action == "wave":
 		wave_weight = 1.0 if _action_time < 1.5 else maxf(0.0, 1.0 - (_action_time - 1.5) * 2.0)
 		if wave_weight <= 0.0:
@@ -322,8 +322,8 @@ func _build_avatar() -> void:
 	_antenna_right = _add_capsule(_head, "AntennaRight", Vector3(0.085, 0.29, -0.045), 0.025, 0.28, antenna_mat)
 	_add_sphere(_head, "AntennaTipLeft", Vector3(-0.085, 0.43, -0.045), Vector3(0.04, 0.04, 0.04), antenna_mat)
 	_add_sphere(_head, "AntennaTipRight", Vector3(0.085, 0.43, -0.045), Vector3(0.04, 0.04, 0.04), antenna_mat)
-	var wing_left := _add_sphere(self, "TransparentWingLeft", Vector3(-0.29, 1.32, 0.24), Vector3(0.28, 0.42, 0.055), wing_mat)
-	var wing_right := _add_sphere(self, "TransparentWingRight", Vector3(0.29, 1.32, 0.24), Vector3(0.28, 0.42, 0.055), wing_mat)
+	_wing_left = _add_sphere(self, "TransparentWingLeft", Vector3(-0.29, 1.32, 0.24), Vector3(0.28, 0.42, 0.055), wing_mat)
+	_wing_right = _add_sphere(self, "TransparentWingRight", Vector3(0.29, 1.32, 0.24), Vector3(0.28, 0.42, 0.055), wing_mat)
 	wing_left.rotation.z = 0.32
 	wing_right.rotation.z = -0.32
 	# Thin luminous vein accents give the translucent colony wings a layered silhouette.
