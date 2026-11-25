@@ -447,6 +447,95 @@ func _build_royal_game_arena() -> void:
 		pillar.position = Vector3(cos(angle) * 13.0, 1.4, sin(angle) * 13.0)
 		pillar.material_override = _material(Color("#8b7048"), 0.38, 0.32)
 		arena.add_child(pillar)
+	# Reference-driven arena dressing: layered floor inlays and distinct themed centerpiece props.
+	var inner_ring := MeshInstance3D.new()
+	var inner_ring_mesh := TorusMesh.new()
+	inner_ring_mesh.inner_radius = 8.6
+	inner_ring_mesh.outer_radius = 9.15
+	inner_ring.mesh = inner_ring_mesh
+	inner_ring.position.y = -0.22
+	inner_ring.rotation_degrees.x = 90.0
+	inner_ring.material_override = _material(theme_color.lightened(0.18), 0.22, 0.48)
+	arena.add_child(inner_ring)
+	var outer_ring := MeshInstance3D.new()
+	var outer_ring_mesh := TorusMesh.new()
+	outer_ring_mesh.inner_radius = 11.8
+	outer_ring_mesh.outer_radius = 12.15
+	outer_ring.mesh = outer_ring_mesh
+	outer_ring.position.y = -0.18
+	outer_ring.rotation_degrees.x = 90.0
+	outer_ring.material_override = _material(Color("#d6b66c"), 0.3, 0.62)
+	arena.add_child(outer_ring)
+	# Four low display pylons with game-specific sculptural accents.
+	for prop_index in range(4):
+		var prop_angle := TAU * float(prop_index) / 4.0
+		var prop := Node3D.new()
+		prop.position = Vector3(cos(prop_angle) * 8.2, 0.0, sin(prop_angle) * 8.2)
+		prop.rotation.y = -prop_angle
+		arena.add_child(prop)
+		var base_prop := MeshInstance3D.new()
+		var base_prop_mesh := CylinderMesh.new()
+		base_prop_mesh.top_radius = 0.46
+		base_prop_mesh.bottom_radius = 0.62
+		base_prop_mesh.height = 0.65
+		base_prop_mesh.radial_segments = 10
+		base_prop.mesh = base_prop_mesh
+		base_prop.position.y = 0.32
+		base_prop.material_override = _material(Color("#d6b66c"), 0.32, 0.55)
+		prop.add_child(base_prop)
+		var prop_shape := MeshInstance3D.new()
+		if _royal_game_id == "royal_dice":
+			var die_mesh := BoxMesh.new()
+			die_mesh.size = Vector3(0.58, 0.58, 0.58)
+			prop_shape.mesh = die_mesh
+		elif _royal_game_id == "royal_murder_mystery":
+			var book_mesh := BoxMesh.new()
+			book_mesh.size = Vector3(0.55, 0.75, 0.18)
+			prop_shape.mesh = book_mesh
+		elif _royal_game_id == "royal_bomb":
+			var orb_mesh := SphereMesh.new()
+			orb_mesh.radius = 0.4
+			orb_mesh.height = 0.8
+			prop_shape.mesh = orb_mesh
+		else:
+			var bust_mesh := SphereMesh.new()
+			bust_mesh.radius = 0.42
+			bust_mesh.height = 0.84
+			prop_shape.mesh = bust_mesh
+		prop_shape.position.y = 1.0
+		prop_shape.material_override = _material(theme_color.lightened(0.32), 0.22, 0.35)
+		prop.add_child(prop_shape)
+	# A tall, game-specific landmark makes each arena readable at a distance.
+	var landmark := MeshInstance3D.new()
+	if _royal_game_id == "royal_dice":
+		var landmark_mesh := BoxMesh.new()
+		landmark_mesh.size = Vector3(1.15, 3.2, 1.15)
+		landmark.mesh = landmark_mesh
+	elif _royal_game_id == "royal_murder_mystery":
+		var landmark_mesh := CylinderMesh.new()
+		landmark_mesh.top_radius = 0.0
+		landmark_mesh.bottom_radius = 1.0
+		landmark_mesh.height = 3.2
+		landmark.mesh = landmark_mesh
+	elif _royal_game_id == "royal_bomb":
+		var landmark_mesh := SphereMesh.new()
+		landmark_mesh.radius = 1.15
+		landmark_mesh.height = 2.3
+		landmark.mesh = landmark_mesh
+	else:
+		var landmark_mesh := PrismMesh.new()
+		landmark_mesh.size = Vector3(2.0, 3.0, 2.0)
+		landmark.mesh = landmark_mesh
+	landmark.position = Vector3(0.0, 2.5, 0.0)
+	landmark.material_override = _material(theme_color, 0.22, 0.5)
+	arena.add_child(landmark)
+	var landmark_glow := OmniLight3D.new()
+	landmark_glow.position = Vector3(0.0, 3.2, 0.0)
+	landmark_glow.light_color = theme_color
+	landmark_glow.light_energy = 1.1
+	landmark_glow.omni_range = 9.0
+	arena.add_child(landmark_glow)
+
 	var centerpiece := MeshInstance3D.new()
 	var center_mesh := TorusMesh.new()
 	center_mesh.inner_radius = 3.4
