@@ -25,6 +25,7 @@ func _ready() -> void:
 	_build_royal_hive_citadel()
 	_build_landscape_details()
 	_build_fountain_walkway()
+	_build_plaza_ring_details()
 
 func apply_quality_density(trees: int, lamps: int, buildings: int) -> void:
 	tree_count = maxi(0, trees)
@@ -870,3 +871,42 @@ func _build_fountain_walkway() -> void:
 			flower.radial_segments = 8
 			flower.rings = 5
 			_mesh_node(bed_root, flower, bloom if plant_index % 2 == 0 else bloom_light, Vector3(px, 0.28 + plant_height + 0.12, 0), "PlantFlower")
+
+func _build_plaza_ring_details() -> void:
+	## Decorative concentric paving, radial markers and small planted islands around the fountain.
+	var ring_mat := _mat("plaza_ring_paver", Color("#aab6b6"), 0.72)
+	var accent_mat := _mat("plaza_ring_accent", Color("#d2b779"), 0.55, 0.12)
+	var planter_mat := _mat("plaza_planter_stone", Color("#657a79"), 0.85)
+	var foliage_mat := _mat("plaza_planter_foliage", Color("#356c50"), 0.92)
+	for ring_index in range(2):
+		var radius := 5.35 + float(ring_index) * 1.05
+		var tile_count := 24 if ring_index == 0 else 32
+		for tile_index in range(tile_count):
+			var angle := TAU * float(tile_index) / float(tile_count)
+			var tile := _box(self, Vector3(1.05, 0.045, 0.52), Vector3(cos(angle) * radius, -0.34, sin(angle) * radius), ring_mat, "FountainRingPaver")
+			tile.rotation.y = -angle
+			var marker := _box(self, Vector3(0.24, 0.055, 0.14), Vector3(cos(angle) * (radius + 0.28), -0.305, sin(angle) * (radius + 0.28)), accent_mat, "RingPaverAccent")
+			marker.rotation.y = -angle
+	# Four low planter islands mark the approach axes without narrowing the plaza path.
+	for island_index in range(4):
+		var angle := PI * 0.5 * float(island_index) + PI * 0.25
+		var island_pos := Vector3(cos(angle) * 9.1, -0.30, sin(angle) * 9.1)
+		var island := Node3D.new()
+		island.name = "PlazaPlanterIsland_%d" % island_index
+		island.position = island_pos
+		add_child(island)
+		var planter := CylinderMesh.new()
+		planter.top_radius = 0.85
+		planter.bottom_radius = 0.95
+		planter.height = 0.42
+		planter.radial_segments = 16
+		_mesh_node(island, planter, planter_mat, Vector3(0, 0.20, 0), "PlanterIslandBase")
+		for shrub_index in range(5):
+			var offset := Vector3(_rng.randf_range(-0.45, 0.45), 0.45, _rng.randf_range(-0.45, 0.45))
+			var shrub := SphereMesh.new()
+			shrub.radius = _rng.randf_range(0.24, 0.34)
+			shrub.height = shrub.radius * 2.0
+			shrub.radial_segments = 10
+			shrub.rings = 6
+			_mesh_node(island, shrub, foliage_mat, offset, "PlanterShrub")
+
