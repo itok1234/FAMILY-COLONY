@@ -187,6 +187,72 @@ func _route_player_state(peer_id: int, position_value: Vector3, rotation_value: 
 			_rpc_apply_state.rpc_id(target_id, peer_id, position_value, rotation_value, motion_value)
 
 
+func broadcast_local_appearance(appearance: Dictionary) -> void:
+	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
+		return
+	var safe_appearance := _sanitize_appearance(appearance)
+	if safe_appearance.is_empty():
+		return
+	var local_id := multiplayer.get_unique_id()
+	if multiplayer.is_server():
+		_route_player_appearance(local_id, safe_appearance)
+	else:
+		_rpc_submit_appearance.rpc_id(1, safe_appearance)
+
+
+func _sanitize_appearance(value: Dictionary) -> Dictionary:
+	var safe: Dictionary = {}
+	for key in ["skin", "hair", "top", "trousers", "shoes"]:
+		if not value.has(key):
+			continue
+		var color_text := str(value[key]).strip_edges()
+		if color_text.length() not in [7, 9] or not color_text.begins_with("#"):
+			continue
+		var parsed := Color.from_string(color_text, Color.TRANSPARENT)
+		if parsed.a <= 0.0:
+			continue
+		safe[key] = parsed.to_html(true)
+	return safe
+
+
+func _route_player_appearance(peer_id: int, appearance: Dictionary) -> void:
+	if not multiplayer.is_server() or _room_manager == null:
+		return
+	var room_id := str(_room_manager.call("get_peer_room_id", peer_id))
+	if room_id.is_empty():
+		return
+	_apply_remote_appearance(peer_id, appearance)
+	var room_peers: Array = _room_manager.call("get_room_peer_ids", room_id)
+	for target in room_peers:
+		var target_id := int(target)
+		if target_id != multiplayer.get_unique_id() and target_id != peer_id:
+			_rpc_apply_appearance.rpc_id(target_id, peer_id, appearance)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _rpc_submit_appearance(appearance: Dictionary) -> void:
+	if not multiplayer.is_server():
+		return
+	var sender_id := multiplayer.get_remote_sender_id()
+	if sender_id <= 1 or not peer_ids.has(sender_id):
+		return
+	var safe_appearance := _sanitize_appearance(appearance)
+	if not safe_appearance.is_empty():
+		_route_player_appearance(sender_id, safe_appearance)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _rpc_apply_appearance(peer_id: int, appearance: Dictionary) -> void:
+	_apply_remote_appearance(peer_id, _sanitize_appearance(appearance))
+
+
+func _apply_remote_appearance(peer_id: int, appearance: Dictionary) -> void:
+	_ensure_remote_player(peer_id)
+	var remote = _remote_players.get(peer_id)
+	if is_instance_valid(remote) and remote.has_method("apply_network_appearance"):
+		remote.apply_network_appearance(appearance)
+
+
 func _publish_local_player_state() -> void:
 	var player := get_parent().get_node_or_null("Player") as CharacterBody3D
 	if player == null:
