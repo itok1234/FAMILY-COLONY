@@ -176,6 +176,8 @@ func _build_avatar() -> void:
 	_add_sphere(_head, "RightEyeWhite", Vector3(0.078, 0.025, -0.195), Vector3(0.035, 0.03, 0.018), eye_white)
 	_left_eye = _add_sphere(_head, "LeftEye", Vector3(-0.078, 0.025, -0.213), Vector3(0.014, 0.021, 0.009), eyes)
 	_right_eye = _add_sphere(_head, "RightEye", Vector3(0.078, 0.025, -0.213), Vector3(0.014, 0.021, 0.009), eyes)
+	_add_sphere(_head, "LeftEyeCatchlight", Vector3(-0.084, 0.033, -0.224), Vector3(0.006, 0.008, 0.004), eye_white)
+	_add_sphere(_head, "RightEyeCatchlight", Vector3(0.072, 0.033, -0.224), Vector3(0.006, 0.008, 0.004), eye_white)
 	_add_sphere(_head, "LeftBrow", Vector3(-0.078, 0.079, -0.195), Vector3(0.047, 0.012, 0.014), hair)
 	_add_sphere(_head, "RightBrow", Vector3(0.078, 0.079, -0.195), Vector3(0.047, 0.012, 0.014), hair)
 	_add_sphere(_head, "Nose", Vector3(0, -0.018, -0.224), Vector3(0.032, 0.045, 0.035), skin)
