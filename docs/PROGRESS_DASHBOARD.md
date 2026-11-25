@@ -3,8 +3,8 @@
 > Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Latest source commit:** [`f95dbc4`](https://github.com/itok1234/FAMILY-COLONY/commit/f95dbc405f0bb6fde9a08c840df70c036274fadb)  
-> **Dashboard refreshed:** 2026-11-25T05:59:47.112Z
+> **Latest source commit:** [`7823fbd`](https://github.com/itok1234/FAMILY-COLONY/commit/7823fbd6239473540525ff9b2419638ab1e85bc8)  
+> **Dashboard refreshed:** 2026-11-25T06:08:34.417Z
 
 ## FAST TRACK mode — ACTIVE
 
@@ -15,17 +15,17 @@
 
 ## Overall progress baseline
 
-- **57% completed / 43% remaining** — retained from the previously reported project baseline.
-- This is a continuity reference, not a newly audited measurement; it changes only after an agreed, evidence-based full audit. Progress is for the entire FAMILY COLONY project, not just the current workstream.
+- **55% completed / 45% remaining** — retained from the previously reported project baseline.
+- This is a continuity reference, not a newly audited measurement; it changes only after an agreed, evidence-based full audit.
 
 ## Automated validation
 
 | Check | Latest branch result | Commit tested |
 |---|---|---|
-| Validate FAMILY COLONY 3D World | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45557351627) | f95dbc4 |
-| Validate FAMILY COLONY Android Build | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45557351681) | f95dbc4 |
-| FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45557351607) | f95dbc4 |
-| Build FAMILY COLONY Signed Release APK | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45557351583) | f95dbc4 |
+| Validate FAMILY COLONY 3D World | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45558396192) | 7823fbd |
+| Validate FAMILY COLONY Android Build | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45558396144) | 7823fbd |
+| FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45558396211) | 7823fbd |
+| Build FAMILY COLONY Signed Release APK | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45558396206) | 7823fbd |
 
 ## Implementation status
 
@@ -43,7 +43,7 @@
 | Full 3D acceptance | NOT COMPLETE | Remove member-facing 2D/WebView only after feature parity |
 | Release readiness | CI CHECKS TRACKED ABOVE | Physical-device regression, security and release sign-off |
 
-## Automatic milestone execution policy\n\n- Progress checkpoints are thresholds, not stopping points: work continuously through 60%, 70%, 80%, 90%, and 100% overall.\n- Do not pause for user approval at each checkpoint; keep advancing across workstreams when feasible.\n- Focus on finishing coherent feature groups, then integrate and validate them.\n- If a blocking issue affects one workstream, record it and continue with independent tasks.\n- The overall percentage is not raised without concrete implementation and validation evidence.\n\n## FAST TRACK execution
+## FAST TRACK execution
 
 - **Active workstream:** Room & Lobby foundation, then integrate the shortest end-to-end playable path.
 - **Room & Lobby estimate:** 65% provisional / 35% remaining; do not raise without acceptance evidence.
@@ -71,7 +71,7 @@
 
 ## Status rules
 
-- The 57% figure is a retained continuity baseline, not a newly audited exact measurement.
+- The 55% figure is a retained continuity baseline, not a newly audited exact measurement.
 - Feature statuses and CI outcomes are evidence-based; a workflow result applies only to its listed commit.
 - A workflow result applies only to the commit shown in its row.
 - "Implemented slice" does not mean the entire feature or application is complete.
