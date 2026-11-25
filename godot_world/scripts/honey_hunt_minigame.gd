@@ -778,7 +778,12 @@ func _show_murder_case() -> void:
 	var opts: Array = c.options.duplicate()
 	opts.shuffle()
 	for i in range(opts.size()):
-		_add_royal_button(str(opts[i]), Vector3(0, 0.12 - float(i) * 0.68, -0.24), "suspect:" + str(opts[i]), Vector3(3.5, 0.5, 0.16))
+		# Compact 2-column answer layout keeps case choices reachable in the mobile HUD.
+		var column := i % 2
+		var row := int(i / 2)
+		var x := -1.35 if column == 0 else 1.35
+		var y := 0.12 - float(row) * 0.72
+		_add_royal_button(str(opts[i]), Vector3(x, y, -0.24), "suspect:" + str(opts[i]), Vector3(2.55, 0.5, 0.16))
 
 
 func _murder_action(action: String) -> void:
