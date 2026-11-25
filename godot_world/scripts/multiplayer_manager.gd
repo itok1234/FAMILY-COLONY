@@ -10,7 +10,7 @@ signal peer_roster_changed(peer_ids: Array[int])
 var connection_state: String = "offline"
 var connection_detail: String = "Belum terhubung"
 var peer_ids: Array[int] = []
-var _status_label: Label
+var _status_label: Label3D
 var _world_session: Node
 var _room_manager: Node
 var _last_social_action_at: Dictionary = {}
@@ -276,19 +276,25 @@ func _update_status(state: String, detail: String) -> void:
 
 
 func _create_status_hud() -> void:
-	var layer := CanvasLayer.new()
-	layer.name = "NetworkStatusHUD"
-	layer.layer = 20
-	add_child(layer)
-	_status_label = Label.new()
-	_status_label.name = "NetworkStatus"
-	_status_label.position = Vector2(18, 16)
-	_status_label.add_theme_font_size_override("font_size", 15)
-	_status_label.add_theme_color_override("font_color", Color(0.92, 0.96, 1.0, 0.95))
-	_status_label.add_theme_color_override("font_shadow_color", Color(0.02, 0.04, 0.07, 0.9))
-	_status_label.add_theme_constant_override("shadow_offset_x", 1)
-	_status_label.add_theme_constant_override("shadow_offset_y", 1)
-	layer.add_child(_status_label)
+	# Multiplayer connection state is rendered as a spatial label in the camera.
+	var camera := get_parent().get_node_or_null("Player/CameraPivot/Camera3D") as Camera3D
+	if camera == null:
+		return
+	var panel := Node3D.new()
+	panel.name = "SpatialNetworkStatus"
+	panel.position = Vector3(-1.15, 0.92, -3.0)
+	camera.add_child(panel)
+	_status_label = Label3D.new()
+	_status_label.name = "NetworkStatus3D"
+	_status_label.text = "FAMILY COLONY  •  OFFLINE"
+	_status_label.font_size = 18
+	_status_label.pixel_size = 0.0025
+	_status_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_status_label.modulate = Color(0.92, 0.96, 1.0, 0.95)
+	_status_label.outline_size = 5
+	_status_label.outline_modulate = Color(0.02, 0.04, 0.07, 0.9)
+	panel.add_child(_status_label)
+
 
 func broadcast_social_action(action_id: String) -> void:
 	if action_id not in ["wave", "sit", "stand"]:
