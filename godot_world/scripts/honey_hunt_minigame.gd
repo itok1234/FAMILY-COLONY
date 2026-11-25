@@ -730,7 +730,7 @@ func _add_royal_button(label_text: String, pos: Vector3, action: String, size: V
 
 
 func _unhandled_royal_game_input(event: InputEvent) -> void:
-	if _royal_game_id.is_empty() or not is_instance_valid(_royal_game_hud):
+	if _royal_game_id.is_empty() or not is_instance_valid(_royal_game_hud) or not is_instance_valid(_player):
 		return
 	var pressed: bool = event is InputEventScreenTouch and event.pressed
 	pressed = pressed or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
@@ -1085,9 +1085,13 @@ func _dice_action(action: String) -> void:
 
 
 func _finish_royal_game(summary: String) -> void:
-	_clear_royal_game_panel()
-	_royal_game_status.text = summary + "\n\nTekan KELUAR untuk kembali ke Game Center."
+	if not _royal_game_active or _royal_game_id.is_empty():
+		return
+	_royal_game_state.finished = true
 	_royal_game_active = false
+	_clear_royal_game_panel()
+	if is_instance_valid(_royal_game_status):
+		_royal_game_status.text = summary + "\n\nTekan KELUAR untuk kembali ke Game Center."
 
 
 func exit_royal_game() -> void:
