@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Generate bootstrap GLB assets for FAMILY COLONY.
 
-These are original procedural mesh assemblies (not production-approved art).
-They are deliberately smooth, non-voxel placeholders for import/pipeline testing
-and must not be treated as final visual approval.
+Original procedural mesh assemblies for import/pipeline testing only. They are
+NOT production-approved art and must not be treated as final visual approval.
 Requires: pip install trimesh
 """
 from pathlib import Path
@@ -23,8 +22,12 @@ def sphere(name, pos, scale, color):
     return m
 
 
-def capsule(name, pos, radius, height, color):
+def capsule(name, pos, radius, height, color, axis="y"):
     m = trimesh.creation.capsule(radius=radius, height=height, count=[16, 16])
+    if axis == "y":
+        m.apply_transform(trimesh.transformations.rotation_matrix(1.57079632679, [1, 0, 0]))
+    elif axis == "x":
+        m.apply_transform(trimesh.transformations.rotation_matrix(1.57079632679, [0, 1, 0]))
     m.apply_translation(pos)
     m.visual.vertex_colors = color
     m.metadata["name"] = name
@@ -35,8 +38,8 @@ def export_character(path, palette):
     meshes = [
         sphere("head", (0, 1.55, 0), (.34, .38, .32), palette[0]),
         capsule("torso", (0, .95, 0), .24, .62, palette[1]),
-        capsule("left_arm", (-.36, .98, 0), .10, .48, palette[1]),
-        capsule("right_arm", (.36, .98, 0), .10, .48, palette[1]),
+        capsule("left_arm", (-.36, .98, 0), .10, .48, palette[1], "x"),
+        capsule("right_arm", (.36, .98, 0), .10, .48, palette[1], "x"),
         capsule("left_leg", (-.15, .40, 0), .12, .52, palette[2]),
         capsule("right_leg", (.15, .40, 0), .12, .52, palette[2]),
         sphere("left_eye", (-.12, 1.62, .285), (.055, .075, .035), [18,18,24,255]),
