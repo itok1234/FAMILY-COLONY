@@ -284,11 +284,11 @@ func _build_avatar() -> void:
 	for hand_side in [-1.0, 1.0]:
 		var hand_parent: Node3D = _left_arm if hand_side < 0.0 else _right_arm
 		for finger_index in range(4):
-			# Four fingers plus the articulated thumb give each hand a five-digit silhouette.
-			var finger_offset := 0.035 + float(finger_index) * 0.018
-			var finger_length := 0.12 - float(finger_index) * 0.008
-			var finger := _add_capsule(hand_parent, "Finger_%d" % finger_index, Vector3(hand_side * finger_offset, -0.43, -0.025), 0.022, finger_length, finger_material)
-			finger.rotation.z = hand_side * 0.10
+			# Fingers fan across the palm; thumb remains separately angled.
+			var finger_x := (float(finger_index) - 1.5) * 0.045
+			var finger_length := 0.12 - absf(float(finger_index) - 1.5) * 0.012
+			var finger := _add_capsule(hand_parent, "Finger_%d" % finger_index, Vector3(finger_x, -0.43, -0.025), 0.022, finger_length, finger_material)
+			finger.rotation.z = -finger_x * 0.9
 		var thumb := _add_capsule(hand_parent, "Thumb", Vector3(hand_side * 0.11, -0.36, -0.025), 0.028, 0.105, finger_material)
 		thumb.rotation.z = hand_side * 0.55
 	# Additional silhouette and material detail for the mobile avatar blockout.
