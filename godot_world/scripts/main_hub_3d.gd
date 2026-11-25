@@ -656,8 +656,6 @@ func _build_profile_card() -> void:
 	var avatar_preview := avatar_preview_script.new() as Node3D
 	avatar_preview.name = "VerifiedAvatarVisual"
 	avatar_preview.scale = Vector3.ONE * 0.78
-	avatar_preview.call("set_display_name", display_name)
-	avatar_preview.call("apply_appearance", get_profile_appearance())
 	avatar_root.add_child(avatar_preview)
 	_profile_avatar_body = null
 	var halo := MeshInstance3D.new()
@@ -671,6 +669,10 @@ func _build_profile_card() -> void:
 	_profile_avatar_halo = halo
 	avatar_root.add_child(halo)
 	_destination_panel.add_child(avatar_root)
+	# Apply only after entering the scene tree so AvatarVisual._ready()
+	# has created its appearance materials and name label.
+	avatar_preview.call("set_display_name", display_name)
+	avatar_preview.call("apply_appearance", get_profile_appearance())
 	var details := Label3D.new()
 	details.text = "IDENTITAS TERVERIFIKASI\n%s\n@%s\nPERAN: %s\nSTATUS: %s\n\nData identitas berasal dari server sesi.\nPerubahan data akun dilakukan melalui layanan akun." % [display_name, username if not username.is_empty() else "—", role.to_upper(), status.to_upper()]
 	details.font_size = 19
