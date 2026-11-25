@@ -60,10 +60,18 @@ func _physics_process(delta: float) -> void:
 			camera_forward = camera_forward.normalized()
 			camera_right = camera_right.normalized()
 			direction = camera_right * input_vector.x + camera_forward * -input_vector.y
-	direction = direction.normalized()
-	var current_speed := walk_speed * (1.5 if _is_sprinting and direction.length_squared() > 0.001 else 1.0)
+	# Preserve joystick analog strength after camera-space mapping instead of
+	# forcing every non-zero touch input to full-speed movement.
+	var input_strength := clampf(input_vector.length(), 0.0, 1.0)
+	var direction_strength := clampf(direction.length(), 0.0, 1.0)
+	if direction_strength > 0.001:
+		direction = direction.normalized()
+	else:
+		direction = Vector3.ZERO
+	input_strength = minf(input_strength, direction_strength)
+	var current_speed := walk_speed * (1.5 if _is_sprinting and input_strength > 0.001 else 1.0)
 	var current_acceleration := acceleration * (1.35 if _is_sprinting else 1.0)
-	var target_velocity := direction * current_speed
+	var target_velocity := direction * current_speed * input_strength
 	velocity.x = move_toward(velocity.x, target_velocity.x, current_acceleration * delta)
 	velocity.z = move_toward(velocity.z, target_velocity.z, current_acceleration * delta)
 
