@@ -335,6 +335,22 @@ Deno.serve(async req => {
       return json({ ok: true, username: member.username, activation_code: code, expires_in_hours: 24 });
     }
 
+    if (action === "member_registration_list") {
+      const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\\s+/i, "");
+      if (!bearer) return json({error:"authentication_required"},401);
+      const {data:authData,error:authError}=await admin.auth.getUser(bearer);
+      if(authError||!authData.user)return json({error:"invalid_session"},401);
+      const {data:staff,error:staffError}=await admin.from("fc_members").select("role,status")
+        .eq("auth_user_id",authData.user.id).maybeSingle();
+      if(staffError||!staff||staff.status!=="Aktif"||!["Kepsuk","Deputi","Admin"].includes(staff.role))
+        return json({error:"not_authorized"},403);
+      const {data:apps,error}=await admin.from("fc_member_registration_applications")
+        .select("id,applicant_name,desired_username,contact,reason,status,created_at")
+        .in("status",["pending","reviewing"]).order("created_at",{ascending:true}).limit(100);
+      if(error)return json({error:"registration_list_failed"},500);
+      return json({ok:true,applications:apps||[]});
+    }
+
     if (action === "member_registration_review") {
       const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\\s+/i, "");
       if (!bearer) return json({ error: "authentication_required" }, 401);
