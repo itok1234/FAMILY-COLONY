@@ -286,7 +286,7 @@ func _build_buildings() -> void:
 				shrub_mesh.radial_segments = 8
 				shrub_mesh.rings = 5
 				_mesh_node(group, shrub_mesh, planter_green, Vector3(planter_x - 0.22 + float(shrub_index) * 0.22, 0.46, depth * 0.5 + 0.82), "EntrancePlanterShrub")
-		_box(group, Vector3(2.1, 2.7, 0.12), Vector3(0, 1.35, depth * 0.5 + 0.06), roof, "EntryDoor")
+		# Keep the doorway visually open; do not place a closed door slab in its void.
 		_box(group, Vector3(2.8, 0.18, 0.8), Vector3(0, 2.78, depth * 0.5 + 0.38), trim, "EntryCanopy")
 		# Entrance platform, step and readable building identity.
 		_box(group, Vector3(3.8, 0.24, 1.8), Vector3(0, -0.22, depth * 0.5 + 1.0), trim, "EntryLanding")
