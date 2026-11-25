@@ -45,3 +45,8 @@ Do not label the product fully 3D until:
 - Backend response must include ok, access_token and member; the app session is populated from the returned member and tokens.
 - PIN setup uses the existing bootstrap-secret flow; never copy the bootstrap secret or PIN into the Godot source or APK.
 - The 3D migration must port this backend request/session contract and role checks. The new 3D hologram currently does not perform login.
+## Hub presentation refinement
+- Replaced the hub's flat CanvasLayer/PanelContainer HUD with a spatial Node3D information board using MeshInstance3D and Label3D.
+- The 3D hub script no longer instantiates CanvasLayer, PanelContainer, VBoxContainer or flat Label controls; hub labels and kiosk surfaces are rendered in 3D.
+- This only certifies the isolated hub presentation layer. The legacy HTML/CSS app is still present and must not be considered migrated.
+- A Godot editor/headless import and Android runtime test is still required before marking this slice verified.
