@@ -59,8 +59,22 @@ jobs:
           disable-linux-hw-accel: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           script: |
-            gradle --no-daemon -PfcEmulatorX86_64 connectedDebugAndroidTest --stacktrace
+            # Maven Central can transiently throttle CI (HTTP 429); retry the instrumented test.
+            attempt=1
+            while [ "$attempt" -le 3 ]; do
+              if gradle --no-daemon -PfcEmulatorX86_64 connectedDebugAndroidTest --stacktrace; then
+                test_result=0
+                break
+              else
+                test_result=$?
+                echo "::warning::Android smoke test attempt $attempt failed (exit $test_result); retrying."
+                adb logcat -d > "$RUNNER_TEMP/family-colony-emulator-logcat.txt" || true
+                attempt=$((attempt + 1))
+                sleep 12
+              fi
+            done
             adb logcat -d > "$RUNNER_TEMP/family-colony-emulator-logcat.txt"
+            if [ "$test_result" -ne 0 ]; then exit "$test_result"; fi
             grep -F "FC_NATIVE_BRIDGE_METHODS_OK" "$RUNNER_TEMP/family-colony-emulator-logcat.txt"
             grep -F "FC_NATIVE_BRIDGE_CREDENTIALS_OK" "$RUNNER_TEMP/family-colony-emulator-logcat.txt"
             grep -F "FC_WORLD_SESSION_REQUEST_STARTED" "$RUNNER_TEMP/family-colony-emulator-logcat.txt"
