@@ -594,6 +594,8 @@ func _open_destination_panel(destination_id: String) -> void:
 		_create_hub_panel_button("TINGGI", Vector3(1.5, 0.02, -0.24), "settings:quality:3", Vector3(1.35, 0.5, 0.16))
 		_create_hub_panel_button("AUTO", Vector3(0, -0.66, -0.24), "settings:quality:0", Vector3(1.35, 0.5, 0.16))
 		_create_hub_panel_button("TENTANG STUDIO", Vector3(0, -1.3, -0.24), "settings:credits", Vector3(2.8, 0.5, 0.16))
+	if destination_id == "chat":
+		_create_hub_panel_button("BUKA CHAT 3D", Vector3(0, -0.48, -0.24), "open_chat", Vector3(2.8, 0.62, 0.16), Color("#397b70"))
 	if destination_id == "games":
 		_create_hub_panel_button("HONEY HUNT", Vector3(-2.15, 0.15, -0.24), "game:honey_hunt", Vector3(2.0, 0.58, 0.16), Color("#a77a36"))
 		_create_hub_panel_button("GUESS WHO?", Vector3(0.0, 0.15, -0.24), "game:guess_who", Vector3(2.0, 0.58, 0.16))
@@ -821,6 +823,9 @@ func _handle_hub_panel_action(action_id: String) -> void:
 	if action_id.begins_with("settings:"):
 		settings_action_requested.emit(action_id.trim_prefix("settings:"))
 		_hint.text = "Pengaturan 3D diperbarui: " + action_id.trim_prefix("settings:").replace(":", " ").to_upper()
+		return
+	if action_id == "open_chat":
+		destination_requested.emit("chat_open")
 		return
 	if action_id == "enter_world":
 		if is_instance_valid(_destination_panel):
