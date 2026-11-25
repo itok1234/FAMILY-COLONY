@@ -15,8 +15,11 @@ var _world_session: Node
 var _room_manager: Node
 var _last_social_action_at: Dictionary = {}
 var _remote_players: Dictionary = {}
+var _last_accepted_motion: Dictionary = {}
 var _sync_accumulator: float = 0.0
 const SYNC_INTERVAL: float = 0.05
+const MAX_REMOTE_SPEED: float = 8.0
+const MOVEMENT_DISTANCE_TOLERANCE: float = 1.0
 const REMOTE_AVATAR_SCRIPT: Script = preload("res://scripts/network_avatar.gd")
 
 
@@ -127,6 +130,7 @@ func _on_peer_connected(id: int) -> void:
 
 func _on_peer_disconnected(id: int) -> void:
 	peer_ids.erase(id)
+	_last_accepted_motion.erase(id)
 	_remove_remote_player(id)
 	if multiplayer.is_server():
 		_rpc_remove_remote.rpc(id)
@@ -214,6 +218,20 @@ func _rpc_submit_state(position_value: Vector3, rotation_value: float, motion_va
 		return
 	if position_value.length_squared() > 1000000.0:
 		return
+	# Enforce a plausible movement envelope on the host. The tolerance absorbs
+	# ordinary packet jitter; it is not a substitute for cloud-authoritative physics.
+	var now := Time.get_ticks_msec() / 1000.0
+	if _last_accepted_motion.has(sender_id):
+		var previous: Dictionary = _last_accepted_motion[sender_id]
+		var elapsed := clampf(now - float(previous.get("time", now)), 0.0, 1.0)
+		var previous_position: Vector3 = previous.get("position", position_value)
+		var horizontal_delta := Vector2(position_value.x - previous_position.x, position_value.z - previous_position.z).length()
+		var vertical_delta := absf(position_value.y - previous_position.y)
+		if horizontal_delta > MAX_REMOTE_SPEED * elapsed + MOVEMENT_DISTANCE_TOLERANCE:
+			return
+		if vertical_delta > 12.0 * elapsed + MOVEMENT_DISTANCE_TOLERANCE:
+			return
+	_last_accepted_motion[sender_id] = {"position": position_value, "time": now}
 	var safe_motion := clampf(motion_value, 0.0, 1.0)
 	_route_player_state(sender_id, position_value, rotation_value, safe_motion)
 
