@@ -35,6 +35,30 @@ func _ready() -> void:
 	chat_error.connect(_on_chat_error)
 
 
+func open_spatial_chat(active_camera: Camera3D) -> bool:
+	if not is_instance_valid(_chat_root) or active_camera == null:
+		return false
+	if _chat_root.get_parent() != active_camera:
+		_chat_root.reparent(active_camera)
+	_chat_camera = active_camera
+	_chat_root.visible = true
+	_chat_panel.visible = true
+	_update_chat_messages()
+	_update_chat_draft()
+	return true
+
+
+func restore_spatial_chat(player_camera: Camera3D) -> void:
+	if not is_instance_valid(_chat_root) or player_camera == null:
+		return
+	if _chat_root.get_parent() != player_camera:
+		_chat_root.reparent(player_camera)
+	_chat_camera = player_camera
+	_chat_root.visible = true
+	if is_instance_valid(_chat_panel):
+		_chat_panel.visible = false
+
+
 func get_recent_messages() -> Array[Dictionary]:
 	return _history.duplicate(true)
 
