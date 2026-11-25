@@ -24,6 +24,7 @@ func _ready() -> void:
 	_build_community_interior()
 	_build_royal_hive_citadel()
 	_build_landscape_details()
+	_build_fountain_walkway()
 
 func apply_quality_density(trees: int, lamps: int, buildings: int) -> void:
 	tree_count = maxi(0, trees)
@@ -671,3 +672,55 @@ func _build_landscape_details() -> void:
 		var scale_value := Vector3(_rng.randf_range(1.0, 1.5), _rng.randf_range(0.7, 1.0), _rng.randf_range(0.9, 1.3))
 		var instance := _mesh_node(details, shrub, shrub_materials[shrub_index % shrub_materials.size()], Vector3(x, 0.1, z), "RoadsideShrub")
 		instance.scale = scale_value
+
+ 
+func _build_fountain_walkway() -> void:
+	## A segmented, circular promenade and low planting ring frame the fountain.
+	## Uses modest mesh counts and no realtime foliage simulation for mobile.
+	var root := Node3D.new()
+	root.name = "FountainPromenade"
+	root.position = Vector3(0, -0.34, 0)
+	add_child(root)
+	var paving_a := _mat("promenade_paving_a", Color("#c6c9c4"), 0.92)
+	var paving_b := _mat("promenade_paving_b", Color("#aab4b5"), 0.9)
+	var border := _mat("promenade_border", Color("#d6c5a0"), 0.62, 0.12)
+	var foliage := _mat("promenade_foliage", Color("#315c3d"), 0.95)
+	var bloom := _mat("promenade_bloom", Color("#6d9ec9"), 0.7)
+	var bloom_light := _mat("promenade_bloom_light", Color("#e5d5b4"), 0.7)
+	# Tiled outer ring: each tile is rotated to follow the fountain's circular edge.
+	for tile_index in range(36):
+		var angle := TAU * float(tile_index) / 36.0
+		var radius := 5.65
+		var tile := _box(root, Vector3(1.08, 0.075, 1.38),
+			Vector3(cos(angle) * radius, 0.035, sin(angle) * radius),
+			paving_a if tile_index % 2 == 0 else paving_b, "PromenadeTile")
+		tile.rotation.y = -angle
+		var edge := _box(root, Vector3(0.18, 0.09, 1.4),
+			Vector3(cos(angle) * 6.42, 0.06, sin(angle) * 6.42), border, "PromenadeAccent")
+		edge.rotation.y = -angle
+	# Small raised planting beds spaced around the circular path.
+	for bed_index in range(12):
+		var angle := TAU * float(bed_index) / 12.0
+		var bed_root := Node3D.new()
+		bed_root.name = "PromenadePlanting_%02d" % bed_index
+		bed_root.position = Vector3(cos(angle) * 7.55, 0.0, sin(angle) * 7.55)
+		bed_root.rotation.y = -angle
+		root.add_child(bed_root)
+		_box(bed_root, Vector3(1.45, 0.18, 0.72), Vector3(0, 0.02, 0), border, "RaisedBedEdge")
+		_box(bed_root, Vector3(1.28, 0.08, 0.55), Vector3(0, 0.12, 0), _mat("promenade_soil", Color("#403326"), 1.0), "BedSoil")
+		for plant_index in range(5):
+			var px := -0.48 + float(plant_index) * 0.24
+			var plant_height := 0.38 + float(plant_index % 3) * 0.08
+			_cylinder(bed_root, 0.025, plant_height, Vector3(px, 0.16 + plant_height * 0.5, 0), foliage, "PlantStem")
+			var crown := SphereMesh.new()
+			crown.radius = 0.13
+			crown.height = 0.19
+			crown.radial_segments = 8
+			crown.rings = 5
+			_mesh_node(bed_root, crown, foliage, Vector3(px, 0.28 + plant_height, 0), "PlantCrown")
+			var flower := SphereMesh.new()
+			flower.radius = 0.09
+			flower.height = 0.13
+			flower.radial_segments = 8
+			flower.rings = 5
+			_mesh_node(bed_root, flower, bloom if plant_index % 2 == 0 else bloom_light, Vector3(px, 0.28 + plant_height + 0.12, 0), "PlantFlower")
