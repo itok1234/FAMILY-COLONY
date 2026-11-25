@@ -28,6 +28,17 @@ func _run_tests() -> void:
 	_expect(clean[1].peer_id == 3 and clean[1].state == "online", "valid online entry should survive")
 	_expect(clean[2].peer_id == 6 and not clean[2].has("extra") and not clean[2].has("display_name"), "unrecognized fields should be discarded")
 	_expect(manager._sanitize_presence_snapshot([]).is_empty(), "empty snapshots should remain empty")
+	var duplicate_snapshot: Array = [
+		{"peer_id": 8, "state": "online"},
+		{"peer_id": 8, "state": "online"},
+		{"peer_id": 9, "state": "online"}
+	]
+	var deduplicated := manager._sanitize_presence_snapshot(duplicate_snapshot)
+	_expect(deduplicated.size() == 2, "duplicate peer IDs should be discarded")
+	var oversized: Array = []
+	for peer_id in range(2, 80):
+		oversized.append({"peer_id": peer_id, "state": "online"})
+	_expect(manager._sanitize_presence_snapshot(oversized).size() == 64, "snapshot should be capped at 64 entries")
 	if failures == 0:
 		print("PRESENCE_MANAGER_TEST: PASS — snapshot entries filtered and bounded")
 	else:
