@@ -22,12 +22,16 @@ func _run() -> void:
 	_expect(avatar.get_appearance_snapshot().has("hair"), "appearance snapshot should include hair material")
 	_expect(avatar.get_appearance_snapshot().has("top"), "appearance snapshot should include clothing material")
 	_expect(avatar.get_child_count() >= 12, "avatar should generate a substantial mesh structure")
+	_expect(avatar.get_node_or_null("LeftShoulderCap") != null, "left shoulder detail should exist")
+	_expect(avatar.get_node_or_null("RightShoulderCap") != null, "right shoulder detail should exist")
+	_expect(avatar.get_node_or_null("LeftShoeSole") != null, "left shoe sole detail should exist")
+	_expect(avatar.get_node_or_null("RightShoeUpper") != null, "right shoe upper detail should exist")
 	avatar.call("set_display_name", "Regression Member")
 	_expect(avatar.get_node("VerifiedMemberName").text == "Regression Member", "member display name should update")
 	avatar.call("play_action", "wave")
 	_expect(avatar.get_node_or_null("Head") != null, "wave action must preserve avatar structure")
 	if failures == 0:
-		print("AVATAR_3D_TEST: PASS — head, name label, appearance materials and procedural structure")
+		print("AVATAR_3D_TEST: PASS — head, name label, materials, shoulder and shoe details")
 	else:
 		push_error("AVATAR_3D_TEST: %d assertion(s) failed" % failures)
 	avatar.queue_free()
