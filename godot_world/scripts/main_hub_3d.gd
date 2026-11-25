@@ -184,7 +184,7 @@ func _build_developer_bee() -> void:
 
 func _register_bee_tap() -> void:
 	var now := Time.get_ticks_msec()
-	if now - _bee_last_tap_ms > 2200:
+	if now - _bee_last_tap_ms > 3500:
 		_bee_tap_count = 0
 	_bee_tap_count += 1
 	_bee_last_tap_ms = now
