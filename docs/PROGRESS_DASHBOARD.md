@@ -3,8 +3,15 @@
 > Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Latest code commit validated:** [`775dd42`](https://github.com/itok1234/FAMILY-COLONY/commit/775dd427494db6a3d2c525bc3eeea4cfee72b6ff)  
-> **FAST TRACK mode:** ACTIVE — preserve 3D visual quality; defer non-core polish until playable MVP.
+> **Latest source commit:** [`3425544`](https://github.com/itok1234/FAMILY-COLONY/commit/3425544a6dc90ac419d755697260fedca43c0acb)  
+> **Dashboard refreshed:** 2026-11-25T03:49:02.091Z
+
+## FAST TRACK mode — ACTIVE
+
+- Deliver a complete playable 3D MVP first; preserve the agreed bright, readable 3D visual standard.
+- Defer non-core polish and advanced administration; do not defer core gameplay, safe authentication, or visible 3D environments.
+- Current active workstream: Room & Lobby foundation, then the shortest end-to-end playable path.
+- Current multiplayer foundation is LAN ENet and in-memory rooms; do not label it cloud-authoritative.
 
 ## Overall progress baseline
 
@@ -36,33 +43,31 @@
 | Full 3D acceptance | NOT COMPLETE | Remove member-facing 2D/WebView only after feature parity |
 | Release readiness | CI CHECKS TRACKED ABOVE | Physical-device regression, security and release sign-off |
 
-## FAST TRACK execution mode
+## FAST TRACK execution
 
-- **Mode:** ACTIVE — deliver a complete playable 3D MVP first; visual quality and fully 3D member-facing experience remain mandatory.
 - **Active workstream:** Room & Lobby foundation, then integrate the shortest end-to-end playable path.
-- **Current Room & Lobby estimate:** 65% provisional / 35% remaining; unchanged until acceptance evidence supports a revision.
-- **MVP now:** preserve working login/session bridge, 3D hub/avatar, room join/create/leave, room-scoped chat, five playable mini-games and essential settings.
-- **Deferred from MVP:** non-essential decoration, advanced cosmetics, analytics, extended Developer Center tooling, advanced ranking/reward systems and cloud persistence enhancements that do not block the initial playable path.
-- **Not deferred:** bright/readable 3D environments, visible characters and objects, core gameplay, safe authentication, and reliable Android build.
-- **Current regression coverage:** lobby sharding/capacity, unique peer assignment, empty-shard cleanup, reconnect/rejoin and client room-snapshot caching. Godot validation executes godot_world/tests/room_manager_test.gd.
-- **Known release limitation:** current room transport is LAN ENet and in-memory; it is not cloud-authoritative multiplayer. Physical multi-device acceptance remains outstanding.
+- **Room & Lobby estimate:** 65% provisional / 35% remaining; do not raise without acceptance evidence.
+- **MVP scope:** existing login/session bridge, 3D hub/avatar, room join/create/leave, room-scoped chat, five basic playable mini-games and essential settings.
+- **Deferred:** non-essential decoration, advanced cosmetics, analytics, extended Developer Center tooling, advanced ranking/rewards and non-blocking cloud enhancements.
+- **Never deferred:** bright/readable 3D scenes, visible characters and objects, core gameplay, safe authentication and reliable Android builds.
+- **Regression coverage:** lobby sharding/capacity, unique peer assignment, empty-shard cleanup, reconnect/rejoin and client room-snapshot caching. Godot validation executes godot_world/tests/room_manager_test.gd.
 
 ## MVP acceptance gates
 
-- [ ] Existing login/session flow reliably enters the playable world; authentication must not be weakened.
+- [ ] Existing login/session flow reliably enters the playable world without weakening authentication.
 - [ ] Player can enter the 3D hub, use an avatar, join/create/leave rooms and see room membership.
 - [ ] Room-scoped chat works in the supported multiplayer mode.
-- [ ] All five mini-games launch and have a complete basic win/lose gameplay loop.
-- [ ] Essential settings persist and all core scenes remain bright, readable and fully 3D.
-- [x] Latest Godot validation, Android build, embedded Android smoke test and signed APK build passed on commit 775dd42.
-- [ ] Install and verify the APK on a physical Android device.
+- [ ] All five mini-games have a complete basic win/lose gameplay loop.
+- [ ] Essential settings work; core scenes remain bright, readable and fully 3D.
+- [x] Godot validation, Android build, embedded Android smoke test and signed APK build passed on commit 775dd42.
+- [ ] APK installed and verified on a physical Android device.
 
 ## Post-MVP gates
 
 - [ ] Cloud-authoritative multiplayer and persistent room service.
-- [ ] Full 3D parity for every member-facing screen, including login/session flows.
-- [ ] Advanced Developer Center CRUD, analytics, ranking/reward systems and extended polish.
-- [ ] Physical-device regression, release security review and distribution sign-off.
+- [ ] Full 3D parity for remaining member-facing flows, including login/session.
+- [ ] Advanced Developer Center CRUD, analytics, ranking/rewards and extended polish.
+- [ ] Physical-device regression, security review and distribution sign-off.
 
 ## Status rules
 
@@ -72,4 +77,4 @@
 - "Implemented slice" does not mean the entire feature or application is complete.
 - A release APK build is not equivalent to physical-device acceptance or final product sign-off.
 - FAST TRACK defers non-core features; it does not lower the 3D visual-quality requirement.
-- MVP progress is not declared complete until end-to-end gameplay is demonstrated on a physical Android device.
+- MVP completion requires an end-to-end demonstration on a physical Android device.
