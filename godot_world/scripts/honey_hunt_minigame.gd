@@ -822,6 +822,11 @@ func _guess_who_action(action: String) -> void:
 	var question_index := int(_royal_game_state.get("index", -1))
 	if question_index < 0 or question_index >= _royal_game_state.pool.size():
 		return
+	if bool(_royal_game_state.get("pending_next", false)):
+		if action == "next_question":
+			_royal_game_state.pending_next = false
+			_guess_who_next()
+		return
 	if action == "hint":
 		var q: Dictionary = _royal_game_state.pool[question_index]
 		var clue_index: int = int(_royal_game_state.clue)
@@ -834,11 +839,6 @@ func _guess_who_action(action: String) -> void:
 		_royal_game_state.hints += 1
 		_royal_game_state.score = maxi(0, int(_royal_game_state.score) - 5)
 		_royal_game_status.text += "\nPetunjuk %d: %s" % [clue_index + 1, q.clues[clue_index]]
-		return
-	if bool(_royal_game_state.get("pending_next", false)):
-		if action == "next_question":
-			_royal_game_state.pending_next = false
-			_guess_who_next()
 		return
 	if action == "skip":
 		_royal_game_state.wrong += 1
