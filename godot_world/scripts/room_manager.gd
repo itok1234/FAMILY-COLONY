@@ -304,9 +304,45 @@ func _rpc_request_leave_room() -> void:
 		_broadcast_room_state()
 
 
+func _sanitize_room_snapshot(snapshot: Array) -> Array:
+	var clean: Array = []
+	var seen_ids: Dictionary = {}
+	for entry_variant in snapshot:
+		if clean.size() >= MAX_ACTIVE_ROOMS + 16:
+			break
+		if not (entry_variant is Dictionary):
+			continue
+		var entry: Dictionary = entry_variant
+		var room_id := str(entry.get("id", "")).strip_edges()
+		var room_name := str(entry.get("name", "")).strip_edges()
+		if not _is_valid_room_id(room_id) or seen_ids.has(room_id):
+			continue
+		if room_name.is_empty() or room_name.length() > 48 or not _is_safe_room_text(room_name):
+			continue
+		var capacity_variant = entry.get("capacity", null)
+		var count_variant = entry.get("member_count", null)
+		if not (capacity_variant is int) or not (count_variant is int):
+			continue
+		var capacity := int(capacity_variant)
+		var member_count := int(count_variant)
+		if capacity < 2 or capacity > 64 or member_count < 0 or member_count > capacity:
+			continue
+		seen_ids[room_id] = true
+		clean.append({"id": room_id, "name": room_name, "capacity": capacity, "member_count": member_count})
+	return clean
+
+
+func _is_safe_room_text(value: String) -> bool:
+	for character in value:
+		var codepoint := character.unicode_at(0)
+		if codepoint < 32 or codepoint == 127:
+			return false
+	return true
+
+
 @rpc("authority", "call_remote", "reliable")
 func _rpc_receive_room_snapshot(snapshot: Array) -> void:
-	_client_room_snapshot = snapshot.duplicate(true)
+	_client_room_snapshot = _sanitize_room_snapshot(snapshot)
 	room_list_changed.emit(_client_room_snapshot.duplicate(true))
 
 
