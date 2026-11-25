@@ -24,8 +24,17 @@ func _run() -> void:
 		_expect(kiosk is Area3D, "3D kiosk missing: " + destination)
 		if kiosk != null:
 			_expect(kiosk.has_meta("destination_id"), "kiosk destination metadata missing: " + destination)
-			_expect(kiosk.get_node_or_null("CollisionShape3D") != null, "kiosk touch collision missing: " + destination)
-			_expect(kiosk.get_node_or_null("MeshInstance3D") != null, "kiosk visual mesh missing: " + destination)
+			var has_collision := false
+			var has_mesh := false
+			for kiosk_child in kiosk.get_children():
+				if kiosk_child is CollisionShape3D:
+					has_collision = true
+					if kiosk_child.shape != null:
+						_expect(true, "kiosk collision shape resource exists")
+					if kiosk_child is MeshInstance3D:
+						has_mesh = true
+			_expect(has_collision, "kiosk touch collision missing: " + destination)
+			_expect(has_mesh, "kiosk visual mesh missing: " + destination)
 			_expect(kiosk.get_node_or_null("StationLight") != null or kiosk.get_child_count() >= 7, "kiosk detail structure incomplete: " + destination)
 	_expect(hub.get_child_count() >= 8, "hub should generate a substantial 3D scene structure")
 	hub.call("_open_destination_panel", "chat")
@@ -42,6 +51,7 @@ func _run() -> void:
 		_expect(room_root.get_node_or_null("JoinRoom_0") != null, "first room join button should render")
 		_expect(room_root.get_node_or_null("JoinRoom_1") != null, "second room join button should render")
 		hub.call("change_room_snapshot_page", 1)
+		await process_frame
 		_expect(room_root.get_node_or_null("JoinRoom_0") != null, "room join button should render after paging")
 		_expect(room_root.get_node_or_null("JoinRoom_1") == null, "room paging should clear stale join buttons")
 	_expect(hub.get_node_or_null("CentralHall") != null or hub.get_child_count() > 5, "hub should generate central hall and spatial elements")
