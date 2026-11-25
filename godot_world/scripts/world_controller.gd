@@ -285,6 +285,10 @@ func _on_room_action_requested(action_id: String) -> void:
 		room_manager.call("leave_room")
 	elif action_id == "disconnect":
 		network.call("leave_game")
+	elif action_id == "page:prev":
+		_main_hub.call("change_room_snapshot_page", -1)
+	elif action_id == "page:next":
+		_main_hub.call("change_room_snapshot_page", 1)
 	elif action_id.begins_with("join:"):
 		room_manager.call("join_room", action_id.trim_prefix("join:"))
 
