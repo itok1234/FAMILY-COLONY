@@ -147,3 +147,9 @@ Do not label the product fully 3D until:
 - Added a second identity gate inside the 3D hub before rendering Developer Center: only the server-verified Developer role and expected developer username are accepted.
 - Connected Developer Center spatial actions to the world controller so each module selection reports its actual integration state on the 3D information board.
 - Member management, world settings, mini-game management, server monitoring, reports and app configuration still require dedicated server-backed operations; the dashboard does not claim those CRUD/monitoring functions are complete.
+
+
+## Spatial chat hub entry slice (2026-11-25)
+- Added a dedicated 3D hub action to open the existing spatial room-chat panel.
+- Chat panel is reparented to the active hub camera while open, then restored to the player camera when the player returns to the 3D world.
+- Chat remains room-scoped and uses the existing LAN ENet transport. It is not represented as cloud/internet chat; cross-network transport and verified member display identity remain separate pending work.
