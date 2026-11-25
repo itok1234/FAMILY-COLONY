@@ -66,6 +66,48 @@ func _run_room_manager_tests() -> void:
 	_expect(manager.get_room_snapshot().size() == 1, "client snapshot API must return cached room data")
 	_expect(manager.get_room_snapshot()[0]["id"] == "lobby", "cached snapshot must preserve room identity")
 
+
+	# Custom-room lifecycle: joining a room must remove the peer from the
+	# previous lobby, and an empty custom room must be cleaned up.
+	manager._rooms["room_test"] = {"name": "Test Room", "capacity": 2, "members": []}
+	manager._join_room_for_peer(5, "room_test")
+	_expect(manager._peer_room.get(5, "") == "room_test", "joining a custom room must update the peer index")
+	_expect(not manager._rooms["lobby_3"]["members"].has(5), "switching rooms must remove the peer from its previous lobby")
+	_expect(manager._rooms["room_test"]["members"].has(5), "switching rooms must add the peer to the destination room")
+	manager._leave_room_for_peer(5)
+	_expect(not manager._rooms.has("room_test"), "empty custom rooms must be removed")
+	_expect(not manager._peer_room.has(5), "leaving a custom room must clear peer membership")
+
+	# A room at capacity rejects another member without corrupting either index.
+	manager._rooms["room_full"] = {"name": "Full Room", "capacity": 1, "members": [2]}
+	manager._peer_room[2] = "room_full"
+	manager._join_room_for_peer(3, "room_full")
+	_expect(manager._peer_room.get(3, "") != "room_full", "a full room must reject additional members")
+	_expect(manager._rooms["room_full"]["members"].size() == 1, "a full room must retain its original member")
+	manager._rooms.erase("room_full")
+	manager._peer_room.erase(2)
+
+	# The custom-room cap excludes every lobby shard and stops at 64 rooms.
+	manager._rooms.clear()
+	manager._peer_room.clear()
+	for room_index in range(RoomManagerScript.MAX_ACTIVE_ROOMS):
+		manager._last_room_create_at[1] = -10000.0
+		manager._create_room_for_peer(1, "Room %d" % room_index, 2)
+	var custom_room_count := 0
+	for room_key in manager._rooms.keys():
+		var room_id := str(room_key)
+		if room_id != "lobby" and not room_id.begins_with("lobby_"):
+			custom_room_count += 1
+	_expect(custom_room_count == RoomManagerScript.MAX_ACTIVE_ROOMS, "exactly 64 custom rooms must be allowed")
+	manager._last_room_create_at[1] = -10000.0
+	manager._create_room_for_peer(1, "Overflow Room", 2)
+	var custom_room_count_after_rejection := 0
+	for room_key in manager._rooms.keys():
+		var room_id := str(room_key)
+		if room_id != "lobby" and not room_id.begins_with("lobby_"):
+			custom_room_count_after_rejection += 1
+	_expect(custom_room_count_after_rejection == RoomManagerScript.MAX_ACTIVE_ROOMS, "the 65th custom room must be rejected")
+
 	if failures == 0:
 		print("ROOM_MANAGER_TEST: PASS — lobby sharding, capacity, unique membership, cleanup, rejoin and client snapshot cache")
 	else:
