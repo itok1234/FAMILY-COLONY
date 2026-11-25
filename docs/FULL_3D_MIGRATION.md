@@ -141,3 +141,9 @@ Do not label the product fully 3D until:
 - Added direct spatial 3D quality preset controls (Auto, Hemat, Seimbang, Tinggi) to the hub settings panel. Selection routes to QualityManager, updates runtime rendering and persists the preset locally.
 - Updated the spatial audio/credits panel to reparent to the currently active camera when opened. This lets it open from the hub camera rather than remaining attached to the inactive gameplay camera.
 - These changes complete a useful profile/settings presentation slice, not the full application migration. Cross-network chat, production avatar assets, cloud-authoritative multiplayer, Developer Center CRUD, full mini-game parity, and physical device tests remain outstanding.
+
+
+## Developer Center access and action routing hardening (2026-11-25)
+- Added a second identity gate inside the 3D hub before rendering Developer Center: only the server-verified Developer role and expected developer username are accepted.
+- Connected Developer Center spatial actions to the world controller so each module selection reports its actual integration state on the 3D information board.
+- Member management, world settings, mini-game management, server monitoring, reports and app configuration still require dedicated server-backed operations; the dashboard does not claim those CRUD/monitoring functions are complete.
