@@ -390,6 +390,19 @@ func _update_chat_messages() -> void:
 	_chat_messages.text = "\\n".join(lines)
 
 
+func _on_message_received(_message: Dictionary) -> void:
+	if is_instance_valid(_chat_error_label):
+		_chat_error_label.visible = false
+	_update_chat_messages()
+
+
+func _on_chat_error(message: String) -> void:
+	if not is_instance_valid(_chat_error_label):
+		return
+	_chat_error_label.text = message
+	_chat_error_label.visible = true
+
+
 func _append_message_to_hud(_message: Dictionary) -> void:
 	_update_chat_messages()
 
