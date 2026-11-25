@@ -10,6 +10,12 @@ var _dragging_mouse := false
 var _active_touch := -1
 var _last_position := Vector2.ZERO
 
+func _notification(what: int) -> void:
+	# Release drag state when Android interrupts the app or changes focus.
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
+		_dragging_mouse = false
+		_active_touch = -1
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		_dragging_mouse = event.pressed
