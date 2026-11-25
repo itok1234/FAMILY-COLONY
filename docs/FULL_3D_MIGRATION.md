@@ -39,3 +39,9 @@ Do not label the product fully 3D until:
 - Developer authentication, server-side role verification, credential form and successful-login navigation remain to be integrated.
 - The existing WebView launcher and 2D member UI are still present; this is not yet a complete 3D conversion.
 - The new scene/script still requires Godot import, runtime and Android device validation.
+## Existing developer authentication contract verified
+- The current legacy bee-logo gesture opens the developer PIN panel after five taps within 3.5 seconds. The Godot 3D bee gesture now matches this timing.
+- Existing developer login uses a six-digit PIN sent to the fc-member-auth backend function with action developer_pin_login.
+- Backend response must include ok, access_token and member; the app session is populated from the returned member and tokens.
+- PIN setup uses the existing bootstrap-secret flow; never copy the bootstrap secret or PIN into the Godot source or APK.
+- The 3D migration must port this backend request/session contract and role checks. The new 3D hologram currently does not perform login.
