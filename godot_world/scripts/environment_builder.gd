@@ -207,6 +207,22 @@ func _build_road_network() -> void:
 	for z in range(-160, 1, 12):
 		_box(self, Vector3(0.16, 0.02, 4.0), Vector3(0, -0.435, float(z)), line, "RoadCenterMark")
 
+	# Concept-board boulevard: tiled pedestrian sidewalks and zebra crossing at the plaza intersection.
+	var sidewalk := _mat("boulevard_sidewalk", Color("#c6c9c5"), 0.92)
+	var sidewalk_inset := _mat("boulevard_sidewalk_inset", Color("#9faeb0"), 0.82)
+	var crosswalk := _mat("boulevard_crosswalk", Color("#e8e8df"), 0.84)
+	for side_value in [-1.0, 1.0]:
+		var side: float = float(side_value)
+		_box(self, Vector3(2.1, 0.12, 180.0), Vector3(side * 7.0, -0.42, -82.0), sidewalk, "MainRoadSidewalk")
+		_box(self, Vector3(180.0, 0.12, 2.1), Vector3(0, -0.42, side * 7.0), sidewalk, "CrossRoadSidewalk")
+		for segment in range(30):
+			var tile_z := -170.0 + float(segment) * 6.0
+			_box(self, Vector3(1.85, 0.025, 0.035), Vector3(side * 7.0, -0.345, tile_z), sidewalk_inset, "SidewalkJoint")
+	# Parallel bars across the boulevard form a visible pedestrian crossing.
+	for stripe_index in range(8):
+		var stripe_z := -3.2 + float(stripe_index) * 0.9
+		_box(self, Vector3(8.8, 0.035, 0.42), Vector3(0, -0.385, stripe_z), crosswalk, "PlazaZebraStripe")
+
 func _build_buildings() -> void:
 	var buildings_root := Node3D.new()
 	buildings_root.name = "CommunityBuildings"
