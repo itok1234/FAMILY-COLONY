@@ -96,3 +96,11 @@ Do not label the product fully 3D until:
 - The PIN response is checked for the expected Developer identity, then its short-lived access token is independently verified by the existing fc-world-session authorization endpoint before the 3D Developer Center opens.
 - The Developer Center is a spatial 3D dashboard with entry points for member management, world settings, mini-game management, server monitoring, reports and app configuration. These controls are currently navigation hooks only; privileged CRUD/server operations still need their dedicated backend integration.
 - If server verification fails, the user receives a 3D status message and no Developer Center is unlocked.
+
+## Spatial audio settings migration (2026-11-25)
+- Replaced the Godot world's remaining audio settings CanvasLayer, HSlider, Button, PanelContainer, VBoxContainer and Label controls with a camera-mounted 3D settings board built from MeshInstance3D, Area3D and Label3D.
+- Added 3D hub actions for Audio & Volume and Studio Credits; the hub emits a settings action signal and world_controller routes it to the audio settings node.
+- Audio mute and master volume remain persisted in the existing user://family_colony_settings.cfg file. Volume is selected through eleven spatial 3D controls (0–100%).
+- Studio credits are displayed as Label3D inside the same spatial board.
+- This removes the flat audio settings UI from the Godot world settings feature, but does not imply that the legacy WebView/HTML launcher and all remaining 2D app surfaces have been migrated.
+- Latest source commits: 20ea1f4 (hub actions), 2ecb52a (world routing), 17945a2 (spatial audio settings). Godot import/startup, Android debug, embedded Android smoke and signed-release workflows were triggered for the latest source. Results must be checked before marking this slice validated.
