@@ -3,8 +3,8 @@
 > Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Latest source commit:** [`938656b`](https://github.com/itok1234/FAMILY-COLONY/commit/938656be1229911437e99f82541c6b4690bddff6)  
-> **Dashboard refreshed:** 2026-11-25T11:41:20.762Z
+> **Latest source commit:** [`33e57a7`](https://github.com/itok1234/FAMILY-COLONY/commit/33e57a7781e96fde7b7651bd4f4cab3be81b6453)  
+> **Dashboard refreshed:** 2026-11-25T11:44:18.758Z
 
 ## FAST TRACK mode — ACTIVE
 
@@ -22,10 +22,10 @@
 
 | Check | Latest branch result | Commit tested |
 |---|---|---|
-| Validate FAMILY COLONY 3D World | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45606735393) | 938656b |
-| Validate FAMILY COLONY Android Build | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45606735467) | 938656b |
-| FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45606735391) | 938656b |
-| Build FAMILY COLONY Signed Release APK | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45606735402) | 938656b |
+| Validate FAMILY COLONY 3D World | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45606735393) | 938656b |
+| Validate FAMILY COLONY Android Build | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45606735467) | 938656b |
+| FAMILY COLONY Embedded Godot Android Smoke Test | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45606735391) | 938656b |
+| Build FAMILY COLONY Signed Release APK | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45606735402) | 938656b |
 
 ## Implementation status
 
