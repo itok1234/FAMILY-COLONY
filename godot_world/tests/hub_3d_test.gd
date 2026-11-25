@@ -60,6 +60,14 @@ func _run() -> void:
 		await process_frame
 		_expect(room_root.get_node_or_null("JoinRoom_1") != null, "returning to first page should render second room button")
 		_expect(room_root.get_node_or_null("JoinRoom_2") == null, "first page should not leave extra buttons")
+		hub.call("set_room_snapshot", [])
+		await process_frame
+		_expect(room_root.get_node_or_null("JoinRoom_0") == null, "empty room list should remove join buttons")
+		var empty_state_found := false
+		for room_child in room_root.get_children():
+			if room_child is Label3D and room_child.text == "Belum ada room terdaftar.":
+				empty_state_found = true
+		_expect(empty_state_found, "empty room list should show empty-state message")
 	_expect(hub.get_node_or_null("CentralHall") != null or hub.get_child_count() > 5, "hub should generate central hall and spatial elements")
 	if failures == 0:
 		print("HUB_3D_TEST: PASS — camera, environment, information board, developer access and five kiosks")
