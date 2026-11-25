@@ -66,7 +66,8 @@ func _process(delta: float) -> void:
 				_royal_game_state.wrong += 1
 				_royal_game_state.score = maxi(0, int(_royal_game_state.score) - 5)
 				_royal_game_status.text += "\nWaktu habis (-5 poin)."
-				_guess_who_next()
+				_royal_game_state.pending_next = true
+				_add_royal_button("SOAL BERIKUTNYA", Vector3(0, -2.0, -0.24), "next_question", Vector3(2.7, 0.46, 0.16))
 		return
 	if not _active or not is_instance_valid(_player):
 		return
