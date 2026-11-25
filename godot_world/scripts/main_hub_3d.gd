@@ -531,6 +531,8 @@ func _open_destination_panel(destination_id: String) -> void:
 	_panel_body.modulate = Color("#e5edf4")
 	_destination_panel.add_child(_panel_body)
 
+	if destination_id == "world":
+		_create_hub_panel_button("MASUK KE DUNIA", Vector3(0, 0.0, -0.24), "enter_world", Vector3(2.8, 0.68, 0.16), Color("#a77a36"))
 	if destination_id == "games":
 		_create_hub_panel_button("HONEY HUNT", Vector3(-2.15, 0.15, -0.24), "game:honey_hunt", Vector3(2.0, 0.58, 0.16), Color("#a77a36"))
 		_create_hub_panel_button("GUESS WHO?", Vector3(0.0, 0.15, -0.24), "game:guess_who", Vector3(2.0, 0.58, 0.16))
@@ -558,7 +560,7 @@ func _destination_description(destination_id: String) -> String:
 		"chat": return "Bertemu • mengobrol • room\\nLayanan chat lintas jaringan dan panel 3D sedang dimigrasikan."
 		"games": return "Pilih permainan untuk masuk ke ruangnya.\\nHoney Hunt sudah memiliki arena 3D; game lain menunggu port mekanik."
 		"settings": return "Audio • kualitas grafis • kontrol\\nPengaturan 3D akan mengikuti kemampuan perangkat."
-		"world": return "Masuk ke dunia 3D dan jelajahi Bee Kingdom."
+		"world": return "Masuk ke dunia 3D dan jelajahi Bee Kingdom.\\nBerjalan, berinteraksi, dan bermain bersama."
 		_: return "Fitur sedang disiapkan."
 
 
@@ -593,6 +595,12 @@ func _create_hub_panel_button(label_text: String, local_position: Vector3, actio
 
 
 func _handle_hub_panel_action(action_id: String) -> void:
+	if action_id == "enter_world":
+		if is_instance_valid(_destination_panel):
+			_destination_panel.queue_free()
+		_destination_panel = null
+		destination_requested.emit("world")
+		return
 	if action_id == "back":
 		if is_instance_valid(_destination_panel):
 			_destination_panel.queue_free()
@@ -602,6 +610,9 @@ func _handle_hub_panel_action(action_id: String) -> void:
 	if action_id.begins_with("game:"):
 		var game_id := action_id.trim_prefix("game:")
 		if game_id == "honey_hunt":
+			if is_instance_valid(_destination_panel):
+				_destination_panel.queue_free()
+			_destination_panel = null
 			destination_requested.emit("world")
 			minigame_requested.emit(game_id)
 			return
