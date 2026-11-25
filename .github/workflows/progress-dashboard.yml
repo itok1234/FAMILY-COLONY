@@ -1,0 +1,128 @@
+name: FAMILY COLONY Progress Dashboard
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+  push:
+    branches:
+      - feature/direct-3d-entry
+    paths:
+      - "godot_world/**"
+      - "app/src/main/**"
+      - "app/src/main/assets/**"
+      - "supabase/functions/**"
+      - "docs/FULL_3D_MIGRATION.md"
+      - ".github/workflows/progress-dashboard.yml"
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: family-colony-progress-dashboard
+  cancel-in-progress: true
+
+jobs:
+  refresh-dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate dashboard from repository and workflow evidence
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branch = "feature/direct-3d-entry";
+            const { owner, repo } = context.repo;
+            const names = [
+              "Validate FAMILY COLONY 3D World",
+              "Validate FAMILY COLONY Android Build",
+              "FAMILY COLONY Embedded Godot Android Smoke Test",
+              "Build FAMILY COLONY Signed Release APK"
+            ];
+            const response = await github.rest.actions.listWorkflowRunsForRepo({
+              owner, repo, branch, per_page: 100
+            });
+            const runs = response.data.workflow_runs;
+            const latest = names.map(name => {
+              const run = runs.find(item => item.name === name);
+              return { name, run };
+            });
+            const status = item => {
+              if (!item.run) return "NOT RUN";
+              if (item.run.status !== "completed") return "RUNNING";
+              return (item.run.conclusion || "UNKNOWN").toUpperCase();
+            };
+            const rows = latest.map(item => {
+              const state = status(item);
+              const run = item.run;
+              const label = run ? `[${state}](${run.html_url})` : state;
+              const sha = run ? run.head_sha.slice(0, 7) : "—";
+              return `| ${item.name} | ${label} | ${sha} |`;
+            }).join("\\n");
+            const head = context.sha;
+            const now = new Date().toISOString();
+            const body = `# FAMILY COLONY — Live Progress Dashboard
+
+            > Generated automatically by GitHub Actions. Updated on code pushes, manual dispatch, and every 15 minutes.
+            >
+            > **Branch:** \`${branch}\`  
+            > **Latest source commit:** [\`${head.slice(0, 7)}\`](https://github.com/${owner}/${repo}/commit/${head})  
+            > **Dashboard refreshed:** ${now}
+
+            ## Automated validation
+
+            | Check | Latest branch result | Commit tested |
+            |---|---|---|
+            ${rows}
+
+            ## Implementation status
+
+            | Workstream | Evidence-based status | Remaining gate |
+            |---|---|---|
+            | Native 3D hub and world entry | IMPLEMENTED SLICE | Full app flow and feature parity |
+            | Avatar profile and wardrobe | IMPLEMENTED SLICE | Cloud persistence and device UX |
+            | Room-scoped avatar appearance sync | IMPLEMENTED — VALIDATION PENDING | Latest Godot/Android workflows and multi-device test |
+            | Member login and session | LEGACY WEBVIEW FLOW PRESERVED | Port login, refresh, logout and recovery to spatial 3D |
+            | Developer Center | 3D ENTRY / NAVIGATION SLICE | Secure backend CRUD and operational tools |
+            | Five mini-games | HONEY HUNT 3D; FOUR INITIAL LOCAL GAME LOOPS | Complete gameplay, polish, persistence and multiplayer |
+            | Multiplayer | LAN ENet FOUNDATION | Cloud-authoritative transport and abuse controls |
+            | Full 3D acceptance | NOT COMPLETE | Remove member-facing 2D/WebView only after feature parity |
+            | Release readiness | CI CHECKS TRACKED ABOVE | Physical-device regression, security and release sign-off |
+
+            ## Final acceptance gates
+
+            - [ ] Login, session refresh, logout and Developer access run in the native 3D flow without weakening server authorization.
+            - [ ] Profile, chat, rooms, settings, Developer Center and all five mini-games have complete 3D feature parity.
+            - [ ] Cloud multiplayer is authoritative; LAN transport is not counted as production cloud multiplayer.
+            - [ ] No member-facing 2D/WebView screen remains in the final app.
+            - [ ] Latest Android build, emulator smoke test and Godot validation pass on the final source commit.
+            - [ ] Physical-device tests pass on supported Android hardware; release signing and distribution are verified.
+
+            ## Status rules
+
+            - This dashboard reports verified implementation slices and CI outcomes, not an invented overall percentage.
+            - A workflow result applies only to the commit shown in its row.
+            - "Implemented slice" does not mean the entire feature or application is complete.
+            - A release APK build is not equivalent to physical-device acceptance or final product sign-off.
+            `;
+            const content = Buffer.from(body).toString("base64");
+            let sha;
+            try {
+              const existing = await github.rest.repos.getContent({
+                owner, repo, path: "docs/PROGRESS_DASHBOARD.md", ref: branch
+              });
+              sha = existing.data.sha;
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+            await github.rest.repos.createOrUpdateFileContents({
+              owner, repo,
+              path: "docs/PROGRESS_DASHBOARD.md",
+              message: "chore: refresh automated project progress dashboard",
+              content,
+              branch,
+              ...(sha ? { sha } : {})
+            });
+            core.summary.addHeading("FAMILY COLONY progress dashboard refreshed");
+            core.summary.addLink("Open dashboard", `https://github.com/${owner}/${repo}/blob/${branch}/docs/PROGRESS_DASHBOARD.md`);
+            await core.summary.write();
