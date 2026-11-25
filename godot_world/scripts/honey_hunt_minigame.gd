@@ -13,9 +13,9 @@ var _targets: Array[MeshInstance3D] = []
 var _target_home_positions: Dictionary = {}
 var _elapsed := 0.0
 var _arena: Node3D
-var _hud: CanvasLayer
-var _status: Label
-var _return_button: Button
+var _hud: Node3D
+var _status: Label3D
+var _return_button: Area3D
 var _rng := RandomNumberGenerator.new()
 const TARGET_COUNT := 12
 const ARENA_ORIGIN := Vector3(0, 0, 140)
@@ -26,6 +26,30 @@ func _ready() -> void:
 	_build_arena()
 	_build_entry_portal()
 	_build_hud()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not _active or not is_instance_valid(_player):
+		return
+	var pressed := event is InputEventScreenTouch and event.pressed
+	pressed = pressed or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
+	if not pressed:
+		return
+	var player_camera := _player.get_node_or_null("CameraPivot/Camera3D") as Camera3D
+	if player_camera == null:
+		return
+	var screen_position: Vector2 = event.position
+	var origin := player_camera.project_ray_origin(screen_position)
+	var direction := player_camera.project_ray_normal(screen_position)
+	var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * 10.0)
+	query.collide_with_areas = true
+	query.collision_mask = 32
+	var hit := player_camera.get_world_3d().direct_space_state.intersect_ray(query)
+	if not hit.is_empty():
+		var collider: Object = hit.get("collider")
+		if collider is Area3D and collider.has_meta("exit_honey_hunt"):
+			exit_minigame()
+			get_viewport().set_input_as_handled()
 
 
 func _process(delta: float) -> void:
@@ -60,6 +84,13 @@ func start_honey_hunt(actor: Node) -> String:
 	_arena.visible = true
 	_player.velocity = Vector3.ZERO
 	_player.global_position = ARENA_ORIGIN + Vector3(0, 1.1, 8)
+	var player_camera := _player.get_node_or_null("CameraPivot/Camera3D") as Camera3D
+	if player_camera != null and _hud.get_parent() != player_camera:
+		if _hud.get_parent() != null:
+			_hud.get_parent().remove_child(_hud)
+		player_camera.add_child(_hud)
+		_hud.position = Vector3(0, 0, -3.0)
+	_hud.visible = true
 	_return_button.visible = true
 	_update_status()
 	return "Mini-game HONEY HUNT dimulai! Kumpulkan madu sebanyak mungkin dalam 45 detik."
@@ -174,33 +205,48 @@ func _build_arena() -> void:
 
 
 func _build_hud() -> void:
-	_hud = CanvasLayer.new()
-	_hud.name = "HoneyHuntHUD"
-	_hud.layer = 25
-	add_child(_hud)
-
-	_status = Label.new()
-	_status.anchor_left = 0.08
-	_status.anchor_right = 0.72
-	_status.anchor_top = 0.04
-	_status.anchor_bottom = 0.13
-	_status.add_theme_font_size_override("font_size", 20)
-	_status.add_theme_color_override("font_color", Color(1.0, 0.9, 0.62))
-	_status.add_theme_color_override("font_shadow_color", Color(0.05, 0.06, 0.08, 1))
-	_status.add_theme_constant_override("shadow_offset_x", 2)
-	_status.add_theme_constant_override("shadow_offset_y", 2)
+	# In-world camera-mounted 3D score display and ray-pickable exit control.
+	_hud = Node3D.new()
+	_hud.name = "HoneyHuntSpatialHUD"
+	_hud.visible = false
+	_status = Label3D.new()
+	_status.name = "HoneyHuntScoreboard"
+	_status.font_size = 28
+	_status.pixel_size = 0.0035
+	_status.position = Vector3(-0.95, 0.82, 0)
+	_status.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_status.modulate = Color("#ffe3a3")
+	_status.outline_size = 7
+	_status.outline_modulate = Color("#172331")
 	_status.visible = false
 	_hud.add_child(_status)
 
-	_return_button = Button.new()
-	_return_button.text = "KELUAR MINI-GAME"
-	_return_button.anchor_left = 0.68
-	_return_button.anchor_right = 0.96
-	_return_button.anchor_top = 0.84
-	_return_button.anchor_bottom = 0.94
-	_return_button.custom_minimum_size = Vector2(0, 48)
-	_return_button.pressed.connect(exit_minigame)
-	_return_button.visible = false
+	_return_button = Area3D.new()
+	_return_button.name = "HoneyHuntSpatialExit"
+	_return_button.position = Vector3(1.2, 0.68, 0)
+	_return_button.input_ray_pickable = true
+	_return_button.collision_layer = 32
+	_return_button.collision_mask = 0
+	_return_button.set_meta("exit_honey_hunt", true)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(1.35, 0.48, 0.3)
+	collision.shape = shape
+	_return_button.add_child(collision)
+	var body := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(1.3, 0.44, 0.18)
+	body.mesh = box
+	body.material_override = _material(Color("#a77a36"), 0.35, 0.2)
+	_return_button.add_child(body)
+	var label := Label3D.new()
+	label.text = "KELUAR"
+	label.font_size = 20
+	label.pixel_size = 0.0035
+	label.position.z = -0.12
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.modulate = Color("#ffffff")
+	_return_button.add_child(label)
 	_hud.add_child(_return_button)
 
 
@@ -257,6 +303,11 @@ func exit_minigame() -> void:
 	_active = false
 	_status.visible = false
 	_return_button.visible = false
+	if is_instance_valid(_hud) and _hud.get_parent() != self:
+		if _hud.get_parent() != null:
+			_hud.get_parent().remove_child(_hud)
+		add_child(_hud)
+	_hud.visible = false
 	_player = null
 
 
