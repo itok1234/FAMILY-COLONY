@@ -166,3 +166,8 @@ Do not label the product fully 3D until:
 ## Camera handoff correction for spatial chat (2026-11-25)
 - Corrected the camera reparent handoff for the 3D chat root: its local transform is reset to identity when moving between the hub camera and player camera. This keeps the chat controls in front of the currently active camera instead of preserving the previous camera's world-space position.
 - The correction is source-level and must still pass the latest Godot/Android workflows and hands-on touch testing.
+
+
+## Room state disconnect recovery (2026-11-25)
+- RoomManager now clears cached room listings and local membership when the LAN transport reports offline or error, and emits empty room/local-room state so the 3D hub and room-scoped avatar visibility cannot continue presenting stale membership after disconnect.
+- This is a local LAN lifecycle correction; it does not add internet matchmaking or a cloud authoritative server.
