@@ -123,7 +123,7 @@ func _open_action_menu() -> void:
 		if player.has_method("is_seated") and player.call("is_seated"):
 			available_actions.append("stand")
 	for action_id in _menu_button_by_action:
-		var action_button: Button = _menu_button_by_action[action_id]
+		var action_button: Area3D = _menu_button_by_action[action_id]
 		action_button.visible = available_actions.has(action_id)
 	if available_actions.is_empty():
 		_show_result("Tidak ada aksi yang tersedia.")
