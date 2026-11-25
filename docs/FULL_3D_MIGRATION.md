@@ -31,3 +31,11 @@ Do not label the product fully 3D until:
 - Every listed feature has a functional Godot 3D scene.
 - Login, session refresh, authorization, data persistence, chat and room behavior pass regression tests.
 - Android build and device tests pass; iOS support is separately verified.
+
+## Developer access — 3D implementation slice (2026-11-25)
+- Added a 3D bee emblem to the isolated Godot hub.
+- Five taps within a 2.2-second interval reveal a spatial 3D developer-login hologram.
+- The five-tap gesture only reveals the login entry; it does not authenticate or grant Developer privileges.
+- Developer authentication, server-side role verification, credential form and successful-login navigation remain to be integrated.
+- The existing WebView launcher and 2D member UI are still present; this is not yet a complete 3D conversion.
+- The new scene/script still requires Godot import, runtime and Android device validation.
