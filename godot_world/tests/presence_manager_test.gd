@@ -39,6 +39,15 @@ func _run_tests() -> void:
 	for peer_id in range(2, 80):
 		oversized.append({"peer_id": peer_id, "state": "online"})
 	_expect(manager._sanitize_presence_snapshot(oversized).size() == 64, "snapshot should be capped at 64 entries")
+	manager._presence[2] = {"peer_id": 2, "state": "online"}
+	manager._last_snapshot_request_at[2] = 1.0
+	manager._current_room_id = "room_test"
+	manager._current_presence_snapshot = [{"peer_id": 2, "state": "online"}]
+	manager._clear_presence_state()
+	_expect(manager._presence.is_empty(), "disconnect reset should clear presence records")
+	_expect(manager._last_snapshot_request_at.is_empty(), "disconnect reset should clear snapshot throttles")
+	_expect(manager._current_room_id.is_empty(), "disconnect reset should clear current room")
+	_expect(manager.get_presence_snapshot().is_empty(), "disconnect reset should clear stale snapshot")
 	if failures == 0:
 		print("PRESENCE_MANAGER_TEST: PASS — snapshot entries filtered and bounded")
 	else:
