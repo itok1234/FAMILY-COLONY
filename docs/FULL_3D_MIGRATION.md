@@ -66,3 +66,9 @@ Do not label the product fully 3D until:
 - Replaced the world session verification overlay and return action with a spatial 3D board and ray-pickable 3D return object.
 - These controls and gates have been committed but still require the latest Godot/Android workflow results and hands-on device checks for touch alignment, camera visibility, and movement feel.
 - Other existing 2D interfaces elsewhere in the app and Godot scripts are still present; the no-2D acceptance gate remains open.
+
+## 3D interaction and Honey Hunt presentation (2026-11-25)
+- Replaced the main world interaction CanvasLayer, flat action button, and radial Control menu with camera-mounted 3D action objects, Label3D prompts/results, and ray-pickable 3D action menu buttons.
+- Replaced Honey Hunt's CanvasLayer score HUD and flat exit Button with a camera-mounted Label3D scoreboard and a ray-pickable 3D exit object. The exit remains active on the results screen.
+- Honey Hunt's arena, collectibles, portal, score/timer logic and collision-based collection are already 3D; its visible status/exit layer is now also spatial 3D.
+- The group chat HUD and other feature screens remain to be migrated. These changes are implementation progress, not a claim that the complete application is 3D.
