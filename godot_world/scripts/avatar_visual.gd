@@ -151,6 +151,15 @@ func _build_avatar() -> void:
 		"shoes": shoes
 	}
 	_appearance_defaults = _capture_appearance_colors()
+	# FAMILY COLONY hoodie identity layer: hood volume, drawstrings and compact FC chest mark.
+	var hoodie_trim := _material(Color("#e4e9ee"), 0.62)
+	var hoodie_mark := _material(Color("#d9bd78"), 0.48)
+	_add_sphere(self, "HoodVolume", Vector3(0, 1.50, 0.205), Vector3(0.31, 0.29, 0.19), shirt)
+	_add_box(self, "HoodFold", Vector3(0, 1.58, 0.30), Vector3(0.26, 0.08, 0.045), hoodie_trim)
+	_add_capsule(self, "LeftHoodDrawstring", Vector3(-0.055, 1.34, -0.285), 0.012, 0.22, hoodie_trim)
+	_add_capsule(self, "RightHoodDrawstring", Vector3(0.055, 1.34, -0.285), 0.012, 0.22, hoodie_trim)
+	_add_box(self, "FCChestBadge", Vector3(0, 1.30, -0.292), Vector3(0.16, 0.12, 0.018), hoodie_mark)
+	_add_box(self, "FCChestBadgeInner", Vector3(0, 1.30, -0.306), Vector3(0.11, 0.075, 0.012), shirt)
 	# Rounded shoulder and hip volumes soften the mannequin-like silhouette.
 	_add_sphere(self, "UpperTorso", Vector3(0, 1.34, 0), Vector3(0.30, 0.27, 0.22), shirt)
 	_add_capsule(self, "Torso", Vector3(0, 1.12, 0), 0.28, 0.82, shirt)
