@@ -10,6 +10,7 @@ signal minigame_requested(game_id: String)
 signal developer_center_action_requested(action_id: String)
 signal settings_action_requested(action_id: String)
 signal room_action_requested(action_id: String)
+signal avatar_appearance_changed(appearance: Dictionary)
 
 const FC_AUTH_URL := "https://irwtnqekrwhgompulach.supabase.co/functions/v1/fc-member-auth"
 
@@ -715,6 +716,15 @@ func _load_profile_style() -> void:
 		_profile_style_index = 0
 
 
+func get_profile_appearance() -> Dictionary:
+	var outfit: Color = PROFILE_STYLES[_profile_style_index].body
+	return {
+		"top": outfit.to_html(true),
+		"trousers": outfit.darkened(0.48).to_html(true),
+		"shoes": outfit.darkened(0.72).to_html(true)
+	}
+
+
 func _save_profile_style() -> void:
 	var config := ConfigFile.new()
 	config.set_value("avatar", "style_index", _profile_style_index)
@@ -765,7 +775,8 @@ func _apply_profile_style(style_index: int) -> void:
 		var halo_material := _material(PROFILE_STYLES[style_index].halo, 0.28, 0.35)
 		_profile_avatar_halo.material_override = halo_material
 	_save_profile_style()
-	_hint.text = "Tampilan avatar disimpan: " + str(PROFILE_STYLES[style_index].name)
+	avatar_appearance_changed.emit(get_profile_appearance())
+	_hint.text = "Tampilan avatar disimpan dan diterapkan: " + str(PROFILE_STYLES[style_index].name)
 	if is_instance_valid(_destination_panel):
 		_destination_panel.queue_free()
 	_destination_panel = null
