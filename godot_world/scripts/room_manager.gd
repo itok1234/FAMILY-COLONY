@@ -7,6 +7,7 @@ signal local_room_changed(room_id: String, members: Array[int])
 signal room_action_result(ok: bool, message: String)
 
 @export_range(2, 64, 1) var default_room_capacity: int = 16
+const MAX_ACTIVE_ROOMS: int = 64
 var _rooms: Dictionary = {}
 var _peer_room: Dictionary = {}
 var _last_room_create_at: Dictionary = {}
@@ -99,6 +100,9 @@ func _create_room_for_peer(peer_id: int, room_name: String, capacity: int) -> vo
 	var last_create := float(_last_room_create_at.get(peer_id, -10000.0))
 	if now - last_create < 5.0:
 		_send_result(peer_id, false, "Tunggu 5 detik sebelum membuat room lagi.")
+		return
+	if _rooms.size() - (1 if _rooms.has("lobby") else 0) >= MAX_ACTIVE_ROOMS:
+		_send_result(peer_id, false, "Kapasitas jumlah room sedang penuh. Coba lagi nanti.")
 		return
 	_last_room_create_at[peer_id] = now
 	var room_id := "room_%d_%d" % [peer_id, Time.get_ticks_msec()]
