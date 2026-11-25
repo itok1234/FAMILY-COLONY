@@ -228,17 +228,22 @@ func _build_buildings() -> void:
 		_box(group, Vector3(width, height, depth * 0.22), Vector3(0, height * 0.5, -depth * 0.39), wall_material, "BuildingRearWall")
 		_box(group, Vector3(width * 0.18, height, depth * 0.76), Vector3(-width * 0.41, height * 0.5, depth * 0.12), wall_material, "BuildingLeftWall")
 		_box(group, Vector3(width * 0.18, height, depth * 0.76), Vector3(width * 0.41, height * 0.5, depth * 0.12), wall_material, "BuildingRightWall")
-		_box(group, Vector3(width * 0.18, height, depth * 0.18), Vector3(-width * 0.41, height * 0.5, depth * 0.41), wall_material, "BuildingFrontLeftWall")
-		_box(group, Vector3(width * 0.18, height, depth * 0.18), Vector3(width * 0.41, height * 0.5, depth * 0.41), wall_material, "BuildingFrontRightWall")
-		_box(group, Vector3(width * 0.64, maxf(height - 2.7, 0.1), depth * 0.18), Vector3(0, height - maxf(height - 2.7, 0.1) * 0.5, depth * 0.41), wall_material, "BuildingFrontLintelWall")
+		# Fixed-width 2.4 m entrance: avoid the previous oversized facade opening.
+		var doorway_width := 2.4
+		var front_segment_width := maxf((width - doorway_width) * 0.5, 0.6)
+		var front_segment_center := doorway_width * 0.5 + front_segment_width * 0.5
+		_box(group, Vector3(front_segment_width, height, depth * 0.18), Vector3(-front_segment_center, height * 0.5, depth * 0.41), wall_material, "BuildingFrontLeftWall")
+		_box(group, Vector3(front_segment_width, height, depth * 0.18), Vector3(front_segment_center, height * 0.5, depth * 0.41), wall_material, "BuildingFrontRightWall")
+		var lintel_height := maxf(height - 2.7, 0.1)
+		_box(group, Vector3(doorway_width, lintel_height, depth * 0.18), Vector3(0, height - lintel_height * 0.5, depth * 0.41), wall_material, "BuildingFrontLintelWall")
 		# Avoid a full-shell collision: reserve a doorway-sized opening at the front.
 		# The simplified exterior remains a facade blockout; collision walls are segmented.
 		_add_static_collision_box(group, Vector3(width, height, depth * 0.22), Vector3(0, height * 0.5, -depth * 0.39), "BuildingRearCollision")
 		_add_static_collision_box(group, Vector3(width * 0.18, height, depth * 0.76), Vector3(-width * 0.41, height * 0.5, depth * 0.12), "BuildingLeftCollision")
 		_add_static_collision_box(group, Vector3(width * 0.18, height, depth * 0.76), Vector3(width * 0.41, height * 0.5, depth * 0.12), "BuildingRightCollision")
-		# Front wall segments flank the doorway instead of sealing its opening.
-		_add_static_collision_box(group, Vector3(width * 0.18, height, depth * 0.18), Vector3(-width * 0.41, height * 0.5, depth * 0.41), "BuildingFrontLeftCollision")
-		_add_static_collision_box(group, Vector3(width * 0.18, height, depth * 0.18), Vector3(width * 0.41, height * 0.5, depth * 0.41), "BuildingFrontRightCollision")
+		# Match the collision aperture to the 2.4 m visible doorway.
+		_add_static_collision_box(group, Vector3(front_segment_width, height, depth * 0.18), Vector3(-front_segment_center, height * 0.5, depth * 0.41), "BuildingFrontLeftCollision")
+		_add_static_collision_box(group, Vector3(front_segment_width, height, depth * 0.18), Vector3(front_segment_center, height * 0.5, depth * 0.41), "BuildingFrontRightCollision")
 		# Layered roof silhouette and eaves break up the primitive rectangular outline.
 		_box(group, Vector3(width + 1.15, 0.32, depth + 1.15), Vector3(0, height + 0.12, 0), roof, "RoofEaves")
 		var roof_mesh := CylinderMesh.new()
