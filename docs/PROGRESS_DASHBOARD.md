@@ -43,6 +43,11 @@
 | Full 3D acceptance | NOT COMPLETE | Remove member-facing 2D/WebView only after feature parity |
 | Release readiness | CI CHECKS TRACKED ABOVE | Physical-device regression, security and release sign-off |
 
+## Latest implementation increment
+
+- Commit `79d2a354`: internal room creation entry point now independently trims/rejects invalid names and clamps capacity to 2–64, even if public/RPC validation is bypassed.
+- Commit `f95dbc40`: regression assertions added for internal validation, name trimming, and capacity clamping. CI is pending for these commits; do not claim tests passed until workflow results confirm.
+
 ## FAST TRACK execution
 
 - **Active workstream:** Room & Lobby foundation, then integrate the shortest end-to-end playable path.
