@@ -8,6 +8,7 @@ extends CharacterBody3D
 
 var _is_seated := false
 var _is_sprinting := false
+var _sprint_blend := 0.0
 func set_seated(value: bool) -> void:
 	_is_seated = value
 	if value:
@@ -69,8 +70,10 @@ func _physics_process(delta: float) -> void:
 	else:
 		direction = Vector3.ZERO
 	input_strength = minf(input_strength, direction_strength)
-	var current_speed := walk_speed * (1.5 if _is_sprinting and input_strength > 0.001 else 1.0)
-	var current_acceleration := acceleration * (1.35 if _is_sprinting else 1.0)
+	_sprint_blend = move_toward(_sprint_blend, 1.0 if _is_sprinting and input_strength > 0.001 else 0.0, delta * 3.2)
+	var sprint_multiplier := lerpf(1.0, 1.5, _sprint_blend)
+	var current_speed := walk_speed * sprint_multiplier
+	var current_acceleration := acceleration * lerpf(1.0, 1.35, _sprint_blend)
 	var target_velocity := direction * current_speed * input_strength
 	velocity.x = move_toward(velocity.x, target_velocity.x, current_acceleration * delta)
 	velocity.z = move_toward(velocity.z, target_velocity.z, current_acceleration * delta)
@@ -88,4 +91,4 @@ func _physics_process(delta: float) -> void:
 	var avatar := get_node_or_null("AvatarVisual")
 	if avatar != null and avatar.has_method("set_motion_strength"):
 		var horizontal_speed := Vector2(velocity.x, velocity.z).length()
-		avatar.set_motion_strength(clampf(horizontal_speed / maxf(walk_speed * 1.5, 0.01), 0.0, 1.0))
+		avatar.set_motion_strength(clampf(horizontal_speed / maxf(walk_speed * sprint_multiplier, 0.01), 0.0, 1.0))
