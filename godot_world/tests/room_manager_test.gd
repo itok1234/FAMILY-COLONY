@@ -25,6 +25,7 @@ func _run_room_manager_tests() -> void:
 		manager._join_or_create_lobby(peer_id)
 
 	_expect(manager._peer_room.size() == 5, "all connected peers must have a room assignment")
+	_expect(manager.get_room_snapshot().size() == 3, "host room snapshot API must expose live lobby shards even with offline transport")
 	_expect(manager._rooms.size() == 3, "five peers with capacity two must create three lobby shards")
 	_expect(manager._rooms.has("lobby"), "the primary lobby ID must remain canonical")
 	_expect(manager._rooms.has("lobby_2"), "the second lobby shard must use lobby_2")
