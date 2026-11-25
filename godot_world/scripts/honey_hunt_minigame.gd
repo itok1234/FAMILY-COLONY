@@ -530,7 +530,7 @@ func _add_royal_button(label_text: String, pos: Vector3, action: String, size: V
 func _unhandled_royal_game_input(event: InputEvent) -> void:
 	if not _royal_game_active or not is_instance_valid(_royal_game_hud):
 		return
-	var pressed := event is InputEventScreenTouch and event.pressed
+	var pressed: bool = event is InputEventScreenTouch and event.pressed
 	pressed = pressed or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
 	if not pressed:
 		return
