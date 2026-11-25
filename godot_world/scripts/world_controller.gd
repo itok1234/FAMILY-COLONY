@@ -189,7 +189,19 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 		_main_hub.developer_authenticated.connect(_on_developer_authenticated)
 		_main_hub.developer_center_action_requested.connect(_on_developer_center_action_requested)
 		_main_hub.settings_action_requested.connect(_on_hub_settings_action_requested)
+		_main_hub.room_action_requested.connect(_on_room_action_requested)
 		add_child(_main_hub)
+		var room_manager := get_node_or_null("RoomManager")
+		var multiplayer_manager := get_node_or_null("MultiplayerManager")
+		if room_manager != null:
+			room_manager.room_list_changed.connect(_on_room_list_changed)
+			room_manager.local_room_changed.connect(_on_local_room_changed)
+			room_manager.room_action_result.connect(_on_room_action_result)
+			_main_hub.call("set_room_network_state", "offline", "Siap untuk koneksi LAN.")
+			_main_hub.call("set_room_snapshot", room_manager.call("get_room_snapshot"))
+		if multiplayer_manager != null:
+			multiplayer_manager.connection_state_changed.connect(_on_room_network_state_changed)
+			_main_hub.call("set_room_network_state", str(multiplayer_manager.get("connection_state")), str(multiplayer_manager.get("connection_detail")))
 	if is_instance_valid(_gate_layer):
 		_gate_layer.queue_free()
 	_gate_layer = null
@@ -231,6 +243,46 @@ func _on_hub_destination_requested(destination_id: String) -> void:
 		player_camera.current = true
 	_build_world_exit_button()
 
+
+func _on_room_action_requested(action_id: String) -> void:
+	var room_manager := get_node_or_null("RoomManager")
+	var network := get_node_or_null("MultiplayerManager")
+	if room_manager == null or network == null:
+		return
+	if action_id == "host":
+		var result: Error = network.call("host_game")
+		if result == OK:
+			_on_room_action_result(true, "Host LAN aktif. Buat room untuk anggota.")
+		else:
+			_on_room_action_result(false, "Host LAN gagal dibuat. Kode: %s" % result)
+	elif action_id == "create":
+		var profile: Dictionary = _main_hub.get("_member_profile")
+		var member_name := str(profile.get("name", "Koloni"))
+		room_manager.call("create_room", ("Koloni " + member_name).left(32), 16)
+	elif action_id == "lobby":
+		room_manager.call("join_room", "lobby")
+	elif action_id == "leave":
+		room_manager.call("leave_room")
+	elif action_id == "disconnect":
+		network.call("leave_game")
+	elif action_id.begins_with("join:"):
+		room_manager.call("join_room", action_id.trim_prefix("join:"))
+
+func _on_room_list_changed(rooms: Array) -> void:
+	if is_instance_valid(_main_hub):
+		_main_hub.call("set_room_snapshot", rooms)
+
+func _on_local_room_changed(room_id: String, members: Array[int]) -> void:
+	if is_instance_valid(_main_hub):
+		_main_hub.call("set_current_room", room_id, members)
+
+func _on_room_action_result(ok: bool, message: String) -> void:
+	if is_instance_valid(_main_hub):
+		_main_hub.call("set_room_network_state", "aktif" if ok else "perlu tindakan", message)
+
+func _on_room_network_state_changed(state: String, detail: String) -> void:
+	if is_instance_valid(_main_hub):
+		_main_hub.call("set_room_network_state", state, detail)
 
 func _on_developer_authenticated(member: Dictionary, access_token: String, anon_key: String) -> void:
 	if str(member.get("role", "")).to_lower() != "developer" or str(member.get("username", "")).to_lower() != "edrick":
