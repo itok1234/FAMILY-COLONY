@@ -186,6 +186,8 @@ func _build_avatar() -> void:
 	_add_sphere(_head, "CheekRight", Vector3(0.125, -0.065, -0.165), Vector3(0.075, 0.06, 0.04), skin)
 	_add_sphere(_head, "LeftEar", Vector3(-0.222, -0.005, -0.005), Vector3(0.045, 0.075, 0.055), skin)
 	_add_sphere(_head, "RightEar", Vector3(0.222, -0.005, -0.005), Vector3(0.045, 0.075, 0.055), skin)
+	_add_sphere(_head, "LeftEarInner", Vector3(-0.226, -0.005, -0.035), Vector3(0.018, 0.042, 0.026), lip)
+	_add_sphere(_head, "RightEarInner", Vector3(0.226, -0.005, -0.035), Vector3(0.018, 0.042, 0.026), lip)
 	_add_sphere(_head, "LeftEyeWhite", Vector3(-0.078, 0.025, -0.195), Vector3(0.035, 0.03, 0.018), eye_white)
 	_add_sphere(_head, "RightEyeWhite", Vector3(0.078, 0.025, -0.195), Vector3(0.035, 0.03, 0.018), eye_white)
 	_left_eye = _add_sphere(_head, "LeftEye", Vector3(-0.078, 0.025, -0.213), Vector3(0.014, 0.021, 0.009), eyes)
@@ -235,6 +237,10 @@ func _build_avatar() -> void:
 	_add_box(_right_leg, "ShoeSole", Vector3(0, -0.445, -0.07), Vector3(0.27, 0.055, 0.40), trim)
 	_add_box(_left_leg, "Shoe", Vector3(0, -0.38, -0.07), Vector3(0.25, 0.13, 0.38), shoes)
 	_add_box(_right_leg, "Shoe", Vector3(0, -0.38, -0.07), Vector3(0.25, 0.13, 0.38), shoes)
+	for lace_index in range(3):
+		var lace_y := -0.34 - float(lace_index) * 0.035
+		_add_box(_left_leg, "LeftLace_%d" % lace_index, Vector3(0, lace_y, -0.255), Vector3(0.12, 0.018, 0.018), trim)
+		_add_box(_right_leg, "RightLace_%d" % lace_index, Vector3(0, lace_y, -0.255), Vector3(0.12, 0.018, 0.018), trim)
 
 func _make_limb(node_name: String, at: Vector3, mat: Material, radius: float, height: float) -> Node3D:
 	var pivot := Node3D.new()
