@@ -194,13 +194,17 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 		var room_manager := get_node_or_null("RoomManager")
 		var multiplayer_manager := get_node_or_null("MultiplayerManager")
 		if room_manager != null:
-			room_manager.room_list_changed.connect(_on_room_list_changed)
-			room_manager.local_room_changed.connect(_on_local_room_changed)
-			room_manager.room_action_result.connect(_on_room_action_result)
+			if not room_manager.room_list_changed.is_connected(_on_room_list_changed):
+				room_manager.room_list_changed.connect(_on_room_list_changed)
+			if not room_manager.local_room_changed.is_connected(_on_local_room_changed):
+				room_manager.local_room_changed.connect(_on_local_room_changed)
+			if not room_manager.room_action_result.is_connected(_on_room_action_result):
+				room_manager.room_action_result.connect(_on_room_action_result)
 			_main_hub.call("set_room_network_state", "offline", "Siap untuk koneksi LAN.")
 			_main_hub.call("set_room_snapshot", room_manager.call("get_room_snapshot"))
 		if multiplayer_manager != null:
-			multiplayer_manager.connection_state_changed.connect(_on_room_network_state_changed)
+			if not multiplayer_manager.connection_state_changed.is_connected(_on_room_network_state_changed):
+				multiplayer_manager.connection_state_changed.connect(_on_room_network_state_changed)
 			_main_hub.call("set_room_network_state", str(multiplayer_manager.get("connection_state")), str(multiplayer_manager.get("connection_detail")))
 	if is_instance_valid(_gate_layer):
 		_gate_layer.queue_free()
