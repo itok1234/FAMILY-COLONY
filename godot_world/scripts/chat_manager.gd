@@ -65,10 +65,21 @@ func get_recent_messages() -> Array[Dictionary]:
 	return _history.duplicate(true)
 
 
+func _is_safe_chat_text(text_value: String) -> bool:
+	for character in text_value:
+		var codepoint := character.unicode_at(0)
+		if codepoint < 32 or codepoint == 127:
+			return false
+	return true
+
+
 func send_message(raw_text: String) -> bool:
 	var clean_text := raw_text.strip_edges()
 	if clean_text.is_empty():
 		chat_error.emit("Pesan tidak boleh kosong.")
+		return false
+	if not _is_safe_chat_text(clean_text):
+		chat_error.emit("Pesan tidak boleh berisi karakter kontrol.")
 		return false
 	if clean_text.length() > max_message_characters:
 		chat_error.emit("Pesan maksimal %d karakter." % max_message_characters)
@@ -183,6 +194,9 @@ func _rpc_submit_message(raw_text: String) -> void:
 	if clean_text.is_empty():
 		_reject_sender(sender_id, "Pesan tidak boleh kosong.")
 		return
+	if not _is_safe_chat_text(clean_text):
+		_reject_sender(sender_id, "Pesan tidak boleh berisi karakter kontrol.")
+		return
 	_accept_message(sender_id, clean_text)
 
 
@@ -190,7 +204,7 @@ func _rpc_submit_message(raw_text: String) -> void:
 func _rpc_receive_message(message: Dictionary) -> void:
 	var text_value := str(message.get("text", ""))
 	var message_room_id := str(message.get("room_id", ""))
-	if text_value.strip_edges().is_empty() or text_value.length() > max_message_characters:
+	if text_value.strip_edges().is_empty() or text_value.length() > max_message_characters or not _is_safe_chat_text(text_value):
 		return
 	if message_room_id.is_empty() or message_room_id != _current_room_id:
 		return
