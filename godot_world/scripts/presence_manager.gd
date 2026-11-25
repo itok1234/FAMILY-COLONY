@@ -86,6 +86,26 @@ func _on_peer_roster_changed(peer_ids: Array[int]) -> void:
 	_broadcast_room_snapshots()
 
 
+func _sanitize_presence_snapshot(snapshot: Array) -> Array:
+	var clean: Array = []
+	var seen_peer_ids: Dictionary = {}
+	for entry_variant in snapshot:
+		if clean.size() >= 64:
+			break
+		if not (entry_variant is Dictionary):
+			continue
+		var entry: Dictionary = entry_variant
+		var peer_id_variant = entry.get("peer_id", null)
+		if not (peer_id_variant is int):
+			continue
+		var peer_id := int(peer_id_variant)
+		if peer_id <= 1 or seen_peer_ids.has(peer_id) or str(entry.get("state", "")) != "online":
+			continue
+		seen_peer_ids[peer_id] = true
+		clean.append({"peer_id": peer_id, "state": "online"})
+	return clean
+
+
 func _snapshot_for_room(room_id: String) -> Array:
 	var result: Array = []
 	if room_id.is_empty() or _rooms == null or not multiplayer.is_server():
@@ -143,5 +163,5 @@ func _rpc_request_presence_snapshot() -> void:
 func _rpc_receive_presence_snapshot(room_id: String, snapshot: Array) -> void:
 	if room_id != _current_room_id:
 		return
-	_current_presence_snapshot = snapshot.duplicate(true)
+	_current_presence_snapshot = _sanitize_presence_snapshot(snapshot)
 	presence_snapshot_changed.emit(_current_presence_snapshot.duplicate(true))
