@@ -52,7 +52,11 @@ func _run() -> void:
 	_expect(game_actions.has("game:royal_murder_mystery"), "Royal Murder Mystery entry missing")
 	_expect(game_actions.has("game:royal_dice"), "Royal Dice entry missing")
 	_expect(not game_actions.has("game:honey_hunt"), "legacy Honey Hunt must not appear in Game Center")
+	if is_instance_valid(hub.get_node_or_null("SpatialFeaturePanel")):
+		hub.get_node("SpatialFeaturePanel").queue_free()
+	await process_frame
 	hub.call("_open_destination_panel", "chat")
+	await process_frame
 	await process_frame
 	_expect(hub.get_node_or_null("SpatialFeaturePanel") != null, "chat panel should be created in 3D")
 	var room_data := [
