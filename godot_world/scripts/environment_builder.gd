@@ -491,6 +491,10 @@ func _build_benches() -> void:
 		var x: float = -11.0 if z < 0.0 else 11.0
 		_box(self, Vector3(2.2, 0.16, 0.65), Vector3(x, 0.15, z), wood, "BenchSeat")
 		_box(self, Vector3(2.2, 0.72, 0.14), Vector3(x, 0.55, z - 0.24), wood, "BenchBack")
+		# Separate horizontal backrest slats layer visual detail over the structural panel.
+		for slat_index in range(3):
+			var slat_y := 0.34 + float(slat_index) * 0.22
+			_box(self, Vector3(2.02, 0.045, 0.035), Vector3(x, slat_y, z - 0.33), wood, "BenchBackSlat")
 		_box(self, Vector3(0.12, 0.48, 0.75), Vector3(x - 0.8, -0.05, z), metal, "BenchLeg")
 		_box(self, Vector3(0.12, 0.48, 0.75), Vector3(x + 0.8, -0.05, z), metal, "BenchLeg")
 		# Bench armrests and small decorative end caps make outdoor seating feel authored.
