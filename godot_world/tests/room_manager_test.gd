@@ -27,7 +27,7 @@ func _run_room_manager_tests() -> void:
 		if not ok:
 			invalid_name_rejected = true
 	)
-	manager.create_room("Bad\\nRoom", 2)
+	manager.create_room("Bad\nRoom", 2)
 	_expect(invalid_name_rejected, "room names containing control characters must be rejected")
 
 	# Five connected peers at capacity two must be assigned exactly once
