@@ -58,7 +58,7 @@ jobs:
               const label = run ? `[${state}](${run.html_url})` : state;
               const sha = run ? run.head_sha.slice(0, 7) : "—";
               return `| ${item.name} | ${label} | ${sha} |`;
-            }).join("\\n");
+            }).join("\n");
             const head = context.sha;
             const now = new Date().toISOString();
             const body = `# FAMILY COLONY — Live Progress Dashboard
@@ -104,7 +104,7 @@ jobs:
             - A workflow result applies only to the commit shown in its row.
             - "Implemented slice" does not mean the entire feature or application is complete.
             - A release APK build is not equivalent to physical-device acceptance or final product sign-off.
-            `;
+            `.replace(/^            /gm, "");
             const content = Buffer.from(body).toString("base64");
             let sha;
             try {
