@@ -181,6 +181,8 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 			chat_root.visible = false
 	_main_hub = MAIN_HUB_SCENE.instantiate() as Node3D
 	if _main_hub != null:
+		_main_hub.call("set_member_profile", _member)
+	if _main_hub != null:
 		_main_hub.name = "MainHub3D"
 		_main_hub.destination_requested.connect(_on_hub_destination_requested)
 		_main_hub.minigame_requested.connect(_on_hub_minigame_requested)
