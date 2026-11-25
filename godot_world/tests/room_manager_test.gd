@@ -109,6 +109,13 @@ func _run_room_manager_tests() -> void:
 			custom_room_count_after_rejection += 1
 	_expect(custom_room_count_after_rejection == RoomManagerScript.MAX_ACTIVE_ROOMS, "the 65th custom room must be rejected")
 
+	# Host-local creation must also respect the five-second cooldown.
+	manager._rooms.clear()
+	manager._peer_room.clear()
+	manager._last_room_create_at[1] = Time.get_ticks_msec() / 1000.0
+	manager._create_room_for_peer(1, "Cooldown Test", 2)
+	_expect(manager._rooms.is_empty(), "host-local room creation must respect the cooldown")
+
 	if failures == 0:
 		print("ROOM_MANAGER_TEST: PASS — lobby sharding, capacity, unique membership, cleanup, rejoin and client snapshot cache")
 	else:
