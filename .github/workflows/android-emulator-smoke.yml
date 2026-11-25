@@ -60,9 +60,8 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           script: |
             # Maven Central can transiently throttle CI (HTTP 429); retry the instrumented test.
-            attempt=1
             test_result=1
-            while [ "$attempt" -le 3 ]; do
+            for attempt in 1 2 3; do
               if gradle --no-daemon -PfcEmulatorX86_64 connectedDebugAndroidTest --stacktrace; then
                 test_result=0
                 break
@@ -70,8 +69,7 @@ jobs:
                 test_result=$?
                 echo "::warning::Android smoke test attempt $attempt failed (exit $test_result); retrying."
                 adb logcat -d > "$RUNNER_TEMP/family-colony-emulator-logcat.txt" || true
-                attempt=$((attempt + 1))
-                if [ "$attempt" -le 3 ]; then sleep 12; fi
+                if [ "$attempt" -lt 3 ]; then sleep 12; fi
               fi
             done
             adb logcat -d > "$RUNNER_TEMP/family-colony-emulator-logcat.txt"
