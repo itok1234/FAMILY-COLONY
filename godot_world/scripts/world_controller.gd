@@ -9,9 +9,9 @@ const MAIN_HUB_SCENE: PackedScene = preload("res://scenes/main_hub_3d.tscn")
 @onready var session_client: Node = get_node_or_null("WorldSessionClient")
 
 var _android_session_required := false
-var _gate_layer: CanvasLayer
-var _gate_status: Label
-var _world_exit_layer: CanvasLayer
+var _gate_layer: Node3D
+var _gate_status: Label3D
+var _world_exit_layer: Node3D
 var _is_exiting := false
 var _main_hub: Node3D
 
@@ -46,57 +46,104 @@ func _ready() -> void:
 		_set_gate_status("Memverifikasi akun FAMILY COLONY...")
 
 
+func _process(_delta: float) -> void:
+	if is_instance_valid(_world_exit_layer) and player != null:
+		var forward := -player.global_transform.basis.z
+		_world_exit_layer.global_position = player.global_position + Vector3.UP * 1.8 + forward * 2.6
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _android_session_required and event.is_action_pressed("ui_cancel"):
 		_return_to_app()
 		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventScreenTouch and event.pressed:
+		_pick_spatial_action(event.position)
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_pick_spatial_action(event.position)
+
+
+func _pick_spatial_action(screen_position: Vector2) -> void:
+	var camera := get_viewport().get_camera_3d()
+	if camera == null:
+		return
+	var origin := camera.project_ray_origin(screen_position)
+	var direction := camera.project_ray_normal(screen_position)
+	var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * 30.0)
+	query.collide_with_areas = true
+	query.collision_mask = 8
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return
+	var collider: Object = hit.get("collider")
+	if collider is Area3D and collider.has_meta("return_to_app"):
+		_return_to_app()
 
 
 func _build_session_gate() -> void:
-	_gate_layer = CanvasLayer.new()
-	_gate_layer.name = "SessionVerificationGate"
-	_gate_layer.layer = 60
+	# Session status and return action are spatial 3D objects, not a flat overlay.
+	_gate_layer = Node3D.new()
+	_gate_layer.name = "SpatialSessionVerificationGate"
+	_gate_layer.position = Vector3(0, 3.0, -4.0)
 	add_child(_gate_layer)
-
-	var shade := ColorRect.new()
-	shade.color = Color(0.025, 0.045, 0.075, 0.94)
-	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
-	shade.mouse_filter = Control.MOUSE_FILTER_STOP
-	_gate_layer.add_child(shade)
-
-	var panel := PanelContainer.new()
-	panel.anchor_left = 0.08
-	panel.anchor_right = 0.92
-	panel.anchor_top = 0.36
-	panel.anchor_bottom = 0.64
-	panel.offset_left = 0
-	panel.offset_right = 0
-	panel.offset_top = 0
-	panel.offset_bottom = 0
-	_gate_layer.add_child(panel)
-
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 16)
-	panel.add_child(column)
-
-	var title := Label.new()
+	var backing := MeshInstance3D.new()
+	var panel_mesh := BoxMesh.new()
+	panel_mesh.size = Vector3(5.2, 2.8, 0.16)
+	backing.mesh = panel_mesh
+	var panel_material := StandardMaterial3D.new()
+	panel_material.albedo_color = Color(0.025, 0.06, 0.11, 0.94)
+	panel_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	panel_material.metallic = 0.28
+	panel_material.roughness = 0.3
+	panel_material.emission_enabled = true
+	panel_material.emission = Color("#1d526e")
+	panel_material.emission_energy_multiplier = 0.25
+	backing.material_override = panel_material
+	_gate_layer.add_child(backing)
+	var title := Label3D.new()
 	title.text = "FAMILY COLONY"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 22)
-	column.add_child(title)
-
-	_gate_status = Label.new()
-	_gate_status.text = "Memverifikasi akun..."
-	_gate_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.font_size = 48
+	title.pixel_size = 0.004
+	title.position = Vector3(0, 0.82, -0.11)
+	title.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	title.modulate = Color("#f3d99a")
+	_gate_layer.add_child(title)
+	_gate_status = Label3D.new()
+	_gate_status.text = "Memverifikasi akun anggota..."
+	_gate_status.font_size = 23
+	_gate_status.pixel_size = 0.004
+	_gate_status.position = Vector3(0, 0.12, -0.11)
+	_gate_status.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_gate_status.modulate = Color("#e5edf4")
 	_gate_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_gate_status.add_theme_font_size_override("font_size", 16)
-	column.add_child(_gate_status)
-
-	var exit_button := Button.new()
-	exit_button.text = "KEMBALI KE APLIKASI"
-	exit_button.custom_minimum_size = Vector2(0, 48)
-	exit_button.pressed.connect(_return_to_app)
-	column.add_child(exit_button)
+	_gate_layer.add_child(_gate_status)
+	var return_area := Area3D.new()
+	return_area.name = "ReturnToAppSpatialAction"
+	return_area.position = Vector3(0, -0.82, -0.18)
+	return_area.input_ray_pickable = true
+	return_area.collision_layer = 8
+	return_area.collision_mask = 0
+	return_area.set_meta("return_to_app", true)
+	var return_collision := CollisionShape3D.new()
+	var return_shape := BoxShape3D.new()
+	return_shape.size = Vector3(2.6, 0.55, 0.4)
+	return_collision.shape = return_shape
+	return_area.add_child(return_collision)
+	var return_mesh := MeshInstance3D.new()
+	var return_box := BoxMesh.new()
+	return_box.size = Vector3(2.55, 0.5, 0.2)
+	return_mesh.mesh = return_box
+	return_mesh.material_override = _spatial_material(Color("#a77a36"))
+	return_area.add_child(return_mesh)
+	var return_label := Label3D.new()
+	return_label.text = "KEMBALI KE APLIKASI"
+	return_label.font_size = 20
+	return_label.pixel_size = 0.004
+	return_label.position.z = -0.13
+	return_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	return_label.modulate = Color("#ffffff")
+	return_area.add_child(return_label)
+	_gate_layer.add_child(return_area)
 
 
 func _set_gate_status(message: String) -> void:
@@ -155,26 +202,47 @@ func _on_session_rejected(error_code: String) -> void:
 func _build_world_exit_button() -> void:
 	if is_instance_valid(_world_exit_layer):
 		return
-	_world_exit_layer = CanvasLayer.new()
-	_world_exit_layer.name = "WorldExitHUD"
-	_world_exit_layer.layer = 30
+	_world_exit_layer = Node3D.new()
+	_world_exit_layer.name = "SpatialWorldExitAction"
+	var action := Area3D.new()
+	action.name = "ReturnToAppSpatialAction"
+	action.input_ray_pickable = true
+	action.collision_layer = 8
+	action.collision_mask = 0
+	action.set_meta("return_to_app", true)
+	var collision := CollisionShape3D.new()
+	var shape := SphereShape3D.new()
+	shape.radius = 0.85
+	collision.shape = shape
+	action.add_child(collision)
+	var orb := MeshInstance3D.new()
+	var orb_mesh := SphereMesh.new()
+	orb_mesh.radius = 0.72
+	orb_mesh.height = 1.44
+	orb.mesh = orb_mesh
+	orb.material_override = _spatial_material(Color("#b58a45"))
+	action.add_child(orb)
+	var label := Label3D.new()
+	label.text = "KEMBALI"
+	label.font_size = 22
+	label.pixel_size = 0.004
+	label.position.y = 0.95
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.modulate = Color("#fff1cc")
+	action.add_child(label)
+	_world_exit_layer.add_child(action)
 	add_child(_world_exit_layer)
 
-	var exit_button := Button.new()
-	exit_button.name = "ReturnToAppButton"
-	exit_button.text = "KEMBALI"
-	exit_button.anchor_left = 0.77
-	exit_button.anchor_right = 0.96
-	exit_button.anchor_top = 0.035
-	exit_button.anchor_bottom = 0.105
-	exit_button.offset_left = 0
-	exit_button.offset_right = 0
-	exit_button.offset_top = 0
-	exit_button.offset_bottom = 0
-	exit_button.custom_minimum_size = Vector2(100, 44)
-	exit_button.add_theme_font_size_override("font_size", 14)
-	exit_button.pressed.connect(_return_to_app)
-	_world_exit_layer.add_child(exit_button)
+
+func _spatial_material(color: Color) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.metallic = 0.25
+	material.roughness = 0.32
+	material.emission_enabled = true
+	material.emission = color.darkened(0.28)
+	material.emission_energy_multiplier = 0.22
+	return material
 
 
 func _set_player_enabled(enabled: bool) -> void:
