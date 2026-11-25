@@ -178,6 +178,11 @@ func _create_room_for_peer(peer_id: int, room_name: String, capacity: int) -> vo
 		return
 	_last_room_create_at[peer_id] = now
 	var room_id := "room_%d_%d" % [peer_id, Time.get_ticks_msec()]
+	# Avoid ID collisions when repeated creation happens in the same millisecond.
+	var suffix := 1
+	while _rooms.has(room_id):
+		room_id = "room_%d_%d_%d" % [peer_id, Time.get_ticks_msec(), suffix]
+		suffix += 1
 	_rooms[room_id] = {"name": room_name, "capacity": capacity, "members": []}
 	_join_room_for_peer(peer_id, room_id)
 	_broadcast_room_state()
