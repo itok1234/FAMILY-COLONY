@@ -161,3 +161,8 @@ Do not label the product fully 3D until:
 - The hub displays LAN connection state, room action results and the current room identifier in Label3D.
 - Important limitation: this is still LAN ENet only. There is no public internet room discovery, NAT traversal, cloud authoritative server, cross-network chat or invite delivery. A client must first connect to a host's reachable LAN address through the transport API; the new panel does not yet provide host-address entry or internet matchmaking.
 - The current implementation has not yet passed the workflows triggered by these commits or physical-device multiplayer testing. The full 3D acceptance gate remains open.
+
+
+## Camera handoff correction for spatial chat (2026-11-25)
+- Corrected the camera reparent handoff for the 3D chat root: its local transform is reset to identity when moving between the hub camera and player camera. This keeps the chat controls in front of the currently active camera instead of preserving the previous camera's world-space position.
+- The correction is source-level and must still pass the latest Godot/Android workflows and hands-on touch testing.
