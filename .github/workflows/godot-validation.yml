@@ -117,6 +117,21 @@ jobs:
             exit 1
           fi
 
+      - name: Run procedural avatar regression test
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          timeout 90s godot --headless --path godot_world --script res://tests/avatar_3d_test.gd 2>&1 | tee "$log_file"
+          if ! grep -F "AVATAR_3D_TEST: PASS" "$log_file"; then
+            echo "::error::Procedural avatar regression tests did not pass."
+            exit 1
+          fi
+          if grep -E "SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script" "$log_file"; then
+            echo "::error::Godot reported script or resource errors during avatar tests."
+            exit 1
+          fi
+
       - name: Run world startup smoke test
         shell: bash
         run: |
