@@ -187,6 +187,7 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 		_main_hub.destination_requested.connect(_on_hub_destination_requested)
 		_main_hub.minigame_requested.connect(_on_hub_minigame_requested)
 		_main_hub.developer_authenticated.connect(_on_developer_authenticated)
+		_main_hub.settings_action_requested.connect(_on_hub_settings_action_requested)
 		add_child(_main_hub)
 	if is_instance_valid(_gate_layer):
 		_gate_layer.queue_free()
@@ -230,6 +231,16 @@ func _on_developer_authenticated(member: Dictionary, access_token: String, _refr
 		_developer_verification_pending = false
 		if is_instance_valid(_main_hub):
 			_main_hub.call("set_developer_status", "Verifikasi akses dunia gagal dimulai. Coba lagi.")
+
+
+func _on_hub_settings_action_requested(action_id: String) -> void:
+	var settings := get_node_or_null("AudioStudioSettings")
+	if settings == null:
+		return
+	if action_id == "audio" and settings.has_method("open_settings_panel"):
+		settings.call("open_settings_panel")
+	elif action_id == "credits" and settings.has_method("open_credits_panel"):
+		settings.call("open_credits_panel")
 
 
 func _on_hub_minigame_requested(game_id: String) -> void:
