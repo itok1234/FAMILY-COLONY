@@ -270,8 +270,8 @@ func _build_avatar() -> void:
 	wing_vein_material.emission_energy_multiplier = 0.22
 	for wing_side in [-1.0, 1.0]:
 		for vein_index in range(3):
-			var vein_y := 1.31 + float(vein_index - 1) * 0.17
-			var vein_x := wing_side * (0.29 + float(vein_index) * 0.035)
+			var vein_y: float = 1.31 + float(vein_index - 1) * 0.17
+			var vein_x: float = wing_side * (0.29 + float(vein_index) * 0.035)
 			var vein := _add_capsule(self, "WingVein_%s_%d" % [str(wing_side), vein_index], Vector3(vein_x, vein_y, 0.19), 0.012, 0.32, wing_vein_material)
 			vein.rotation.z = wing_side * (0.25 + float(vein_index) * 0.12)
 	_name_label = Label3D.new()
