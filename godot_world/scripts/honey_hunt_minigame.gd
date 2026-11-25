@@ -31,7 +31,7 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_instance_valid(_player) or not is_instance_valid(_hud) or not _hud.visible:
 		return
-	var pressed := event is InputEventScreenTouch and event.pressed
+	var pressed: bool = event is InputEventScreenTouch and event.pressed
 	pressed = pressed or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
 	if not pressed:
 		return
