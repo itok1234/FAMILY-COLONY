@@ -17,6 +17,7 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
 		_dragging_mouse = false
 		_active_touch = -1
+		_touch_drag_started = false
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
@@ -26,9 +27,9 @@ func _input(event: InputEvent) -> void:
 		_apply_look(event.position - _last_position)
 		_last_position = event.position
 	elif event is InputEventScreenTouch:
-		var viewport_size := get_viewport().get_visible_rect().size
+		var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 		# Reserve the bottom-right area for the sprint button; do not start orbit there.
-		var sprint_zone := event.position.x >= viewport_size.x * 0.68 and event.position.y >= viewport_size.y * 0.48
+		var sprint_zone: bool = event.position.x >= viewport_size.x * 0.68 and event.position.y >= viewport_size.y * 0.48
 		if event.pressed and _active_touch == -1 and not sprint_zone and event.position.x >= viewport_size.x * touch_right_zone:
 			_active_touch = event.index
 			_last_position = event.position
@@ -37,7 +38,7 @@ func _input(event: InputEvent) -> void:
 			_active_touch = -1
 			_touch_drag_started = false
 	elif event is InputEventScreenDrag and event.index == _active_touch:
-		var drag_delta := event.position - _last_position
+		var drag_delta: Vector2 = event.position - _last_position
 		if not _touch_drag_started and drag_delta.length() >= touch_drag_deadzone_px:
 			_touch_drag_started = true
 		if _touch_drag_started:
