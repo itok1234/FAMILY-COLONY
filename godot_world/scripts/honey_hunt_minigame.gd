@@ -29,6 +29,9 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _royal_game_active:
+		_unhandled_royal_game_input(event)
+		return
 	if not is_instance_valid(_player) or not is_instance_valid(_hud) or not _hud.visible:
 		return
 	var pressed: bool = event is InputEventScreenTouch and event.pressed
@@ -53,6 +56,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
+	if _royal_game_active:
+		if _royal_game_id == "guess_who" and not _royal_game_state.is_empty():
+			_royal_game_state.seconds = maxf(0.0, float(_royal_game_state.seconds) - delta)
+			if _royal_game_state.seconds <= 0.0:
+				_royal_game_state.wrong += 1
+				_guess_who_next()
+		return
 	if not _active or not is_instance_valid(_player):
 		return
 	_time_left = maxf(0.0, _time_left - delta)
