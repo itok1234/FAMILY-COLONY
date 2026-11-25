@@ -3,14 +3,14 @@
 > Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Latest source commit:** [`7b818d7`](https://github.com/itok1234/FAMILY-COLONY/commit/7b818d7d8012ee48247f2cd21969f281c78629eb)  
-> **Dashboard refreshed:** 2026-11-25T05:15:01.786Z
+> **Latest source commit:** [`a9db50a`](https://github.com/itok1234/FAMILY-COLONY/commit/a9db50a19841193d8596088e417b62894519ff9d)  
+> **Dashboard refreshed:** 2026-11-25T05:32:51.507Z
 
 ## FAST TRACK mode — ACTIVE
 
 - Deliver a complete playable 3D MVP first; preserve the agreed bright, readable 3D visual standard.
 - Defer non-core polish and advanced administration; do not defer core gameplay, safe authentication, or visible 3D environments.
-- Current active workstream: Room & Lobby + room-chat input safety, then the shortest end-to-end playable path.
+- Current active workstream: Room & Lobby foundation, then the shortest end-to-end playable path.
 - Current multiplayer foundation is LAN ENet and in-memory rooms; do not label it cloud-authoritative.
 
 ## Overall progress baseline
@@ -23,9 +23,9 @@
 | Check | Latest branch result | Commit tested |
 |---|---|---|
 | Validate FAMILY COLONY 3D World | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45552231099) | 7b818d7 |
-| Validate FAMILY COLONY Android Build | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45552231147) | 7b818d7 |
-| FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45552231171) | 7b818d7 |
-| Build FAMILY COLONY Signed Release APK | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45552209086) | d2d6ba7 |
+| Validate FAMILY COLONY Android Build | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45552231147) | 7b818d7 |
+| FAMILY COLONY Embedded Godot Android Smoke Test | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45552231171) | 7b818d7 |
+| Build FAMILY COLONY Signed Release APK | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45552231193) | 7b818d7 |
 
 ## Implementation status
 
@@ -34,7 +34,6 @@
 | Native 3D hub and world entry | IMPLEMENTED SLICE | Full app flow and feature parity |
 | Avatar profile and wardrobe | IMPLEMENTED SLICE | Cloud persistence and device UX |
 | Room-scoped avatar appearance sync | IMPLEMENTED SLICE — CI PASSED | Multi-device real-world test and persistence |
-| Room chat input validation | IMPLEMENTATION UPDATED — rejects control characters on client, server submission and received messages | CI regression and device usability test |
 | Room & Lobby (active group 1) | 65% provisional — lobby sharding, capacity/cooldown controls and client room-snapshot cache; automated regression suite included in the Godot validation check above | Multi-device lifecycle, invitation/transition UI verification and cloud persistence |
 | Room management | LAN host-authoritative in-memory rooms; 64 custom-room cap; least-populated lobby shards; client snapshot cache | Cloud persistence and physical multi-device acceptance |
 | Member login and session | LEGACY WEBVIEW FLOW PRESERVED | Port login, refresh, logout and recovery to spatial 3D |
