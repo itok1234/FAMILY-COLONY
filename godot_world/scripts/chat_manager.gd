@@ -66,6 +66,9 @@ func get_recent_messages() -> Array[Dictionary]:
 
 
 func _is_safe_chat_text(text_value: String) -> bool:
+	# Explicit NUL check: Godot String iteration may omit embedded NUL bytes.
+	if text_value.contains(char(0)):
+		return false
 	for character in text_value:
 		var codepoint := character.unicode_at(0)
 		if codepoint < 32 or codepoint == 127:
