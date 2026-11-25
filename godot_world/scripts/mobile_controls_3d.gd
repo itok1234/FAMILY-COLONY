@@ -94,6 +94,8 @@ func _build_spatial_controls() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if not visible:
+		return
 	var viewport_size := get_viewport().get_visible_rect().size
 	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
 		return
