@@ -140,7 +140,7 @@ func _build_avatar() -> void:
 	_add_sphere(self, "UpperTorso", Vector3(0, 1.34, 0), Vector3(0.30, 0.27, 0.22), shirt)
 	_add_capsule(self, "Torso", Vector3(0, 1.12, 0), 0.28, 0.82, shirt)
 	_add_sphere(self, "HipShape", Vector3(0, 0.78, 0), Vector3(0.265, 0.19, 0.205), trousers)
-	# Layered clothing details keep the procedural preview readable at mobile distance.
+	# Compact 3D backpack accessory adds a distinct silhouette and layered geometry.\n	var backpack_mat := _material(Color("#526b78"), 0.78)\n	var backpack_trim := _material(Color("#c5a86a"), 0.55)\n	_add_box(self, "BackpackBody", Vector3(0, 1.23, 0.245), Vector3(0.34, 0.48, 0.19), backpack_mat)\n	_add_box(self, "BackpackTopFlap", Vector3(0, 1.49, 0.235), Vector3(0.31, 0.12, 0.22), backpack_trim)\n	_add_box(self, "BackpackPocket", Vector3(0, 1.12, 0.35), Vector3(0.24, 0.16, 0.07), backpack_mat)\n	_add_box(self, "BackpackLeftStrap", Vector3(-0.17, 1.42, 0.09), Vector3(0.065, 0.46, 0.055), backpack_trim)\n	_add_box(self, "BackpackRightStrap", Vector3(0.17, 1.42, 0.09), Vector3(0.065, 0.46, 0.055), backpack_trim)\n	# Layered clothing details keep the procedural preview readable at mobile distance.
 	var trim := _material(Color(0.78, 0.67, 0.43), 0.52)
 	_add_box(self, "CollarFront", Vector3(0, 1.48, -0.245), Vector3(0.22, 0.075, 0.045), trim)
 	_add_box(self, "ShirtPlacket", Vector3(0, 1.16, -0.286), Vector3(0.035, 0.48, 0.025), trim)
