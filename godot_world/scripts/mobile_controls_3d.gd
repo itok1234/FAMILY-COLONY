@@ -93,6 +93,14 @@ func _build_spatial_controls() -> void:
 	sprint.add_child(_sprint_label)
 
 
+func _notification(what: int) -> void:
+	# Clear held touch state if Android suspends the app or focus is interrupted.
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
+		_reset_move()
+		_sprint_touch = -1
+		_set_sprinting(false)
+
+
 func _input(event: InputEvent) -> void:
 	if not visible:
 		return
