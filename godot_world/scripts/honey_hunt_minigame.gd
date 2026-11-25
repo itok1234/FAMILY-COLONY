@@ -372,6 +372,11 @@ func start_royal_game(game_id: String, actor: Node) -> String:
 		return "Karakter tidak dapat mengikuti permainan."
 	if not ["guess_who", "royal_bomb", "royal_murder_mystery", "royal_dice"].has(game_id):
 		return "Mini-game tidak dikenal."
+	# Validate the camera/HUD anchor before mutating player state or teleporting.
+	# This prevents a missing camera node from leaving a frozen player in the arena.
+	var actor_camera := actor.get_node_or_null("CameraPivot/Camera3D") as Camera3D
+	if actor_camera == null:
+		return "Kamera karakter tidak ditemukan. Mini-game tidak dapat dimulai."
 	if _active or _royal_game_active:
 		return "Selesaikan permainan yang sedang aktif terlebih dahulu."
 	if not _royal_game_id.is_empty():
