@@ -335,6 +335,31 @@ Deno.serve(async req => {
       return json({ ok: true, username: member.username, activation_code: code, expires_in_hours: 24 });
     }
 
+    if (action === "member_registration_apply") {
+      const applicantName = String(body.applicant_name || "").trim();
+      const username = String(body.desired_username || "").trim().replace(/^@/, "").toLowerCase();
+      const contact = String(body.contact || "").trim();
+      const reason = String(body.reason || "").trim();
+      if (applicantName.length < 2 || applicantName.length > 60 ||
+          !/^[a-z0-9_]{3,24}$/.test(username) || contact.length < 3 || contact.length > 100 ||
+          reason.length < 10 || reason.length > 500) {
+        return json({ error: "registration_input_invalid" }, 400);
+      }
+      const { data: existingMember, error: memberCheckError } = await admin.from("fc_members")
+        .select("member_id").ilike("username", username).limit(1);
+      if (memberCheckError) return json({ error: "registration_check_failed" }, 500);
+      if (existingMember?.length) return json({ error: "username_already_exists" }, 409);
+      const { data: existingRequest, error: requestCheckError } = await admin.from("fc_member_registration_applications")
+        .select("id").ilike("desired_username", username).in("status", ["pending", "reviewing"]).limit(1);
+      if (requestCheckError) return json({ error: "registration_check_failed" }, 500);
+      if (existingRequest?.length) return json({ error: "username_registration_pending" }, 409);
+      const { data: application, error: insertError } = await admin.from("fc_member_registration_applications")
+        .insert({ applicant_name: applicantName, desired_username: username, contact, reason, status: "pending" })
+        .select("id").single();
+      if (insertError || !application) return json({ error: "registration_submit_failed" }, 500);
+      return json({ ok: true, application_id: application.id, status: "pending" });
+    }
+
     if (action === "login") {
       const username = String(body.username || "").trim().replace(/^@/, "").toLowerCase();
       const password = String(body.password || "");
