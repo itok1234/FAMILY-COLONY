@@ -447,6 +447,27 @@ func _build_royal_game_arena() -> void:
 		pillar.position = Vector3(cos(angle) * 13.0, 1.4, sin(angle) * 13.0)
 		pillar.material_override = _material(Color("#8b7048"), 0.38, 0.32)
 		arena.add_child(pillar)
+	# Fine radial floor accents break up the broad arena floor and improve depth/readability.
+	for accent_index in range(8):
+		var accent_angle := TAU * float(accent_index) / 8.0
+		var floor_accent := MeshInstance3D.new()
+		var accent_mesh := BoxMesh.new()
+		accent_mesh.size = Vector3(0.18, 0.035, 7.2)
+		floor_accent.mesh = accent_mesh
+		floor_accent.position = Vector3(cos(accent_angle) * 4.8, -0.29, sin(accent_angle) * 4.8)
+		floor_accent.rotation.y = -accent_angle
+		floor_accent.material_override = _material(theme_color.lightened(0.22), 0.32, 0.4)
+		arena.add_child(floor_accent)
+	# Outer rim creates a clearer boundary silhouette against the surrounding world.
+	var arena_rim := MeshInstance3D.new()
+	var rim_mesh := TorusMesh.new()
+	rim_mesh.inner_radius = 14.45
+	rim_mesh.outer_radius = 14.9
+	arena_rim.mesh = rim_mesh
+	arena_rim.position.y = -0.22
+	arena_rim.rotation_degrees.x = 90.0
+	arena_rim.material_override = _material(Color("#d6b66c"), 0.32, 0.55)
+	arena.add_child(arena_rim)
 	# Reference-driven arena dressing: layered floor inlays and distinct themed centerpiece props.
 	var inner_ring := MeshInstance3D.new()
 	var inner_ring_mesh := TorusMesh.new()
