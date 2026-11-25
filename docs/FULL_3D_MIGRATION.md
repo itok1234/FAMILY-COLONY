@@ -126,3 +126,7 @@ Do not label the product fully 3D until:
 - Replaced the four royal mini-game shared arena's generic presentation with per-game accent themes (Guess Who cyan, Royal Bomb red, Murder Mystery violet, Royal Dice green), a 3D title crest and four decorative beacon plinths.
 - The arena work changes presentation only; it does not claim cross-device multiplayer, authoritative game rules or cloud result persistence.
 - Godot parse/startup validation passed for commit `0f7211d38ee0ac1176ec2ab201f83d0243b018d6`. The newer per-arena theme commit requires its own validation, and Android build/smoke runs for the immediately preceding commit were still in progress at the time of this note.
+
+## Validation correction — royal arena decoration placement (2026-11-25)
+- The first per-arena decoration edit placed its crest/beacon block in the wrong function scope; Godot parse validation correctly rejected it in run `45525328832`.
+- Corrected the block placement in commit `d0b0e6e7affee29958a91b91a197f67d94e88504`; a fresh Godot parse/startup, Android debug, embedded smoke and signed-release workflow set has been triggered and must pass before this arena slice is considered validated.
