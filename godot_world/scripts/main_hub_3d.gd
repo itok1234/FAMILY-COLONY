@@ -141,11 +141,23 @@ func _build_environment() -> void:
 func _build_camera() -> void:
 	_camera = Camera3D.new()
 	_camera.name = "HubCamera"
-	_camera.position = Vector3(0, 11.5, 19.0)
 	_camera.fov = 58.0
 	add_child(_camera)
-	_camera.look_at(Vector3(0, 1.0, -1.0), Vector3.UP)
 	_camera.current = true
+	_update_hub_camera_framing()
+	get_viewport().size_changed.connect(_update_hub_camera_framing)
+
+
+func _update_hub_camera_framing() -> void:
+	if not is_instance_valid(_camera):
+		return
+	# The hub spans several kiosk stations. Portrait Android needs a wider
+	# viewing distance so the hub composition does not crop its outer stations.
+	var viewport_size := get_viewport().get_visible_rect().size
+	var is_portrait := viewport_size.x < viewport_size.y
+	_camera.position = Vector3(0.0, 14.0 if is_portrait else 11.5, 25.0 if is_portrait else 19.0)
+	_camera.fov = 64.0 if is_portrait else 58.0
+	_camera.look_at(Vector3(0.0, 1.0, -1.0), Vector3.UP)
 
 
 func _build_central_hall() -> void:
