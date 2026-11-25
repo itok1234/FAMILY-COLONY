@@ -34,9 +34,9 @@ Do not label the product fully 3D until:
 
 ## Developer access — 3D implementation slice (2026-11-25)
 - Added a 3D bee emblem to the isolated Godot hub.
-- Five taps within a 2.2-second interval reveal a spatial 3D developer-login hologram.
+- Five taps within a 3.5-second interval reveal a spatial 3D developer-login hologram.
 - The five-tap gesture only reveals the login entry; it does not authenticate or grant Developer privileges.
-- Developer authentication, server-side role verification, credential form and successful-login navigation remain to be integrated.
+- The hologram now includes a 3D keypad, six-position masked PIN display, delete/submit controls and an HTTPS request to the existing fc-member-auth function. It validates the returned Developer identity before emitting a session signal.
 - The existing WebView launcher and 2D member UI are still present; this is not yet a complete 3D conversion.
 - The new scene/script still requires Godot import, runtime and Android device validation.
 ## Existing developer authentication contract verified
@@ -50,3 +50,11 @@ Do not label the product fully 3D until:
 - The 3D hub script no longer instantiates CanvasLayer, PanelContainer, VBoxContainer or flat Label controls; hub labels and kiosk surfaces are rendered in 3D.
 - This only certifies the isolated hub presentation layer. The legacy HTML/CSS app is still present and must not be considered migrated.
 - A Godot editor/headless import and Android runtime test is still required before marking this slice verified.
+## Native hub routing and current validation (2026-11-25)
+- After the existing member session is verified by fc-world-session, WorldActivity now instantiates the native 3D hub inside the existing Godot world flow.
+- The mobile joystick overlay is hidden while the user is in the hub and restored when the user selects the 3D world kiosk.
+- The hub's destination_requested signal is connected to world_controller; the world kiosk transitions into the existing playable world.
+- Profile, chat, game center and settings kiosks are currently navigation placeholders. Their feature screens and data flows are not yet migrated.
+- The developer PIN keypad is a 3D visual/authentication slice. Its success signal is exposed, but Developer Center data operations and handoff into the world-session authorization service are not yet integrated.
+- GitHub Actions Android smoke, debug build and signed-release workflows were triggered by the recent Godot changes. Their final outcomes must be checked before treating the build as validated.
+- This work does not yet replace the WebView launcher/login, HTML member home, profile, chat, settings or HTML mini-games. The app is not yet fully 3D and no member device test has been completed for this slice.
