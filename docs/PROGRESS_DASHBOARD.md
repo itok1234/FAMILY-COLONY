@@ -3,8 +3,8 @@
 > Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Latest source commit:** [`ac8a280`](https://github.com/itok1234/FAMILY-COLONY/commit/ac8a280a224c0684a626cdae103b4db3c8718e33)  
-> **Dashboard refreshed:** 2026-11-25T05:36:04.711Z
+> **Latest source commit:** [`79d2a35`](https://github.com/itok1234/FAMILY-COLONY/commit/79d2a354631738ec46059d389152035a384b46d2)  
+> **Dashboard refreshed:** 2026-11-25T05:59:39.413Z
 
 ## FAST TRACK mode — ACTIVE
 
@@ -15,21 +15,15 @@
 
 ## Overall progress baseline
 
-- **57% completed / 43% remaining** — continuity baseline carried forward from the user's latest reported progress; provisional, not independently audited.
+- **55% completed / 45% remaining** — retained from the previously reported project baseline.
 - This is a continuity reference, not a newly audited measurement; it changes only after an agreed, evidence-based full audit.
-
-## Progress continuity & history
-
-- **2026-11-25: 55% → 57% continuity correction.** Restores the user's most recently reported dashboard value; this is not a newly completed code package or a fresh audit.
-- Dashboard refreshes, commits, and session changes must not reduce progress by themselves. Progress increases require documented work/evidence; corrections downward require an explained audit finding.
-- Track overall progress separately from individual package/workstream estimates.
 
 ## Automated validation
 
 | Check | Latest branch result | Commit tested |
 |---|---|---|
 | Validate FAMILY COLONY 3D World | [CANCELLED](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554694230) | ac8a280 |
-| Validate FAMILY COLONY Android Build | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554694363) | ac8a280 |
+| Validate FAMILY COLONY Android Build | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45557341490) | 79d2a35 |
 | FAMILY COLONY Embedded Godot Android Smoke Test | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554694184) | ac8a280 |
 | Build FAMILY COLONY Signed Release APK | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554694251) | ac8a280 |
 
@@ -49,13 +43,6 @@
 | Full 3D acceptance | NOT COMPLETE | Remove member-facing 2D/WebView only after feature parity |
 | Release readiness | CI CHECKS TRACKED ABOVE | Physical-device regression, security and release sign-off |
 
-## FAST TRACK milestone ladder
-
-- Work in focused, complete packages and aim for the next overall milestone, not scattered micro-progress: **60% → 70% → 80% → 90% → 100%**.
-- Keep the existing 57% baseline until evidence-based completed work justifies reaching 60%; at 60%, record the milestone and immediately target 70%, repeating onward.
-- Milestone percentages are checkpoints, not promises or fabricated estimates. Update the dashboard with completed package evidence, commits, and validation status at each checkpoint.
-- **Current target: 60%** (3 percentage points from continuity baseline).
-
 ## FAST TRACK execution
 
 - **Active workstream:** Room & Lobby foundation, then integrate the shortest end-to-end playable path.
@@ -72,8 +59,7 @@
 - [ ] Room-scoped chat works in the supported multiplayer mode.
 - [ ] All five mini-games have a complete basic win/lose gameplay loop.
 - [ ] Essential settings work; core scenes remain bright, readable and fully 3D.
-- [x] Android debug build, embedded Android smoke test and signed APK build passed on commit ac8a280.
-- [ ] Godot project parse/startup workflow was cancelled on commit ac8a280; standalone rerun still required.
+- [x] Godot validation, Android build, embedded Android smoke test and signed APK build passed on commit 775dd42.
 - [ ] APK installed and verified on a physical Android device.
 
 ## Post-MVP gates
@@ -85,7 +71,7 @@
 
 ## Status rules
 
-- The 57% figure is the continuity baseline carried forward from the user's latest reported progress, not a newly audited exact measurement.
+- The 55% figure is a retained continuity baseline, not a newly audited exact measurement.
 - Feature statuses and CI outcomes are evidence-based; a workflow result applies only to its listed commit.
 - A workflow result applies only to the commit shown in its row.
 - "Implemented slice" does not mean the entire feature or application is complete.
