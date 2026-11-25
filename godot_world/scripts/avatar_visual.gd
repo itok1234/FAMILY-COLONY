@@ -18,6 +18,7 @@ var _right_arm: Node3D
 var _left_leg: Node3D
 var _right_leg: Node3D
 var _appearance_materials: Dictionary = {}
+var _appearance_defaults: Dictionary = {}
 
 func _ready() -> void:
 	_build_avatar()
@@ -51,6 +52,12 @@ func set_display_name(value: String) -> void:
 
 
 func get_appearance_snapshot() -> Dictionary:
+	return _capture_appearance_colors()
+
+func reset_appearance_preview() -> void:
+	apply_appearance(_appearance_defaults)
+
+func _capture_appearance_colors() -> Dictionary:
 	var result: Dictionary = {}
 	for key in _appearance_materials.keys():
 		var material := _appearance_materials[key] as StandardMaterial3D
@@ -136,6 +143,7 @@ func _build_avatar() -> void:
 		"trousers": trousers,
 		"shoes": shoes
 	}
+	_appearance_defaults = _capture_appearance_colors()
 	# Rounded shoulder and hip volumes soften the mannequin-like silhouette.
 	_add_sphere(self, "UpperTorso", Vector3(0, 1.34, 0), Vector3(0.30, 0.27, 0.22), shirt)
 	_add_capsule(self, "Torso", Vector3(0, 1.12, 0), 0.28, 0.82, shirt)
