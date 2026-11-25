@@ -658,6 +658,12 @@ func _build_profile_card() -> void:
 
 
 func show_developer_center(member: Dictionary) -> void:
+	# Defense in depth: the world controller already verifies the token with the
+	# server, but this scene also refuses to render the privileged dashboard for
+	# any other identity.
+	if str(member.get("role", "")).to_lower() != "developer" or str(member.get("username", "")).to_lower() != "edrick":
+		set_developer_status("Akses ditolak • identitas Developer tidak valid.")
+		return
 	if is_instance_valid(_developer_panel):
 		_developer_panel.queue_free()
 		_developer_panel = null
