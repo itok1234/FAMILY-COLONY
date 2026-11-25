@@ -7,6 +7,7 @@ signal destination_requested(destination_id: String)
 signal developer_login_requested()
 signal developer_authenticated(member: Dictionary, access_token: String, refresh_token: String, anon_key: String)
 signal minigame_requested(game_id: String)
+signal developer_center_action_requested(action_id: String)
 
 const FC_AUTH_URL := "https://irwtnqekrwhgompulach.supabase.co/functions/v1/fc-member-auth"
 
@@ -544,6 +545,91 @@ func _open_destination_panel(destination_id: String) -> void:
 	_hint.text = "Panel 3D terbuka: " + destination_id.to_upper()
 
 
+func show_developer_center(member: Dictionary) -> void:
+	if is_instance_valid(_developer_panel):
+		_developer_panel.queue_free()
+		_developer_panel = null
+	if is_instance_valid(_destination_panel):
+		_destination_panel.queue_free()
+	_destination_panel = Node3D.new()
+	_destination_panel.name = "DeveloperCenter3D"
+	_destination_panel.position = Vector3(0, 2.9, 5.0)
+	var backing := MeshInstance3D.new()
+	var panel_mesh := BoxMesh.new()
+	panel_mesh.size = Vector3(8.0, 5.8, 0.18)
+	backing.mesh = panel_mesh
+	backing.material_override = _material(Color("#101e31"), 0.26, 0.34)
+	_destination_panel.add_child(backing)
+	var heading := Label3D.new()
+	heading.text = "DEVELOPER CENTER"
+	heading.font_size = 46
+	heading.pixel_size = 0.004
+	heading.position = Vector3(0, 2.12, -0.12)
+	heading.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	heading.modulate = Color("#f3d99a")
+	_destination_panel.add_child(heading)
+	var identity := Label3D.new()
+	identity.text = "SERVER VERIFIED • " + str(member.get("name", "Developer")) + " • " + str(member.get("role", "Developer")).to_upper()
+	identity.font_size = 18
+	identity.pixel_size = 0.0035
+	identity.position = Vector3(0, 1.48, -0.12)
+	identity.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	identity.modulate = Color("#b9d7e8")
+	_destination_panel.add_child(identity)
+	var actions := [
+		["MANAJEMEN ANGGOTA", "members"],
+		["PENGATURAN DUNIA", "world_settings"],
+		["MANAJEMEN MINI GAME", "minigames"],
+		["MONITOR SERVER", "server_monitor"],
+		["LAPORAN & AKTIVITAS", "reports"],
+		["KONFIGURASI APLIKASI", "app_config"]
+	]
+	for i in range(actions.size()):
+		var row := i / 3
+		var col := i % 3
+		var x := -2.45 + float(col) * 2.45
+		var y := 0.48 if row == 0 else -0.42
+		_create_developer_center_button(str(actions[i][0]), Vector3(x, y, -0.24), str(actions[i][1]))
+	_create_developer_center_button("KEMBALI KE HUB", Vector3(0, -1.78, -0.24), "back")
+	add_child(_destination_panel)
+	_hint.text = "Developer Center aktif • role diverifikasi server."
+
+
+func _create_developer_center_button(label_text: String, local_position: Vector3, action_id: String) -> void:
+	var area := Area3D.new()
+	area.name = "DeveloperCenter_" + action_id
+	area.position = local_position
+	area.input_ray_pickable = true
+	area.collision_layer = 2
+	area.collision_mask = 0
+	area.set_meta("hub_panel_action", "developer:" + action_id)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(2.15, 0.62, 0.18)
+	collision.shape = shape
+	area.add_child(collision)
+	var mesh := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(2.08, 0.58, 0.14)
+	mesh.mesh = box
+	mesh.material_override = _material(Color("#315b70") if action_id != "back" else Color("#a77a36"), 0.3, 0.22)
+	area.add_child(mesh)
+	var label := Label3D.new()
+	label.text = label_text
+	label.font_size = 16
+	label.pixel_size = 0.0035
+	label.position.z = -0.1
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.modulate = Color("#ffffff")
+	area.add_child(label)
+	_destination_panel.add_child(area)
+
+
+func set_developer_status(message: String) -> void:
+	if is_instance_valid(_developer_pin_status):
+		_developer_pin_status.text = message
+
+
 func _destination_title(destination_id: String) -> String:
 	match destination_id:
 		"profile": return "PROFIL ANGGOTA"
@@ -595,6 +681,17 @@ func _create_hub_panel_button(label_text: String, local_position: Vector3, actio
 
 
 func _handle_hub_panel_action(action_id: String) -> void:
+	if action_id.begins_with("developer:"):
+		var developer_action := action_id.trim_prefix("developer:")
+		if developer_action == "back":
+			if is_instance_valid(_destination_panel):
+				_destination_panel.queue_free()
+			_destination_panel = null
+			_hint.text = "Developer Center ditutup. Pilih bangunan 3D."
+		else:
+			developer_center_action_requested.emit(developer_action)
+			_hint.text = "Developer Center: " + developer_action.replace("_", " ").to_upper() + " • menunggu integrasi operasi server."
+		return
 	if action_id == "enter_world":
 		if is_instance_valid(_destination_panel):
 			_destination_panel.queue_free()
