@@ -667,7 +667,7 @@ func _build_profile_card() -> void:
 	avatar_root.add_child(halo)
 	_destination_panel.add_child(avatar_root)
 	var details := Label3D.new()
-	details.text = "IDENTITAS TERVERIFIKASI\\n%s\\n@%s\\nPERAN: %s\\nSTATUS: %s\\n\\nData identitas berasal dari server sesi.\\nPerubahan data akun dilakukan melalui layanan akun." % [display_name, username if not username.is_empty() else "—", role.to_upper(), status.to_upper()]
+	details.text = "IDENTITAS TERVERIFIKASI\n%s\n@%s\nPERAN: %s\nSTATUS: %s\n\nData identitas berasal dari server sesi.\nPerubahan data akun dilakukan melalui layanan akun." % [display_name, username if not username.is_empty() else "—", role.to_upper(), status.to_upper()]
 	details.font_size = 19
 	details.pixel_size = 0.0038
 	details.position = Vector3(0.55, 0.55, -0.24)
@@ -794,12 +794,12 @@ func _destination_description(destination_id: String) -> String:
 			var username := str(_member_profile.get("username", "")).strip_edges()
 			var role := str(_member_profile.get("role", "member")).strip_edges()
 			if username.is_empty():
-				return "PROFIL ANGGOTA\n" + display_name + "\\nPeran: " + role + "\\nData profil berasal dari sesi akun terverifikasi."
-			return "PROFIL ANGGOTA\n" + display_name + "\\n@" + username + "  •  " + role + "\\nData profil berasal dari sesi akun terverifikasi."
-		"chat": return "Bertemu • mengobrol • room\\nLayanan chat lintas jaringan dan panel 3D sedang dimigrasikan."
-		"games": return "Pilih salah satu dari lima permainan 3D.\\nSetiap permainan memiliki ruang, aturan, dan papan hasil tersendiri."
-		"settings": return "Atur audio dan kualitas grafis langsung di dunia 3D.\\nHEMAT • SEIMBANG • TINGGI • AUTO"
-		"world": return "Masuk ke dunia 3D dan jelajahi Bee Kingdom.\\nBerjalan, berinteraksi, dan bermain bersama."
+				return "PROFIL ANGGOTA\n" + display_name + "\nPeran: " + role + "\nData profil berasal dari sesi akun terverifikasi."
+			return "PROFIL ANGGOTA\n" + display_name + "\n@" + username + "  •  " + role + "\nData profil berasal dari sesi akun terverifikasi."
+		"chat": return "Bertemu • mengobrol • room\nLayanan chat lintas jaringan dan panel 3D sedang dimigrasikan."
+		"games": return "Pilih salah satu dari lima permainan 3D.\nSetiap permainan memiliki ruang, aturan, dan papan hasil tersendiri."
+		"settings": return "Atur audio dan kualitas grafis langsung di dunia 3D.\nHEMAT • SEIMBANG • TINGGI • AUTO"
+		"world": return "Masuk ke dunia 3D dan jelajahi Bee Kingdom.\nBerjalan, berinteraksi, dan bermain bersama."
 		_: return "Fitur sedang disiapkan."
 
 
@@ -882,7 +882,7 @@ func _handle_hub_panel_action(action_id: String) -> void:
 func set_room_network_state(state: String, detail: String) -> void:
 	_room_connection_detail = detail
 	if is_instance_valid(_room_status_label):
-		_room_status_label.text = "LAN: %s\\n%s\\nROOM: %s" % [state.to_upper(), detail, _room_current_id if not _room_current_id.is_empty() else "—"]
+		_room_status_label.text = "LAN: %s\n%s\nROOM: %s" % [state.to_upper(), detail, _room_current_id if not _room_current_id.is_empty() else "—"]
 
 
 func set_current_room(room_id: String, _members: Array[int]) -> void:
