@@ -135,6 +135,11 @@ func _build_quality_picker() -> void:
 	_quality_panel.add_child(_quality_status)
 
 
+func set_picker_visible(visible: bool) -> void:
+	if is_instance_valid(_quality_panel):
+		_quality_panel.visible = visible
+
+
 func _quality_material(color: Color, roughness_value: float) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
