@@ -583,11 +583,14 @@ func _open_destination_panel(destination_id: String) -> void:
 	_panel_body.modulate = Color("#e5edf4")
 	_destination_panel.add_child(_panel_body)
 
+	if destination_id == "profile":
+		_build_profile_card()
 	if destination_id == "world":
 		_create_hub_panel_button("MASUK KE DUNIA", Vector3(0, 0.0, -0.24), "enter_world", Vector3(2.8, 0.68, 0.16), Color("#a77a36"))
 	if destination_id == "settings":
-		_create_hub_panel_button("SUARA & VOLUME", Vector3(0, 0.18, -0.24), "settings:audio", Vector3(2.8, 0.62, 0.16), Color("#a77a36"))
-		_create_hub_panel_button("TENTANG STUDIO", Vector3(0, -0.62, -0.24), "settings:credits", Vector3(2.8, 0.62, 0.16))
+		_create_hub_panel_button("SUARA & VOLUME", Vector3(0, 0.55, -0.24), "settings:audio", Vector3(2.8, 0.58, 0.16), Color("#a77a36"))
+		_create_hub_panel_button("KUALITAS GRAFIS", Vector3(0, -0.18, -0.24), "settings:graphics", Vector3(2.8, 0.58, 0.16))
+		_create_hub_panel_button("TENTANG STUDIO", Vector3(0, -0.91, -0.24), "settings:credits", Vector3(2.8, 0.58, 0.16))
 	if destination_id == "games":
 		_create_hub_panel_button("HONEY HUNT", Vector3(-2.15, 0.15, -0.24), "game:honey_hunt", Vector3(2.0, 0.58, 0.16), Color("#a77a36"))
 		_create_hub_panel_button("GUESS WHO?", Vector3(0.0, 0.15, -0.24), "game:guess_who", Vector3(2.0, 0.58, 0.16))
@@ -597,6 +600,58 @@ func _open_destination_panel(destination_id: String) -> void:
 	_create_hub_panel_button("KEMBALI KE HUB", Vector3(0, -2.05, -0.24), "back", Vector3(2.6, 0.62, 0.16), Color("#315b70"))
 	add_child(_destination_panel)
 	_hint.text = "Panel 3D terbuka: " + destination_id.to_upper()
+
+
+func _build_profile_card() -> void:
+	var display_name := str(_member_profile.get("name", "Anggota Colony")).strip_edges()
+	var username := str(_member_profile.get("username", "")).strip_edges()
+	var role := str(_member_profile.get("role", "member")).strip_edges()
+	var status := str(_member_profile.get("status", "Aktif")).strip_edges()
+	var avatar_root := Node3D.new()
+	avatar_root.name = "ProfileAvatarPreview3D"
+	avatar_root.position = Vector3(-2.15, 0.15, -0.28)
+	var body := MeshInstance3D.new()
+	var body_mesh := CapsuleMesh.new()
+	body_mesh.radius = 0.42
+	body_mesh.height = 1.25
+	body.mesh = body_mesh
+	body.position.y = 0.12
+	body.material_override = _material(Color("#456d83"), 0.42, 0.18)
+	avatar_root.add_child(body)
+	var head := MeshInstance3D.new()
+	var head_mesh := SphereMesh.new()
+	head_mesh.radius = 0.34
+	head_mesh.height = 0.68
+	head.mesh = head_mesh
+	head.position.y = 0.93
+	head.material_override = _material(Color("#c99d7b"), 0.55)
+	avatar_root.add_child(head)
+	var halo := MeshInstance3D.new()
+	var halo_mesh := TorusMesh.new()
+	halo_mesh.inner_radius = 0.52
+	halo_mesh.outer_radius = 0.59
+	halo.mesh = halo_mesh
+	halo.position.y = 1.42
+	halo.rotation_degrees.x = 90.0
+	halo.material_override = _material(Color("#d8b66f"), 0.28, 0.35)
+	avatar_root.add_child(halo)
+	_destination_panel.add_child(avatar_root)
+	var details := Label3D.new()
+	details.text = "IDENTITAS TERVERIFIKASI\\n%s\\n@%s\\nPERAN: %s\\nSTATUS: %s\\n\\nData identitas berasal dari server sesi.\\nPerubahan data akun dilakukan melalui layanan akun." % [display_name, username if not username.is_empty() else "—", role.to_upper(), status.to_upper()]
+	details.font_size = 19
+	details.pixel_size = 0.0038
+	details.position = Vector3(0.55, 0.55, -0.24)
+	details.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	details.modulate = Color("#e5edf4")
+	_destination_panel.add_child(details)
+	var verified := Label3D.new()
+	verified.text = "●  SESI AKUN TERVERIFIKASI"
+	verified.font_size = 15
+	verified.pixel_size = 0.0035
+	verified.position = Vector3(0, -1.25, -0.24)
+	verified.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	verified.modulate = Color("#9ed6b2")
+	_destination_panel.add_child(verified)
 
 
 func show_developer_center(member: Dictionary) -> void:
