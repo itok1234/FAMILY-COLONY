@@ -13,6 +13,7 @@ signal room_action_requested(action_id: String)
 signal avatar_appearance_changed(appearance: Dictionary)
 
 const FC_AUTH_URL := "https://irwtnqekrwhgompulach.supabase.co/functions/v1/fc-member-auth"
+const FINAL_MINIGAMES := ["guess_who", "royal_bomb", "royal_murder_mystery", "royal_dice"]
 
 const HUB_ITEMS := [
 	{"id":"profile","title":"PROFIL ANGGOTA","subtitle":"Identitas • Avatar • Koleksi","position":Vector3(-6.0,1.35,-2.0),"color":Color("#4b7891")},
@@ -950,7 +951,7 @@ func _destination_description(destination_id: String) -> String:
 				return "PROFIL ANGGOTA\n" + display_name + "\nPeran: " + role + "\nData profil berasal dari sesi akun terverifikasi."
 			return "PROFIL ANGGOTA\n" + display_name + "\n@" + username + "  •  " + role + "\nData profil berasal dari sesi akun terverifikasi."
 		"chat": return "Bertemu • mengobrol • room\nLayanan chat lintas jaringan dan panel 3D sedang dimigrasikan."
-		"games": return "Pilih salah satu dari lima permainan 3D.\nSetiap permainan memiliki ruang, aturan, dan papan hasil tersendiri."
+		"games": return "Pilih satu dari empat mini-game: Guess Who, Royal Bomb, Royal Murder Mystery, Royal Dice.\nIntegrasi arena dan gameplay final masih dalam pengerjaan."
 		"settings": return "Atur audio dan kualitas grafis langsung di dunia 3D.\nHEMAT • SEIMBANG • TINGGI • AUTO"
 		"world": return "Masuk ke dunia 3D dan jelajahi Bee Kingdom.\nBerjalan, berinteraksi, dan bermain bersama."
 		_: return "Fitur sedang disiapkan."
@@ -1025,7 +1026,7 @@ func _handle_hub_panel_action(action_id: String) -> void:
 		return
 	if action_id.begins_with("game:"):
 		var game_id := action_id.trim_prefix("game:")
-		if ["guess_who", "royal_bomb", "royal_murder_mystery", "royal_dice"].has(game_id):
+		if FINAL_MINIGAMES.has(game_id):
 			if is_instance_valid(_destination_panel):
 				_destination_panel.queue_free()
 			_destination_panel = null
