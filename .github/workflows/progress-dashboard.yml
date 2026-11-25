@@ -58,7 +58,7 @@ jobs:
               const label = run ? `[${state}](${run.html_url})` : state;
               const sha = run ? run.head_sha.slice(0, 7) : "—";
               return `| ${item.name} | ${label} | ${sha} |`;
-            }).join("\n");
+            }).join(String.fromCharCode(10));
             const head = context.sha;
             const now = new Date().toISOString();
             const body = `# FAMILY COLONY — Live Progress Dashboard
