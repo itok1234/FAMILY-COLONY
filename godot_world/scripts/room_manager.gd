@@ -41,7 +41,11 @@ func join_room(room_id: String) -> void:
 		room_action_result.emit(false, "ID room tidak valid.")
 		return
 	if multiplayer.is_server():
-		_join_room_for_peer(multiplayer.get_unique_id(), clean_id)
+		if clean_id == "lobby":
+			_join_or_create_lobby(multiplayer.get_unique_id())
+			_broadcast_room_state()
+		else:
+			_join_room_for_peer(multiplayer.get_unique_id(), clean_id)
 	else:
 		_rpc_request_join_room.rpc_id(1, clean_id)
 
@@ -85,12 +89,37 @@ func _on_peer_roster_changed(peer_ids: Array[int]) -> void:
 
 
 func _join_or_create_lobby(peer_id: int) -> void:
-	if not _rooms.has("lobby"):
-		_rooms["lobby"] = {"name": "Lobby", "capacity": default_room_capacity, "members": []}
-	var members: Array = _rooms["lobby"]["members"]
-	if members.size() < int(_rooms["lobby"]["capacity"]):
-		members.append(peer_id)
-		_peer_room[peer_id] = "lobby"
+	# The transport allows more peers than one default lobby can hold when
+	# the host is counted. Select the least-populated lobby shard with space;
+	# create another shard instead of silently leaving a connected member
+	# outside every room.
+	if _peer_room.has(peer_id):
+		_leave_room_for_peer(peer_id)
+	var selected_lobby := ""
+	var selected_count := 2147483647
+	for room_key in _rooms.keys():
+		var room_id := str(room_key)
+		if room_id != "lobby" and not room_id.begins_with("lobby_"):
+			continue
+		var room: Dictionary = _rooms[room_id]
+		var members: Array = room["members"]
+		var capacity := int(room["capacity"])
+		if members.size() < capacity and members.size() < selected_count:
+			selected_lobby = room_id
+			selected_count = members.size()
+	if selected_lobby.is_empty():
+		var shard_number := 1
+		while _rooms.has("lobby_%d" % shard_number):
+			shard_number += 1
+		selected_lobby = "lobby_%d" % shard_number
+		_rooms[selected_lobby] = {
+			"name": "Lobby" if shard_number == 1 else "Lobby %d" % (shard_number + 1),
+			"capacity": default_room_capacity,
+			"members": []
+		}
+	var target_members: Array = _rooms[selected_lobby]["members"]
+	target_members.append(peer_id)
+	_peer_room[peer_id] = selected_lobby
 
 
 func _create_room_for_peer(peer_id: int, room_name: String, capacity: int) -> void:
@@ -212,7 +241,12 @@ func _rpc_request_join_room(room_id: String) -> void:
 	if room_id.length() > 64 or clean_id.length() < 3 or clean_id.length() > 64:
 		_send_result(sender, false, "ID room tidak valid.")
 		return
-	_join_room_for_peer(sender, clean_id)
+	if clean_id == "lobby":
+		_join_or_create_lobby(sender)
+		_send_result(sender, true, "Berhasil masuk ke Lobby.")
+		_broadcast_room_state()
+	else:
+		_join_room_for_peer(sender, clean_id)
 
 
 @rpc("any_peer", "call_remote", "reliable")
