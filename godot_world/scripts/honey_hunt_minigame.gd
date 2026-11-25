@@ -997,10 +997,19 @@ func _dice_action(action: String) -> void:
 	var bot_roll := _royal_game_rng.randi_range(1, 6)
 	var card := str(_royal_game_state.card)
 	var bonus := 0
-	if card == "ROYAL BOOST": bonus = 2
-	elif card == "HONEY SHIELD": bonus = 1
-	elif card == "SHADOW TRAP": bot_roll = maxi(1, bot_roll - 2)
-	elif card == "LUCKY CROWN": roll = mini(6, roll + 1)
+	var card_effect := ""
+	if card == "ROYAL BOOST":
+		bonus = 2
+		card_effect = "Royal Boost: +2 kekuatan dadu."
+	elif card == "HONEY SHIELD":
+		bot_roll = maxi(1, bot_roll - 1)
+		card_effect = "Honey Shield: dadu bot dikurangi 1."
+	elif card == "SHADOW TRAP":
+		bot_roll = maxi(1, bot_roll - 2)
+		card_effect = "Shadow Trap: dadu bot dikurangi 2."
+	elif card == "LUCKY CROWN":
+		roll = mini(6, roll + 1)
+		card_effect = "Lucky Crown: hasil dadu kamu +1 (maksimal 6)."
 	var total := roll + bonus
 	if total > bot_roll:
 		_royal_game_state.score += 2
@@ -1008,7 +1017,7 @@ func _dice_action(action: String) -> void:
 		_royal_game_state.score += 1
 	else:
 		_royal_game_state.bot_score += 2
-	_royal_game_status.text = "🎲 DADU KAMU: %d (+%d)  •  BOT: %d\nKartu: %s\nSkor: %d — %d" % [roll, bonus, bot_roll, card, _royal_game_state.score, _royal_game_state.bot_score]
+	_royal_game_status.text = "🎲 DADU KAMU: %d (+%d)  •  BOT: %d\n%s\nSkor: %d — %d" % [roll, bonus, bot_roll, card_effect, _royal_game_state.score, _royal_game_state.bot_score]
 	_royal_game_state.round += 1
 	_royal_game_state.card = "ROYAL BOOST"
 	if int(_royal_game_state.round) > 5:
