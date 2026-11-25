@@ -21,6 +21,15 @@ func _run_room_manager_tests() -> void:
 	root.add_child(manager)
 	manager.default_room_capacity = 2
 
+	# Room names containing control characters must be rejected before dispatch.
+	var invalid_name_rejected := false
+	manager.room_action_result.connect(func(ok: bool, _message: String):
+		if not ok:
+			invalid_name_rejected = true
+	)
+	manager.create_room("Bad\\nRoom", 2)
+	_expect(invalid_name_rejected, "room names containing control characters must be rejected")
+
 	# Five connected peers at capacity two must be assigned exactly once
 	# across three lobby shards.
 	for peer_id in range(1, 6):
