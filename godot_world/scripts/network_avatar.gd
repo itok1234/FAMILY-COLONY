@@ -24,6 +24,11 @@ func apply_network_state(new_position: Vector3, new_rotation: float, new_motion:
 		_avatar.set_motion_strength(motion_strength)
 
 
+func apply_network_appearance(appearance: Dictionary) -> void:
+	if is_instance_valid(_avatar) and _avatar.has_method("apply_appearance"):
+		_avatar.apply_appearance(appearance)
+
+
 func _process(delta: float) -> void:
 	global_position = global_position.lerp(target_position, minf(delta * 12.0, 1.0))
 	rotation.y = lerp_angle(rotation.y, target_rotation, minf(delta * 12.0, 1.0))
