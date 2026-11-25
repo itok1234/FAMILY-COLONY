@@ -6,6 +6,12 @@
 > **Latest source commit:** [`a8b0800`](https://github.com/itok1234/FAMILY-COLONY/commit/a8b0800af9ee051b96919569a2111d5708345c3e)  
 > **Dashboard refreshed:** 2026-11-25T04:59:40.607Z
 
+## Recent implementation update — 2026-11-25
+
+- Commit `f8542ee`: fixed `RoomManager.get_room_snapshot()` so a server/host reads its live room registry even when running on the offline multiplayer peer (single-player/offline test harness). Previously the API returned the client cache in this mode, potentially hiding rooms.
+- Added regression assertion to `room_manager_test.gd` checking host snapshot visibility with three lobby shards.
+- Validation pipelines for this commit are running; results are not yet confirmed.
+
 ## FAST TRACK mode — ACTIVE
 
 - Deliver a complete playable 3D MVP first; preserve the agreed bright, readable 3D visual standard.
