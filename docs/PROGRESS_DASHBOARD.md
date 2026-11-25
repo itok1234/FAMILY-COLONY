@@ -3,8 +3,8 @@
 > Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Latest source commit:** [`389066f`](https://github.com/itok1234/FAMILY-COLONY/commit/389066f7804d4bc83c47ff659e7401a10c55f01d)  
-> **Dashboard refreshed:** 2026-11-25T02:54:42.755Z
+> **Latest source commit:** [`eb531e2`](https://github.com/itok1234/FAMILY-COLONY/commit/eb531e2232aa00c8110a1bec7261e44a563f7fc7)  
+> **Dashboard refreshed:** 2026-11-25T02:54:56.068Z
 
 ## Overall progress baseline
 
@@ -27,7 +27,7 @@
 | Native 3D hub and world entry | IMPLEMENTED SLICE | Full app flow and feature parity |
 | Avatar profile and wardrobe | IMPLEMENTED SLICE | Cloud persistence and device UX |
 | Room-scoped avatar appearance sync | IMPLEMENTED SLICE — CI PASSED | Multi-device real-world test and persistence |
-| Room management | HOST + REMOTE COOLDOWN + 64-ACTIVE-ROOM CAP | Multi-device room lifecycle and cloud persistence |
+| Room management | LOBBY SHARDING + 64-ACTIVE-ROOM CAP + SHARED COOLDOWN | Multi-device room lifecycle and cloud persistence |
 | Member login and session | LEGACY WEBVIEW FLOW PRESERVED | Port login, refresh, logout and recovery to spatial 3D |
 | Developer Center | 3D ENTRY / NAVIGATION SLICE | Secure backend CRUD and operational tools |
 | Five mini-games | HONEY HUNT 3D; FOUR INITIAL LOCAL GAME LOOPS | Complete gameplay, polish, persistence and multiplayer |
