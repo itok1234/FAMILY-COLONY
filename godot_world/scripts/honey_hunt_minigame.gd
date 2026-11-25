@@ -687,7 +687,7 @@ func _guess_who_action(action: String) -> void:
 		var q: Dictionary = _royal_game_state.pool[_royal_game_state.index]
 		if action.trim_prefix("guess:") == str(q.name):
 			_royal_game_state.correct += 1
-			_royal_game_state.score += maxi(5, 10 + int(_royal_game_state.seconds) / 3 - int(_royal_game_state.hints) * 2)
+			_royal_game_state.score += maxi(5, 10 + int(_royal_game_state.seconds) / 3)
 			_royal_game_status.text += "\n✓ JAWABAN TEPAT: " + str(q.name)
 		else:
 			_royal_game_state.wrong += 1
