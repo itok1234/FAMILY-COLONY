@@ -35,6 +35,10 @@ func _ready() -> void:
 
 	session_client.session_verified.connect(_on_session_verified)
 	session_client.session_rejected.connect(_on_session_rejected)
+	if session_client.has_signal("matchmaking_ready"):
+		session_client.matchmaking_ready.connect(_on_cloud_matchmaking_ready)
+	if session_client.has_signal("matchmaking_failed"):
+		session_client.matchmaking_failed.connect(_on_cloud_matchmaking_failed)
 
 	if not bool(session_client.call("has_native_bridge")):
 		_on_session_rejected("native_session_bridge_missing")
@@ -203,6 +207,7 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 			if not room_manager.room_action_result.is_connected(_on_room_action_result):
 				room_manager.room_action_result.connect(_on_room_action_result)
 			_main_hub.call("set_room_network_state", "offline", "Siap untuk koneksi LAN.")
+			_main_hub.call("set_cloud_matchmaking_state", "MEMERIKSA", "Meminta penempatan server cloud; gameplay belum tersambung.")
 			_main_hub.call("set_room_snapshot", room_manager.call("get_room_snapshot"))
 		if multiplayer_manager != null:
 			if not multiplayer_manager.connection_state_changed.is_connected(_on_room_network_state_changed):
@@ -379,6 +384,19 @@ func _on_session_rejected(error_code: String) -> void:
 		+ error_code.replace("_", " ")
 		+ ". Silakan kembali ke aplikasi dan masuk lagi."
 	)
+
+
+func _on_cloud_matchmaking_ready(server: Dictionary, _member: Dictionary) -> void:
+	if is_instance_valid(_main_hub):
+		_main_hub.call("set_cloud_matchmaking_state", "SERVER DITEMUKAN", "Server terdaftar dan identitas cocok; transport gameplay belum terhubung.")
+	var server_id := str(server.get("server_id", ""))
+	if server_id.is_empty():
+		push_warning("FAMILY COLONY: Matchmaking response had no server identifier.")
+
+
+func _on_cloud_matchmaking_failed(error_code: String) -> void:
+	if is_instance_valid(_main_hub):
+		_main_hub.call("set_cloud_matchmaking_state", "BELUM TERSEDIA", "Matchmaking cloud: " + error_code.replace("_", " "))
 
 
 func _build_world_exit_button() -> void:
