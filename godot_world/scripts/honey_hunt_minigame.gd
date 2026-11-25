@@ -893,6 +893,11 @@ func _show_royal_bomb() -> void:
 func _royal_bomb_action(action: String) -> void:
 	if not _royal_game_active or _royal_game_id != "royal_bomb":
 		return
+	if bool(_royal_game_state.get("pending_next", false)):
+		if action == "next_turn":
+			_royal_game_state.pending_next = false
+			_show_royal_bomb()
+		return
 	if _royal_game_state.is_empty() or not _royal_game_state.has("round"):
 		return
 	if int(_royal_game_state.round) > 12 or int(_royal_game_state.bombs) <= 0:
@@ -943,7 +948,8 @@ func _royal_bomb_action(action: String) -> void:
 	if int(_royal_game_state.round) > 12 or int(_royal_game_state.bombs) <= 0:
 		_finish_royal_game("ROYAL BOMB BERAKHIR\nSkor bertahan: %d\nKartu diambil: %d" % [_royal_game_state.score, _royal_game_state.draws])
 	else:
-		_show_royal_bomb()
+		_royal_game_state.pending_next = true
+		_add_royal_button("GILIRAN BERIKUTNYA", Vector3(0, -1.65, -0.24), "next_turn", Vector3(2.7, 0.46, 0.16))
 
 
 func _start_murder_mystery() -> void:
