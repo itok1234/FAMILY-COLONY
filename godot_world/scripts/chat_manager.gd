@@ -40,6 +40,7 @@ func open_spatial_chat(active_camera: Camera3D) -> bool:
 		return false
 	if _chat_root.get_parent() != active_camera:
 		_chat_root.reparent(active_camera)
+	_chat_root.transform = Transform3D.IDENTITY
 	_chat_camera = active_camera
 	_chat_root.visible = true
 	_chat_panel.visible = true
@@ -53,6 +54,7 @@ func restore_spatial_chat(player_camera: Camera3D) -> void:
 		return
 	if _chat_root.get_parent() != player_camera:
 		_chat_root.reparent(player_camera)
+	_chat_root.transform = Transform3D.IDENTITY
 	_chat_camera = player_camera
 	_chat_root.visible = true
 	if is_instance_valid(_chat_panel):
