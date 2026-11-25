@@ -32,7 +32,7 @@ func set_motion_strength(value: float) -> void:
 func play_social_action(action: String) -> bool:
 	if _avatar == null or not _avatar.has_method("play_action"):
 		return false
-	if action not in ["wave", "sit", "stand"]:
+	if action not in ["wave", "sit", "stand", "jump", "dance"]:
 		return false
 	_avatar.play_action(action)
 	return true
