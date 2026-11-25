@@ -195,12 +195,9 @@ func _on_quality_selected(index: int) -> void:
 
 
 func _resolve_auto_quality() -> Quality:
-	# Start Android on a visually balanced profile. AUTO still adapts down
-	# after sustained low FPS, so capable mid-range devices are not forced
-	# to use the visibly reduced blockout profile at launch.
-	if OS.get_name() == "Android":
-		return Quality.BALANCED
-	return Quality.BALANCED
+	# AUTO starts with the high-fidelity profile to avoid a visibly reduced
+	# first impression. Sustained low FPS still triggers PERFORMANCE fallback.
+	return Quality.HIGH
 
 
 func apply_quality(level: Quality) -> void:
