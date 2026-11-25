@@ -59,7 +59,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(delta: float) -> void:
 	if _royal_game_active:
-		if _royal_game_id == "guess_who" and not _royal_game_state.is_empty() and not bool(_royal_game_state.get("finished", false)):
+		if _royal_game_id == "guess_who" and not _royal_game_state.is_empty() and not bool(_royal_game_state.get("finished", false)) and not bool(_royal_game_state.get("pending_next", false)):
 			_royal_game_state.seconds = maxf(0.0, float(_royal_game_state.seconds) - delta)
 			_update_guess_who_clock()
 			if _royal_game_state.seconds <= 0.0:
@@ -993,6 +993,7 @@ func _murder_action(action: String) -> void:
 		_royal_game_state.index += 1
 		_finish_royal_game("HASIL PENYELIDIKAN\nSkor: %d\nKasus terpecahkan: %d/3\nKesalahan: %d" % [_royal_game_state.score, _royal_game_state.correct, _royal_game_state.wrong])
 	else:
+		_royal_game_state.index += 1
 		_royal_game_state.pending_next = true
 		_add_royal_button("KASUS BERIKUTNYA", Vector3(0, -2.0, -0.24), "next_case", Vector3(2.7, 0.46, 0.16))
 
