@@ -392,6 +392,23 @@ func _build_lamps() -> void:
 		bulb.radius = 0.17
 		bulb.height = 0.34
 		_mesh_node(lamps_root, bulb, warm, Vector3(x, 3.55, z), "LampBulb")
+		# Local warm pool of light; shadows are disabled to keep Android rendering inexpensive.
+		var lamp_light := OmniLight3D.new()
+		lamp_light.name = "StreetLampLight"
+		lamp_light.position = Vector3(x, 3.48, z)
+		lamp_light.light_color = Color("#f4d7a0")
+		lamp_light.light_energy = 0.72
+		lamp_light.omni_range = 5.8
+		lamp_light.omni_attenuation = 1.35
+		lamp_light.shadow_enabled = false
+		lamps_root.add_child(lamp_light)
+		# Decorative foot ring anchors the pole visually to the pavement.
+		var foot := CylinderMesh.new()
+		foot.top_radius = 0.22
+		foot.bottom_radius = 0.26
+		foot.height = 0.16
+		foot.radial_segments = 12
+		_mesh_node(lamps_root, foot, metal, Vector3(x, -0.42, z), "LampBase")
 
 func _build_benches() -> void:
 	var wood := _mat("bench_wood", Color(0.38, 0.23, 0.13))
