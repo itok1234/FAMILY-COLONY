@@ -15,8 +15,8 @@
 
 ## Overall progress baseline
 
-- **55% completed / 45% remaining** — retained from the previously reported project baseline.
-- This is a continuity reference, not a newly audited measurement; it changes only after an agreed, evidence-based full audit.
+- **Overall percentage: NOT AUDITED.** The legacy 55% figure is not treated as an authoritative completion measurement.
+- Workstream-level estimates are provisional and must not be combined into a single percentage without a documented weighted audit.
 
 ## Automated validation
 
@@ -26,6 +26,12 @@
 | Validate FAMILY COLONY Android Build | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550100878) | 5a651c5 |
 | FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550100807) | 5a651c5 |
 | Build FAMILY COLONY Signed Release APK | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550100767) | 5a651c5 |
+
+## Recent verified work
+
+- Royal Dice card-selection HUD moved to a 2×2 grid to keep buttons inside the panel (commit `5a651c5`); 3D-world validation on that commit passed.
+- Royal Bomb skip-turn simulation improvement (commit `d2f1628`): Android build and signed APK workflow checks passed; embedded Android smoke test pending at last check.
+- Latest commit `5a651c5`: Android build, embedded smoke and signed release workflows are still pending; do not interpret a previous commit's success as validation of this commit.
 
 ## Implementation status
 
@@ -71,7 +77,7 @@
 
 ## Status rules
 
-- The 55% figure is a retained continuity baseline, not a newly audited exact measurement.
+- Do not display a fixed overall percentage without a documented, weighted audit.
 - Feature statuses and CI outcomes are evidence-based; a workflow result applies only to its listed commit.
 - A workflow result applies only to the commit shown in its row.
 - "Implemented slice" does not mean the entire feature or application is complete.
