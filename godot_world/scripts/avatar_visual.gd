@@ -147,7 +147,7 @@ func _build_avatar() -> void:
 	_add_box(self, "LeftChestPocket", Vector3(-0.17, 1.31, -0.276), Vector3(0.12, 0.14, 0.025), shirt)
 	_add_box(self, "PocketStitch", Vector3(-0.17, 1.385, -0.293), Vector3(0.13, 0.012, 0.012), trim)
 	_add_box(self, "WaistBelt", Vector3(0, 0.88, -0.214), Vector3(0.43, 0.055, 0.035), trim)
-	_add_box(self, "BeltBuckle", Vector3(0, 0.88, -0.239), Vector3(0.075, 0.065, 0.018), _material(Color("#e5c47d"), 0.3, 0.22))
+	_add_box(self, "BeltBuckle", Vector3(0, 0.88, -0.239), Vector3(0.075, 0.065, 0.018), _material(Color("#e5c47d"), 0.3))
 	for button_index in range(3):
 		_add_sphere(self, "ShirtButton_%d" % button_index, Vector3(0, 1.31 - float(button_index) * 0.14, -0.306), Vector3(0.018, 0.018, 0.012), trim)
 	_add_capsule(self, "Neck", Vector3(0, 1.61, 0), 0.105, 0.22, skin)
