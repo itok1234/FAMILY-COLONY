@@ -790,8 +790,15 @@ func _show_guess_who_question() -> void:
 
 
 func _guess_who_action(action: String) -> void:
+	if not _royal_game_active or _royal_game_id != "guess_who":
+		return
+	if _royal_game_state.is_empty() or not _royal_game_state.has("pool"):
+		return
+	var question_index := int(_royal_game_state.get("index", -1))
+	if question_index < 0 or question_index >= _royal_game_state.pool.size():
+		return
 	if action == "hint":
-		var q: Dictionary = _royal_game_state.pool[_royal_game_state.index]
+		var q: Dictionary = _royal_game_state.pool[question_index]
 		var clue_index: int = int(_royal_game_state.clue)
 		# Only charge for an actual clue; repeated taps after the clue limit
 		# must not drain points or inflate the hint counter.
