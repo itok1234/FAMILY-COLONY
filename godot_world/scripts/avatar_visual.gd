@@ -20,6 +20,10 @@ var _left_leg: Node3D
 var _right_leg: Node3D
 var _wing_left: MeshInstance3D
 var _wing_right: MeshInstance3D
+var _antenna_left: MeshInstance3D
+var _antenna_right: MeshInstance3D
+var _hair_dynamic: Array[Node3D] = []
+var _base_head_rotation := Vector3.ZERO
 var _appearance_materials: Dictionary = {}
 var _appearance_defaults: Dictionary = {}
 
@@ -147,6 +151,17 @@ func _process(delta: float) -> void:
 		position.x = sin(gait_phase * 0.5) * 0.035 * _motion
 		rotation.z = lerpf(rotation.z, sin(gait_phase) * 0.025 * _motion, minf(delta * 7.0, 1.0))
 		rotation.y = lerpf(rotation.y, sin(gait_phase * 0.5) * 0.035 * _motion, minf(delta * 5.0, 1.0))
+		# Secondary motion: antenna sway and hair bounce respond to gait and idle breathing.
+		if _antenna_left != null and _antenna_right != null:
+			var antenna_sway := sin(_time * 2.6 + gait_phase * 0.18) * (0.035 + 0.08 * _motion)
+			_antenna_left.rotation.z = antenna_sway
+			_antenna_right.rotation.z = -antenna_sway * 0.85
+		for hair_piece in _hair_dynamic:
+			if is_instance_valid(hair_piece):
+				hair_piece.rotation.z = sin(gait_phase * 0.55 + _time * 0.7) * 0.025 * _motion + sin(_time * 1.4) * 0.012
+		# Restore arm pose smoothly after wave and seated pose.
+		_left_arm.rotation.z = lerpf(_left_arm.rotation.z, -0.12, minf(delta * 3.0, 1.0))
+		_right_arm.rotation.z = lerpf(_right_arm.rotation.z, 0.12, minf(delta * 3.0, 1.0))
 
 func _build_avatar() -> void:
 	var skin := _material(Color(0.72, 0.48, 0.34), 0.82)
@@ -229,6 +244,7 @@ func _build_avatar() -> void:
 	for side in [-1.0, 1.0]:
 		var lock := _add_capsule(_head, "LayeredHairLock_%s" % str(side), Vector3(side * 0.185, -0.075, -0.075), 0.045, 0.30, hair)
 		lock.rotation.z = side * -0.18
+		_hair_dynamic.append(lock)
 	_add_sphere(_head, "HairFringeLeft", Vector3(-0.085, 0.105, -0.185), Vector3(0.105, 0.065, 0.045), hair)
 	_add_sphere(_head, "HairFringeRight", Vector3(0.075, 0.115, -0.185), Vector3(0.105, 0.065, 0.045), hair)
 	_add_sphere(_head, "CheekLeft", Vector3(-0.125, -0.065, -0.165), Vector3(0.075, 0.06, 0.04), skin)
@@ -259,8 +275,8 @@ func _build_avatar() -> void:
 	wing_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	wing_mat.albedo_color = Color("#b8dbe5", 0.42)
 	wing_mat.metallic = 0.12
-	_add_capsule(_head, "AntennaLeft", Vector3(-0.085, 0.29, -0.045), 0.025, 0.28, antenna_mat)
-	_add_capsule(_head, "AntennaRight", Vector3(0.085, 0.29, -0.045), 0.025, 0.28, antenna_mat)
+	_antenna_left = _add_capsule(_head, "AntennaLeft", Vector3(-0.085, 0.29, -0.045), 0.025, 0.28, antenna_mat)
+	_antenna_right = _add_capsule(_head, "AntennaRight", Vector3(0.085, 0.29, -0.045), 0.025, 0.28, antenna_mat)
 	_add_sphere(_head, "AntennaTipLeft", Vector3(-0.085, 0.43, -0.045), Vector3(0.04, 0.04, 0.04), antenna_mat)
 	_add_sphere(_head, "AntennaTipRight", Vector3(0.085, 0.43, -0.045), Vector3(0.04, 0.04, 0.04), antenna_mat)
 	var wing_left := _add_sphere(self, "TransparentWingLeft", Vector3(-0.29, 1.32, 0.24), Vector3(0.28, 0.42, 0.055), wing_mat)
