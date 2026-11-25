@@ -653,8 +653,8 @@ func _destination_description(destination_id: String) -> String:
 			var username := str(_member_profile.get("username", "")).strip_edges()
 			var role := str(_member_profile.get("role", "member")).strip_edges()
 			if username.is_empty():
-				return "PROFIL ANGGOTA\\n" + display_name + "\\nPeran: " + role + "\\nData profil berasal dari sesi akun terverifikasi."
-			return "PROFIL ANGGOTA\\n" + display_name + "\\n@" + username + "  •  " + role + "\\nData profil berasal dari sesi akun terverifikasi."
+				return "PROFIL ANGGOTA\n" + display_name + "\\nPeran: " + role + "\\nData profil berasal dari sesi akun terverifikasi."
+			return "PROFIL ANGGOTA\n" + display_name + "\\n@" + username + "  •  " + role + "\\nData profil berasal dari sesi akun terverifikasi."
 		"chat": return "Bertemu • mengobrol • room\\nLayanan chat lintas jaringan dan panel 3D sedang dimigrasikan."
 		"games": return "Pilih permainan untuk masuk ke ruangnya.\\nHoney Hunt sudah memiliki arena 3D; game lain menunggu port mekanik."
 		"settings": return "Audio • kualitas grafis • kontrol\\nPengaturan 3D akan mengikuti kemampuan perangkat."
