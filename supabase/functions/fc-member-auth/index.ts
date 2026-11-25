@@ -335,6 +335,33 @@ Deno.serve(async req => {
       return json({ ok: true, username: member.username, activation_code: code, expires_in_hours: 24 });
     }
 
+    if (action === "member_registration_review") {
+      const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\\s+/i, "");
+      if (!bearer) return json({ error: "authentication_required" }, 401);
+      const { data: authData, error: authError } = await admin.auth.getUser(bearer);
+      if (authError || !authData.user) return json({ error: "invalid_session" }, 401);
+      const { data: staff, error: staffError } = await admin.from("fc_members")
+        .select("member_id,role,status").eq("auth_user_id", authData.user.id).maybeSingle();
+      if (staffError || !staff || staff.status !== "Aktif" || !["Kepsuk","Deputi","Admin"].includes(staff.role))
+        return json({ error: "not_authorized" }, 403);
+      const applicationId = String(body.application_id || "");
+      const decision = String(body.decision || "");
+      const note = String(body.review_note || "").trim().slice(0,200);
+      if (!applicationId || !["reviewing","approved","rejected"].includes(decision))
+        return json({ error: "review_input_invalid" }, 400);
+      const { data: app, error: appError } = await admin.from("fc_member_registration_applications")
+        .select("id,status").eq("id",applicationId).maybeSingle();
+      if (appError || !app) return json({ error: "application_not_found" }, 404);
+      if (app.status === "approved" || app.status === "rejected")
+        return json({ error: "application_already_decided" }, 409);
+      const { data: updated, error: updateError } = await admin.from("fc_member_registration_applications")
+        .update({status:decision,reviewed_at:decision==="reviewing"?null:new Date().toISOString(),
+          reviewed_by:staff.member_id,review_note:note||null})
+        .eq("id",applicationId).in("status",["pending","reviewing"]).select("id,status").maybeSingle();
+      if (updateError || !updated) return json({ error: "review_update_failed" }, 409);
+      return json({ok:true,application:updated});
+    }
+
     if (action === "member_registration_apply") {
       const applicantName = String(body.applicant_name || "").trim();
       const username = String(body.desired_username || "").trim().replace(/^@/, "").toLowerCase();
