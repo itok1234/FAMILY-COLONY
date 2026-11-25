@@ -36,6 +36,29 @@ jobs:
       - name: Checkout FAMILY COLONY
         uses: actions/checkout@v4
 
+      - name: Generate and inspect bootstrap GLB pipeline assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check trimesh
+          python godot_world/tools/generate_bootstrap_glb.py
+          python - <<'PY'
+          from pathlib import Path
+          import trimesh
+          paths = [
+              Path("godot_world/assets/characters/bootstrap_character.glb"),
+              Path("godot_world/assets/environment/bootstrap_environment.glb"),
+          ]
+          for path in paths:
+              if not path.exists() or path.stat().st_size < 1024:
+                  raise SystemExit(f"Missing or unexpectedly small GLB: {path}")
+              scene = trimesh.load(path, force="scene")
+              if not scene.geometry:
+                  raise SystemExit(f"GLB contains no geometry: {path}")
+              print(f"GLB pipeline check PASS: {path} ({len(scene.geometry)} mesh nodes)")
+          PY
+          echo "::notice::Bootstrap meshes are pipeline-test assets, not production visual approval."
+
       - name: Install Godot 4.4.1
         uses: chickensoft-games/setup-godot@v2
         with:
@@ -109,7 +132,7 @@ jobs:
           log_file="$(mktemp)"
           timeout 90s godot --headless --path godot_world --script res://tests/hub_3d_test.gd 2>&1 | tee "$log_file"
           if ! grep -F "HUB_3D_TEST: PASS" "$log_file"; then
-            echo "::error::3D hub scene regression test did not pass."
+            echo "::error::3D hub scene regression tests did not pass."
             exit 1
           fi
           if grep -E "SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script" "$log_file"; then
