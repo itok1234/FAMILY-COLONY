@@ -24,14 +24,19 @@ func _ready() -> void:
 	_network.connection_state_changed.connect(_on_connection_state_changed)
 
 
-func create_room(room_name: String, capacity: int = -1) -> void:
+func _is_valid_room_name(room_name: String) -> bool:
 	var clean_name := room_name.strip_edges()
-	var has_control_character := false
+	if clean_name.length() < 2 or clean_name.length() > 32:
+		return false
 	for character in clean_name:
 		if character.unicode_at(0) < 32 or character.unicode_at(0) == 127:
-			has_control_character = true
-			break
-	if clean_name.length() < 2 or clean_name.length() > 32 or has_control_character:
+			return false
+	return true
+
+
+func create_room(room_name: String, capacity: int = -1) -> void:
+	var clean_name := room_name.strip_edges()
+	if not _is_valid_room_name(clean_name):
 		room_action_result.emit(false, "Nama room harus 2–32 karakter dan tidak boleh berisi karakter kontrol.")
 		return
 	var chosen_capacity := default_room_capacity if capacity < 2 else mini(capacity, 64)
@@ -245,10 +250,11 @@ func _rpc_request_create_room(room_name: String, capacity: int) -> void:
 	var sender := multiplayer.get_remote_sender_id()
 	if sender <= 1 or not multiplayer.get_peers().has(sender):
 		return
-	if room_name.length() > 32 or room_name.strip_edges().length() < 2 or room_name.strip_edges().length() > 32:
+	var clean_name := room_name.strip_edges()
+	if not _is_valid_room_name(clean_name):
 		_send_result(sender, false, "Nama room tidak valid.")
 		return
-	_create_room_for_peer(sender, room_name.strip_edges(), clampi(capacity, 2, 64))
+	_create_room_for_peer(sender, clean_name, clampi(capacity, 2, 64))
 
 
 @rpc("any_peer", "call_remote", "reliable")
