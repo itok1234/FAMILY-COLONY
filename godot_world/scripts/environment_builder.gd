@@ -493,6 +493,11 @@ func _build_benches() -> void:
 		_box(self, Vector3(2.2, 0.72, 0.14), Vector3(x, 0.55, z - 0.24), wood, "BenchBack")
 		_box(self, Vector3(0.12, 0.48, 0.75), Vector3(x - 0.8, -0.05, z), metal, "BenchLeg")
 		_box(self, Vector3(0.12, 0.48, 0.75), Vector3(x + 0.8, -0.05, z), metal, "BenchLeg")
+		# Bench armrests and small decorative end caps make outdoor seating feel authored.
+		for arm_side in [-1.0, 1.0]:
+			var arm_x: float = x + float(arm_side) * 0.98
+			_box(self, Vector3(0.12, 0.62, 0.68), Vector3(arm_x, 0.38, z - 0.04), metal, "BenchArmrestSupport")
+			_box(self, Vector3(0.22, 0.12, 0.72), Vector3(arm_x, 0.70, z - 0.04), wood, "BenchArmrest")
 		_add_static_collision_box(self, Vector3(2.2, 0.2, 0.8), Vector3(x, 0.15, z), "BenchSeat")
 		_add_static_collision_box(self, Vector3(2.2, 0.8, 0.25), Vector3(x, 0.55, z - 0.24), "BenchBack")
 		_add_bench_interactable(Vector3(x, 0.8, z))
