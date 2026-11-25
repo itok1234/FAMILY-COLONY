@@ -108,6 +108,10 @@ jobs:
           unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "project.godot"
           unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "scenes/world.tscn"
           unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "scripts/world_session_client.gd"
+          unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "scripts/avatar_visual.gd"
+          unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "scripts/environment_builder.gd"
+          unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "scripts/main_hub_3d.gd"
+          unzip -l "$RUNNER_TEMP/godot_world.zip" | grep -F "scripts/world_controller.gd"
 
       - name: Verify APK package identity and signature
         shell: bash
