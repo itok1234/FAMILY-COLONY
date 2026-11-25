@@ -24,6 +24,11 @@ var _antenna_left: MeshInstance3D
 var _antenna_right: MeshInstance3D
 var _hair_dynamic: Array[Node3D] = []
 var _base_head_rotation := Vector3.ZERO
+var _expression := "neutral"
+var _expression_time := 0.0
+var _movement_direction := Vector2.ZERO
+var _turn_target := 0.0
+var _body_root: Node3D
 var _appearance_materials: Dictionary = {}
 var _appearance_defaults: Dictionary = {}
 
