@@ -726,6 +726,14 @@ func _royal_bomb_action(action: String) -> void:
 			_royal_game_status.text = "Tidak ada Honey Defuse tersisa."
 		return
 	if action == "skip":
+		# Skipping a turn still advances the simulated table, preventing a
+		# player from indefinitely bypassing the round's bot progression.
+		if _royal_game_rng.randf() > 0.38:
+			_royal_game_state.score += 1
+			_royal_game_status.text = "Giliran dilewati. Bot lawan bertahan; +1 bonus simulasi."
+		else:
+			_royal_game_state.bombs = maxi(0, int(_royal_game_state.bombs) - 1)
+			_royal_game_status.text = "Giliran dilewati. Satu bot lawan tereliminasi."
 		_royal_game_state.round += 1
 	elif action == "draw":
 		_royal_game_state.draws += 1
