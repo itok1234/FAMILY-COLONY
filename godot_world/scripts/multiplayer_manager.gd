@@ -171,6 +171,12 @@ func _on_local_room_changed(room_id: String, members: Array[int]) -> void:
 			_remove_remote_player(int(peer_id))
 	for peer_id in visible_peers.keys():
 		_ensure_remote_player(int(peer_id))
+	# Re-send the local wardrobe when entering a room so newly visible peers
+	# receive the current appearance even if it was selected before connecting.
+	var player := get_parent().get_node_or_null("Player") as CharacterBody3D
+	var avatar := player.get_node_or_null("AvatarVisual") if player != null else null
+	if avatar != null and avatar.has_method("get_appearance_snapshot"):
+		broadcast_local_appearance(avatar.call("get_appearance_snapshot"))
 
 
 func _route_player_state(peer_id: int, position_value: Vector3, rotation_value: float, motion_value: float) -> void:
