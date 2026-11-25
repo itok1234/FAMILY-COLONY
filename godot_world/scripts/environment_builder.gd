@@ -304,8 +304,20 @@ func _build_trees() -> void:
 		if absf(x) < 9.0 or (absf(x) < 18.0 and absf(z) < 15.0) or (absf(x) < 22.0 and z < -48.0 and z > -92.0):
 			continue
 		var height := _rng.randf_range(2.8, 4.0)
-		var trunk := _cylinder(trees_root, 0.22, height, Vector3(x, height * 0.5 - 0.48, z), bark, "TreeTrunk")
+		var trunk_position := Vector3(x, height * 0.5 - 0.48, z)
+		var trunk := _cylinder(trees_root, 0.22, height, trunk_position, bark, "TreeTrunk")
 		trunk.rotation.z = _rng.randf_range(-0.07, 0.07)
+		# Collision follows the trunk so players cannot walk through the tree base.
+		var trunk_body := StaticBody3D.new()
+		trunk_body.name = "TreeTrunkCollision"
+		trunk_body.position = trunk_position
+		trees_root.add_child(trunk_body)
+		var trunk_shape_node := CollisionShape3D.new()
+		var trunk_shape := CylinderShape3D.new()
+		trunk_shape.radius = 0.24
+		trunk_shape.height = height
+		trunk_shape_node.shape = trunk_shape
+		trunk_body.add_child(trunk_shape_node)
 		# Overlapping organic crowns replace the single spherical placeholder canopy.
 		var crown_material: Material = leaves[i % leaves.size()]
 		for cluster in range(5):
