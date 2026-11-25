@@ -140,6 +140,10 @@ func set_picker_visible(visible: bool) -> void:
 		_quality_panel.visible = visible
 
 
+func select_quality(index: int) -> void:
+	_on_quality_selected(index)
+
+
 func _quality_material(color: Color, roughness_value: float) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
