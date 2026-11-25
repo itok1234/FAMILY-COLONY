@@ -202,9 +202,8 @@ func _on_hub_destination_requested(destination_id: String) -> void:
 		if chat_manager != null and chat_manager.has_method("open_spatial_chat") and hub_camera != null:
 			chat_manager.call("open_spatial_chat", hub_camera)
 			chat_manager.set_process_unhandled_input(true)
-			if is_instance_valid(_main_hub):
-				_main_hub.queue_free()
-			_main_hub = null
+			# Keep the 3D hub alive: its camera owns this temporary chat panel.
+			# The panel is restored to the player camera before the hub is freed.
 			return
 		push_warning("FAMILY COLONY: Spatial chat could not attach to the active 3D camera.")
 		return
