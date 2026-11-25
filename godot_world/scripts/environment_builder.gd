@@ -27,6 +27,7 @@ func _ready() -> void:
 	_build_fountain_walkway()
 	_build_plaza_ring_details()
 	_build_reference_social_gardens()
+	_build_plaza_accent_lighting()
 
 func apply_quality_density(trees: int, lamps: int, buildings: int) -> void:
 	tree_count = maxi(0, trees)
@@ -1031,3 +1032,21 @@ func _build_plaza_ring_details() -> void:
 			shrub.rings = 6
 			_mesh_node(island, shrub, foliage_mat, offset, "PlanterShrub")
 
+
+
+func _build_plaza_accent_lighting() -> void:
+	## Low-cost accent lighting adds depth without realtime shadow overhead.
+	var root := Node3D.new()
+	root.name = "PlazaAccentLighting"
+	add_child(root)
+	var positions: Array[Vector3] = [Vector3(-9.0, 1.1, -9.0), Vector3(9.0, 1.1, -9.0), Vector3(-9.0, 1.1, 9.0), Vector3(9.0, 1.1, 9.0), Vector3(-15.0, 1.5, 0.0), Vector3(15.0, 1.5, 0.0)]
+	for index in range(positions.size()):
+		var lamp := OmniLight3D.new()
+		lamp.name = "PlazaAccent_%02d" % index
+		lamp.position = positions[index]
+		lamp.light_color = Color("#d8c6a0") if index % 2 == 0 else Color("#9fc9d8")
+		lamp.light_energy = 0.45
+		lamp.omni_range = 7.0
+		lamp.omni_attenuation = 1.35
+		lamp.shadow_enabled = false
+		root.add_child(lamp)
