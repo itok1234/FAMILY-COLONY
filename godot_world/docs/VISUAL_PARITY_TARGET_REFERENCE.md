@@ -37,3 +37,18 @@ The uploaded concept is the visual/feature target, not an APK screenshot. The 3D
 - [ ] Menu items all have working destinations or honest status labels.
 - [ ] Developer controls inaccessible to regular members.
 - [ ] Visual QA screenshots from actual Android build and performance check completed.
+
+
+## November 25 reference image — locked composition detail
+
+- Brand header: FAMILY COLONY crest/wordmark and Together · Connect · Belong identity.
+- Login panel: welcoming plaza/building background, Login Member, separate registration route, and Guest Mode only if supported; avoid competing overlays.
+- Main plaza: broad paved central plaza with a luminous blue fountain/crystal focal point, landscaped planting, flower beds, benches, lamps, low-rise community architecture, and a clean city skyline backdrop.
+- Avatar studio panel: two illustrative avatar examples, full-body preview, vertical clothing/accessory categories, and Save action; examples must remain customizable.
+- Community room: premium warm lounge with sofas, coffee table, screens/brand wall, seating for multiple members, and chat/community activity panel.
+- Exploration: third-person avatar foreground, plaza pathways, clearly readable destination landmarks, minimap, and mobile action/movement controls.
+- Bottom navigation/feature strip: social community, mini-games/events, home building, friendship/social discovery, and other features; each control must lead to a functional feature or honest unavailable state.
+- Art direction: bright blue daytime sky, green landscaping, polished stone and glass, navy/cyan/gold branding accents, balanced density, readable UI, and cinematic but mobile-conscious camera framing. This is a target, not a claim that the current procedural scene achieves parity.
+
+## QA comparison rule
+Review each actual in-game area against these specific panels/visual elements, not merely against a generic 3D benchmark. Keep missing imported P0 assets and unverified Android runtime behavior listed as blockers; do not label the APK final until the visual and runtime gates are evidenced.
