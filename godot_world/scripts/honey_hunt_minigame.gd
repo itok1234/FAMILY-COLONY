@@ -389,7 +389,7 @@ func start_royal_game(game_id: String, actor: Node) -> String:
 	_royal_game_id = game_id
 	_royal_game_return_position = _player.global_position
 	_player.velocity = Vector3.ZERO
-	_player.set_physics_process(false)
+	_set_royal_actor_controls(false)
 	_player.global_position = ROYAL_GAME_ORIGIN + Vector3(0, 1.1, 4)
 	_royal_game_rng.randomize()
 	_royal_game_active = true
@@ -1113,7 +1113,7 @@ func exit_royal_game() -> void:
 	if is_instance_valid(_player):
 		_player.velocity = Vector3.ZERO
 		_player.global_position = _royal_game_return_position
-		_player.set_physics_process(true)
+		_set_royal_actor_controls(true)
 	if is_instance_valid(_royal_game_hud):
 		_royal_game_hud.queue_free()
 	_royal_game_hud = null
@@ -1125,3 +1125,21 @@ func exit_royal_game() -> void:
 	_royal_game_id = ""
 	_royal_game_state.clear()
 	_player = null
+
+
+func _set_royal_actor_controls(enabled: bool) -> void:
+	if not is_instance_valid(_player):
+		return
+	_player.set_physics_process(enabled)
+	_player.set_process_input(enabled)
+	_player.set_process_unhandled_input(enabled)
+	var camera_pivot := _player.get_node_or_null("CameraPivot")
+	if camera_pivot != null:
+		camera_pivot.set_process(enabled)
+		camera_pivot.set_process_input(enabled)
+		camera_pivot.set_process_unhandled_input(enabled)
+	var interaction := _player.get_node_or_null("InteractionController")
+	if interaction != null:
+		interaction.set_process(enabled)
+		interaction.set_process_input(enabled)
+		interaction.set_process_unhandled_input(enabled)
