@@ -121,8 +121,8 @@ func _process(delta: float) -> void:
 	var gait_phase := _time * gait_rate
 	if _wing_left != null and _wing_right != null:
 		var wing_flap := sin(_time * 8.0) * 0.10 + sin(_time * 3.0) * 0.035
-		__wing_left.rotation.z = 0.32 + wing_flap
-		__wing_right.rotation.z = -0.32 - wing_flap
+		_wing_left.rotation.z = 0.32 + wing_flap
+		_wing_right.rotation.z = -0.32 - wing_flap
 		_wing_left.rotation.x = sin(_time * 5.5) * 0.12
 		_wing_right.rotation.x = -sin(_time * 5.5) * 0.12
 		# Slow, layered flutter at rest; walking increases the flutter amplitude slightly.
@@ -339,8 +339,8 @@ func _build_avatar() -> void:
 	_add_sphere(_head, "AntennaTipRight", Vector3(0.085, 0.43, -0.045), Vector3(0.04, 0.04, 0.04), antenna_mat)
 	_wing_left = _add_sphere(self, "TransparentWingLeft", Vector3(-0.29, 1.32, 0.24), Vector3(0.28, 0.42, 0.055), wing_mat)
 	_wing_right = _add_sphere(self, "TransparentWingRight", Vector3(0.29, 1.32, 0.24), Vector3(0.28, 0.42, 0.055), wing_mat)
-	wing_left.rotation.z = 0.32
-	wing_right.rotation.z = -0.32
+	_wing_left.rotation.z = 0.32
+	_wing_right.rotation.z = -0.32
 	# Thin luminous vein accents give the translucent colony wings a layered silhouette.
 	var wing_vein_material := _material(Color("#d8edf3", 0.72), 0.28)
 	wing_vein_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
