@@ -122,10 +122,13 @@ func _process(delta: float) -> void:
 		_right_arm.rotation.x = lerpf(-arm_swing - wave_weight * 2.15 + sin(_time * 11.5) * 0.24 * wave_weight, -0.28, sit_weight)
 		_left_leg.rotation.x = lerpf(leg_swing, 0.9, sit_weight)
 		_right_leg.rotation.x = lerpf(-leg_swing, 0.9, sit_weight)
-		_head.rotation.x = idle * 0.35 - wave_weight * 0.08
-		_head.rotation.y = sin(_time * 0.8) * 0.025
+		_head.rotation.x = idle * 0.35 - wave_weight * 0.08 + sin(gait_phase * 0.5) * 0.035 * _motion
+		_head.rotation.y = sin(_time * 0.8) * 0.025 + sin(gait_phase * 0.5) * 0.04 * _motion
+		_head.rotation.z = sin(_time * 1.1) * 0.018 * (1.0 - _motion) + sin(gait_phase) * 0.018 * _motion
 		position.y = idle * (1.0 - _motion) + body_bob - sit_weight * 0.28
+		position.x = sin(gait_phase * 0.5) * 0.035 * _motion
 		rotation.z = lerpf(rotation.z, sin(gait_phase) * 0.025 * _motion, minf(delta * 7.0, 1.0))
+		rotation.y = lerpf(rotation.y, sin(gait_phase * 0.5) * 0.035 * _motion, minf(delta * 5.0, 1.0))
 
 func _build_avatar() -> void:
 	var skin := _material(Color(0.72, 0.48, 0.34), 0.82)
