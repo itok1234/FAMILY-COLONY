@@ -243,6 +243,16 @@ func _build_avatar() -> void:
 	_add_capsule(_right_arm, "RightCuff", Vector3(0, -0.13, 0), 0.119, 0.10, trim)
 	_add_sphere(_left_arm, "LeftHand", Vector3(0, -0.34, 0), Vector3(0.105, 0.13, 0.09), skin)
 	_add_sphere(_right_arm, "RightHand", Vector3(0, -0.34, 0), Vector3(0.105, 0.13, 0.09), skin)
+
+	# Small hand/finger geometry and articulated-looking cuffs improve close-range silhouette.
+	var finger_material := skin
+	for hand_side in [-1.0, 1.0]:
+		var hand_parent: Node3D = _left_arm if hand_side < 0.0 else _right_arm
+		for finger_index in range(3):
+			var finger := _add_capsule(hand_parent, "Finger_%d" % finger_index, Vector3(hand_side * (0.045 + float(finger_index) * 0.025), -0.43, -0.025), 0.026, 0.12, finger_material)
+			finger.rotation.z = hand_side * 0.10
+		var thumb := _add_capsule(hand_parent, "Thumb", Vector3(hand_side * 0.11, -0.36, -0.025), 0.028, 0.105, finger_material)
+		thumb.rotation.z = hand_side * 0.55
 	# Additional silhouette and material detail for the mobile avatar blockout.
 	_add_sphere(self, "LeftShoulderCap", Vector3(-0.34, 1.46, 0), Vector3(0.15, 0.16, 0.16), shirt)
 	_add_sphere(self, "RightShoulderCap", Vector3(0.34, 1.46, 0), Vector3(0.15, 0.16, 0.16), shirt)
