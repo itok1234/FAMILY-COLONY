@@ -34,6 +34,12 @@ var _developer_login_busy := false
 var _destination_panel: Node3D
 var _panel_title: Label3D
 var _panel_body: Label3D
+var _member_profile: Dictionary = {}
+
+
+func set_member_profile(member: Dictionary) -> void:
+	# Identity comes only from the verified world-session response.
+	_member_profile = member.duplicate(true)
 
 
 func _ready() -> void:
@@ -642,7 +648,13 @@ func _destination_title(destination_id: String) -> String:
 
 func _destination_description(destination_id: String) -> String:
 	match destination_id:
-		"profile": return "Identitas anggota • avatar • koleksi\\nRuang profil 3D sedang disiapkan untuk integrasi data akun."
+		"profile":
+			var display_name := str(_member_profile.get("name", "Anggota Colony")).strip_edges()
+			var username := str(_member_profile.get("username", "")).strip_edges()
+			var role := str(_member_profile.get("role", "member")).strip_edges()
+			if username.is_empty():
+				return "PROFIL ANGGOTA\\n" + display_name + "\\nPeran: " + role + "\\nData profil berasal dari sesi akun terverifikasi."
+			return "PROFIL ANGGOTA\\n" + display_name + "\\n@" + username + "  •  " + role + "\\nData profil berasal dari sesi akun terverifikasi."
 		"chat": return "Bertemu • mengobrol • room\\nLayanan chat lintas jaringan dan panel 3D sedang dimigrasikan."
 		"games": return "Pilih permainan untuk masuk ke ruangnya.\\nHoney Hunt sudah memiliki arena 3D; game lain menunggu port mekanik."
 		"settings": return "Audio • kualitas grafis • kontrol\\nPengaturan 3D akan mengikuti kemampuan perangkat."
