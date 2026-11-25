@@ -498,6 +498,21 @@ func _create_kiosk(item: Dictionary) -> void:
 	marker.material_override = marker_material
 	root.add_child(marker)
 
+	# Small luminous badge ring gives each station a clearer focal point.
+	var badge_ring := MeshInstance3D.new()
+	var badge_ring_mesh := TorusMesh.new()
+	badge_ring_mesh.inner_radius = 0.24
+	badge_ring_mesh.outer_radius = 0.31
+	badge_ring.mesh = badge_ring_mesh
+	badge_ring.position = Vector3(0, 1.88, -0.34)
+	badge_ring.rotation_degrees.x = 90.0
+	var badge_ring_material := _material(item.color.lightened(0.48), 0.24, 0.42)
+	badge_ring_material.emission_enabled = true
+	badge_ring_material.emission = item.color.lightened(0.38)
+	badge_ring_material.emission_energy_multiplier = 0.65
+	badge_ring.material_override = badge_ring_material
+	root.add_child(badge_ring)
+
 	# Slim side columns and inset face strips add depth while keeping the
 	# title and touch target unobstructed on phone-sized screens.
 	for side_x in [-1.42, 1.42]:
