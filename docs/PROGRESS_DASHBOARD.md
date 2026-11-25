@@ -8,6 +8,8 @@
 
 ## Recent implementation update — 2026-11-25
 
+- Commit `1189726`: fixed spatial chat message line formatting; messages are now joined with real line breaks instead of literal escape text, improving readability in the 3D chat panel.
+
 - Commit `f8542ee`: fixed `RoomManager.get_room_snapshot()` so a server/host reads its live room registry even when running on the offline multiplayer peer (single-player/offline test harness). Previously the API returned the client cache in this mode, potentially hiding rooms.
 - Added regression assertion to `room_manager_test.gd` checking host snapshot visibility with three lobby shards.
 - Validation pipelines for this commit are running; results are not yet confirmed.
