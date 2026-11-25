@@ -369,10 +369,16 @@ Deno.serve(async req => {
       if (!applicationId || !["reviewing","approved","rejected"].includes(decision))
         return json({ error: "review_input_invalid" }, 400);
       const { data: app, error: appError } = await admin.from("fc_member_registration_applications")
-        .select("id,status").eq("id",applicationId).maybeSingle();
+        .select("id,status,desired_username,applicant_name").eq("id",applicationId).maybeSingle();
       if (appError || !app) return json({ error: "application_not_found" }, 404);
       if (app.status === "approved" || app.status === "rejected")
         return json({ error: "application_already_decided" }, 409);
+      if (decision === "approved") {
+        const { data: rosterMatch, error: rosterCheckError } = await admin.from("fc_members")
+          .select("member_id").ilike("username", app.desired_username).limit(1);
+        if (rosterCheckError) return json({ error: "roster_check_failed" }, 500);
+        if (rosterMatch?.length) return json({ error: "username_already_in_roster" }, 409);
+      }
       const { data: updated, error: updateError } = await admin.from("fc_member_registration_applications")
         .update({status:decision,reviewed_at:decision==="reviewing"?null:new Date().toISOString(),
           reviewed_by:staff.member_id,review_note:note||null})
