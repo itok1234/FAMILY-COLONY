@@ -90,3 +90,9 @@ Do not label the product fully 3D until:
 - The 3D chat panel renders recent room messages with Label3D and provides a touch-selectable 3D QWERTY keypad, space, delete, send and close controls. Message send still uses the existing room transport and validation; it is not upgraded to cross-network cloud chat.
 - Chat input is suspended while the hub is open and restored after entering the world.
 - First validation caught missing signal callback methods after the HUD rewrite; the handlers have been restored in commit `fea7ac5507a9ce88e9b98a57eb5205480623c3b4`. Latest Godot validation is running.
+
+## Developer PIN session handoff (2026-11-25)
+- Connected the 3D hub's developer_authenticated signal to WorldSessionClient.
+- The PIN response is checked for the expected Developer identity, then its short-lived access token is independently verified by the existing fc-world-session authorization endpoint before the 3D Developer Center opens.
+- The Developer Center is a spatial 3D dashboard with entry points for member management, world settings, mini-game management, server monitoring, reports and app configuration. These controls are currently navigation hooks only; privileged CRUD/server operations still need their dedicated backend integration.
+- If server verification fails, the user receives a 3D status message and no Developer Center is unlocked.
