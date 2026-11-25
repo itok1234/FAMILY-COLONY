@@ -67,6 +67,11 @@ jobs:
             > **Latest source commit:** [\`${head.slice(0, 7)}\`](https://github.com/${owner}/${repo}/commit/${head})  
             > **Dashboard refreshed:** ${now}
 
+            ## Overall progress baseline
+
+            - **55% completed / 45% remaining** — retained from the previously reported project baseline.
+            - This is a continuity reference, not a newly audited measurement; it changes only after an agreed, evidence-based full audit.
+
             ## Automated validation
 
             | Check | Latest branch result | Commit tested |
