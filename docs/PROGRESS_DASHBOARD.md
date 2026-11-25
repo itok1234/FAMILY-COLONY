@@ -1,10 +1,10 @@
 # FAMILY COLONY — Live Progress Dashboard
 
-> Dashboard generated from repository state and GitHub Actions. The scheduled workflow refreshes it every 15 minutes.
+> Generated automatically by GitHub Actions. Updated on code pushes, manual dispatch, and every 15 minutes.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Source commit:** [`3b0e1bf`](https://github.com/itok1234/FAMILY-COLONY/commit/3b0e1bfcb20ffd2b869e11bf872aeac2aa4b9365)  
-> **Refreshed:** 2026-11-25T02:25:51.144Z
+> **Latest source commit:** [`3b0e1bf`](https://github.com/itok1234/FAMILY-COLONY/commit/3b0e1bfcb20ffd2b869e11bf872aeac2aa4b9365)  
+> **Dashboard refreshed:** 2026-11-25T02:25:56.913Z
 
 ## Automated validation
 
@@ -21,7 +21,7 @@
 |---|---|---|
 | Native 3D hub and world entry | IMPLEMENTED SLICE | Full app flow and feature parity |
 | Avatar profile and wardrobe | IMPLEMENTED SLICE | Cloud persistence and device UX |
-| Room-scoped avatar appearance sync | IMPLEMENTED — LATEST GODOT VALIDATION SUCCESS | Android smoke and multi-device test |
+| Room-scoped avatar appearance sync | IMPLEMENTED — VALIDATION PENDING | Latest Godot/Android workflows and multi-device test |
 | Member login and session | LEGACY WEBVIEW FLOW PRESERVED | Port login, refresh, logout and recovery to spatial 3D |
 | Developer Center | 3D ENTRY / NAVIGATION SLICE | Secure backend CRUD and operational tools |
 | Five mini-games | HONEY HUNT 3D; FOUR INITIAL LOCAL GAME LOOPS | Complete gameplay, polish, persistence and multiplayer |
@@ -40,7 +40,7 @@
 
 ## Status rules
 
-- No overall percentage is shown until every feature has measurable acceptance criteria.
-- Each CI result applies only to the exact commit shown in its row.
-- An implemented slice is not the same as a complete feature.
-- A signed APK build is not physical-device acceptance or final product sign-off.
+- This dashboard reports verified implementation slices and CI outcomes, not an invented overall percentage.
+- A workflow result applies only to the commit shown in its row.
+- "Implemented slice" does not mean the entire feature or application is complete.
+- A release APK build is not equivalent to physical-device acceptance or final product sign-off.
