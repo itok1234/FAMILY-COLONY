@@ -316,6 +316,28 @@ func _build_buildings() -> void:
 		building_sign.outline_modulate = Color(0.12, 0.15, 0.17)
 		building_sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		group.add_child(building_sign)
+		# Crest medallion and layered facade crown establish a recognizable landmark silhouette.
+		var crest_material := _mat("building_crest", Color("#78b8c8"), 0.34, 0.28)
+		crest_material.emission_enabled = true
+		crest_material.emission = Color("#397f9a")
+		crest_material.emission_energy_multiplier = 0.28
+		var crest := CylinderMesh.new()
+		crest.top_radius = 0.52
+		crest.bottom_radius = 0.52
+		crest.height = 0.12
+		crest.radial_segments = 12
+		var crest_node := _mesh_node(group, crest, crest_material, Vector3(0, height + 0.66, depth * 0.5 + 0.16), "FacadeCrest")
+		crest_node.rotation.x = PI * 0.5
+		var crest_inner := SphereMesh.new()
+		crest_inner.radius = 0.22
+		crest_inner.height = 0.44
+		crest_inner.radial_segments = 12
+		crest_inner.rings = 8
+		_mesh_node(group, crest_inner, trim, Vector3(0, height + 0.66, depth * 0.5 + 0.25), "FacadeCrestCore")
+		# Roof-edge fascia and corner caps add depth at mobile viewing distance.
+		_box(group, Vector3(width + 1.2, 0.14, 0.16), Vector3(0, height + 0.32, depth * 0.5 + 0.52), trim, "RoofFrontFascia")
+		_box(group, Vector3(0.16, 0.14, depth + 1.2), Vector3(-width * 0.5 - 0.52, height + 0.32, 0), trim, "RoofSideFascia")
+		_box(group, Vector3(0.16, 0.14, depth + 1.2), Vector3(width * 0.5 + 0.52, height + 0.32, 0), trim, "RoofSideFascia")
 
 func _build_trees() -> void:
 	var trees_root := Node3D.new()
