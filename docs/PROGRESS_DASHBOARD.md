@@ -1,80 +1,52 @@
 # FAMILY COLONY — Live Progress Dashboard
 
-> Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
->
-> **Branch:** `feature/direct-3d-entry`  
-> **Latest source commit:** [`ebbb7e1`](https://github.com/itok1234/FAMILY-COLONY/commit/ebbb7e1c7a9a8c0ce975d049fa7c932191046763)  
-> **Dashboard refreshed:** 2026-11-25T04:51:37.463Z
+> Dashboard updated by GitHub Actions on code push/manual dispatch. This page now separates verified milestones from estimates; the legacy 55% figure is retired.
 
-## FAST TRACK mode — ACTIVE
+**Branch:** `feature/direct-3d-entry`  
+**Audit checkpoint:** 2026-11-25  
+**Current implementation focus:** FAST TRACK — playable 3D MVP  
+**Repository:** https://github.com/itok1234/FAMILY-COLONY/tree/feature/direct-3d-entry
 
-- Deliver a complete playable 3D MVP first; preserve the agreed bright, readable 3D visual standard.
-- Defer non-core polish and advanced administration; do not defer core gameplay, safe authentication, or visible 3D environments.
-- Current active workstream: Room & Lobby foundation, then the shortest end-to-end playable path.
-- Current multiplayer foundation is LAN ENet and in-memory rooms; do not label it cloud-authoritative.
+## Progress reporting rule
+The old fixed **55%** was a continuity estimate, not an audited measurement, and is no longer used as the project total. A defensible overall percentage will be calculated only after the MVP tasks are enumerated, weighted, and checked against implementation and validation evidence. Workstream percentages below are provisional estimates, not acceptance claims.
 
-## Overall progress baseline
+## Verified development evidence
+- **Godot 3D world validation:** latest reported CI success at commit `ebbb7e1` (workflow run 45549614594).
+- **Signed APK build:** latest reported CI success at commit `ebbb7e1` (workflow run 45549614592).
+- **Dashboard workflow:** latest reported success (run 45549614565).
+- **Android build validation:** running at last status check (run 45549614521).
+- **Embedded Android smoke test:** running at last status check (run 45549614674).
+- These results apply only to the referenced commit/run; they do not establish physical-device acceptance.
 
-- **55% completed / 45% remaining** — retained from the previously reported project baseline.
-- This is a continuity reference, not a newly audited measurement; it changes only after an agreed, evidence-based full audit.
+## Workstream snapshot (provisional)
+| Workstream | Estimate | Evidence / next gate |
+|---|---:|---|
+| 3D world / hub entry | Slice implemented | End-to-end entry flow and feature parity |
+| Avatar/profile | Slice implemented | Persistence and device UX |
+| Room & Lobby | 65% provisional | Automated lifecycle/sharding tests; multi-device and invitation UI acceptance |
+| Room networking | Foundation | LAN ENet/in-memory; cloud authority/persistence remains |
+| Chat | 40% provisional | Supported-mode integration and real multi-device verification |
+| Mini-games | 40% provisional | Honey Hunt + four local loops; gameplay completeness, integration and multiplayer remain |
+| Login/session | 45% provisional | Legacy WebView flow retained; reliable spatial 3D flow still required |
+| Developer Center | 20% provisional | Navigation slice; secure backend operations not completed |
+| Settings | 35% provisional | Complete functional settings and verify in Android |
+| Release acceptance | 15% provisional | CI APK build exists; device install, regression and sign-off remain |
 
-## Automated validation
+## FAST TRACK MVP acceptance gates
+- [ ] Login/session reliably leads to playable world; authentication security preserved.
+- [ ] 3D hub/avatar, room create/join/leave and membership display work end-to-end.
+- [ ] Room-scoped chat works in supported multiplayer mode.
+- [ ] Five mini-games complete basic loops.
+- [ ] Essential settings work; readable, bright 3D experience.
+- [x] Godot world validation and signed APK build succeeded on the latest reported commit `ebbb7e1`.
+- [ ] Android build validation and embedded smoke test finish successfully for `ebbb7e1`.
+- [ ] APK installed and tested on physical Android device.
 
-| Check | Latest branch result | Commit tested |
-|---|---|---|
-| Validate FAMILY COLONY 3D World | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45549448239) | a2d0200 |
-| Validate FAMILY COLONY Android Build | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45549448277) | a2d0200 |
-| FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45549448241) | a2d0200 |
-| Build FAMILY COLONY Signed Release APK | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45549448505) | a2d0200 |
+## Known scope boundary
+Multiplayer currently means LAN ENet/in-memory host-authoritative rooms, not cloud-authoritative persistent multiplayer. The 3D login/session port, operational Developer Center, device acceptance and final release sign-off remain open. APK generation is not device testing.
 
-## Implementation status
-
-| Workstream | Evidence-based status | Remaining gate |
-|---|---|---|
-| Native 3D hub and world entry | IMPLEMENTED SLICE | Full app flow and feature parity |
-| Avatar profile and wardrobe | IMPLEMENTED SLICE | Cloud persistence and device UX |
-| Room-scoped avatar appearance sync | IMPLEMENTED SLICE — CI PASSED | Multi-device real-world test and persistence |
-| Room & Lobby (active group 1) | 65% provisional — lobby sharding, capacity/cooldown controls and client room-snapshot cache; automated regression suite included in the Godot validation check above | Multi-device lifecycle, invitation/transition UI verification and cloud persistence |
-| Room management | LAN host-authoritative in-memory rooms; 64 custom-room cap; least-populated lobby shards; client snapshot cache | Cloud persistence and physical multi-device acceptance |
-| Member login and session | LEGACY WEBVIEW FLOW PRESERVED | Port login, refresh, logout and recovery to spatial 3D |
-| Developer Center | 3D ENTRY / NAVIGATION SLICE | Secure backend CRUD and operational tools |
-| Five mini-games | HONEY HUNT 3D; FOUR INITIAL LOCAL GAME LOOPS | Complete gameplay, polish, persistence and multiplayer |
-| Multiplayer | LAN ENet FOUNDATION + HOST MOVEMENT RATE LIMIT (40 HZ) | Cloud-authoritative transport and server-side identity binding |
-| Full 3D acceptance | NOT COMPLETE | Remove member-facing 2D/WebView only after feature parity |
-| Release readiness | CI CHECKS TRACKED ABOVE | Physical-device regression, security and release sign-off |
-
-## FAST TRACK execution
-
-- **Active workstream:** Room & Lobby foundation, then integrate the shortest end-to-end playable path.
-- **Room & Lobby estimate:** 65% provisional / 35% remaining; do not raise without acceptance evidence.
-- **MVP scope:** existing login/session bridge, 3D hub/avatar, room join/create/leave, room-scoped chat, five basic playable mini-games and essential settings.
-- **Deferred:** non-essential decoration, advanced cosmetics, analytics, extended Developer Center tooling, advanced ranking/rewards and non-blocking cloud enhancements.
-- **Never deferred:** bright/readable 3D scenes, visible characters and objects, core gameplay, safe authentication and reliable Android builds.
-- **Regression coverage:** lobby sharding/capacity, unique peer assignment, empty-shard cleanup, reconnect/rejoin and client room-snapshot caching. Godot validation executes godot_world/tests/room_manager_test.gd.
-
-## MVP acceptance gates
-
-- [ ] Existing login/session flow reliably enters the playable world without weakening authentication.
-- [ ] Player can enter the 3D hub, use an avatar, join/create/leave rooms and see room membership.
-- [ ] Room-scoped chat works in the supported multiplayer mode.
-- [ ] All five mini-games have a complete basic win/lose gameplay loop.
-- [ ] Essential settings work; core scenes remain bright, readable and fully 3D.
-- [x] Godot validation, Android build, embedded Android smoke test and signed APK build passed on commit 775dd42.
-- [ ] APK installed and verified on a physical Android device.
-
-## Post-MVP gates
-
-- [ ] Cloud-authoritative multiplayer and persistent room service.
-- [ ] Full 3D parity for remaining member-facing flows, including login/session.
-- [ ] Advanced Developer Center CRUD, analytics, ranking/rewards and extended polish.
-- [ ] Physical-device regression, security review and distribution sign-off.
-
-## Status rules
-
-- The 55% figure is a retained continuity baseline, not a newly audited exact measurement.
-- Feature statuses and CI outcomes are evidence-based; a workflow result applies only to its listed commit.
-- A workflow result applies only to the commit shown in its row.
-- "Implemented slice" does not mean the entire feature or application is complete.
-- A release APK build is not equivalent to physical-device acceptance or final product sign-off.
-- FAST TRACK defers non-core features; it does not lower the 3D visual-quality requirement.
-- MVP completion requires an end-to-end demonstration on a physical Android device.
+## Next FAST TRACK priorities
+1. Complete and verify current Android build/smoke checks on `ebbb7e1`.
+2. Fix test/build blockers, if any, and record results by commit.
+3. Prioritize the shortest end-to-end playable path: login/session → 3D hub/avatar → room → chat → mini-game → return.
+4. Use explicit task evidence to recalculate progress; avoid repeating the retained baseline.
