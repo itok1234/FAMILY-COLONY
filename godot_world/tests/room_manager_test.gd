@@ -92,7 +92,7 @@ func _run_room_manager_tests() -> void:
 	var incoming_rooms: Array = [
 		{"id": "lobby", "name": "Lobby", "capacity": 16, "member_count": 3, "extra": "stripped"},
 		{"id": "lobby", "name": "Duplicate", "capacity": 16, "member_count": 1},
-		{"id": "bad\\nroom", "name": "Unsafe", "capacity": 4, "member_count": 1},
+		{"id": "bad room", "name": "Unsafe", "capacity": 4, "member_count": 1},
 		{"id": "room_bad", "name": "Over capacity", "capacity": 2, "member_count": 3},
 		{"id": "room_valid", "name": "Valid Room", "capacity": 8, "member_count": 4}
 	]
