@@ -15,6 +15,7 @@ const PORTAL_SCRIPT: Script = preload("res://scripts/world_portal.gd")
 func _ready() -> void:
 	_rng.seed = random_seed
 	_build_central_plaza()
+	_build_fountain_feature()
 	_build_road_network()
 	_build_buildings()
 	_build_trees()
@@ -94,6 +95,82 @@ func _build_central_plaza() -> void:
 		_box(self, Vector3(0.035, 0.012, 22.0), Vector3(float(x) * 2.7, -0.365, 0), inset, "StoneJoint")
 	for z in range(-4, 5):
 		_box(self, Vector3(29.0, 0.012, 0.035), Vector3(0, -0.364, float(z) * 2.7), inset, "StoneJoint")
+
+
+
+func _build_fountain_feature() -> void:
+	## Layered plaza fountain focal point; lightweight mesh-only art for mobile.
+	var fountain := Node3D.new()
+	fountain.name = "PlazaFountain"
+	fountain.position = Vector3(0, -0.34, 0)
+	add_child(fountain)
+	var stone := _mat("fountain_stone", Color(0.72, 0.75, 0.73), 0.78)
+	var trim := _mat("fountain_trim", Color(0.82, 0.67, 0.42), 0.42, 0.22)
+	var water := _mat("fountain_water", Color(0.19, 0.46, 0.58, 0.78), 0.18, 0.28)
+	water.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	water.metallic = 0.22
+	# Broad stepped basin and reflective-looking inset water surface.
+	var base := CylinderMesh.new()
+	base.top_radius = 4.3
+	base.bottom_radius = 4.6
+	base.height = 0.42
+	base.radial_segments = 32
+	_mesh_node(fountain, base, stone, Vector3(0, 0.18, 0), "FountainBase")
+	var rim := CylinderMesh.new()
+	rim.top_radius = 3.95
+	rim.bottom_radius = 4.15
+	rim.height = 0.28
+	rim.radial_segments = 32
+	_mesh_node(fountain, rim, trim, Vector3(0, 0.52, 0), "FountainRim")
+	var basin := CylinderMesh.new()
+	basin.top_radius = 3.78
+	basin.bottom_radius = 3.78
+	basin.height = 0.12
+	basin.radial_segments = 32
+	_mesh_node(fountain, basin, water, Vector3(0, 0.53, 0), "FountainWaterSurface")
+	var pedestal := CylinderMesh.new()
+	pedestal.top_radius = 1.15
+	pedestal.bottom_radius = 1.55
+	pedestal.height = 1.4
+	pedestal.radial_segments = 16
+	_mesh_node(fountain, pedestal, stone, Vector3(0, 1.12, 0), "FountainPedestal")
+	var upper_bowl := CylinderMesh.new()
+	upper_bowl.top_radius = 2.0
+	upper_bowl.bottom_radius = 0.9
+	upper_bowl.height = 0.35
+	upper_bowl.radial_segments = 24
+	_mesh_node(fountain, upper_bowl, trim, Vector3(0, 1.88, 0), "FountainUpperBowlTrim")
+	var upper_water := CylinderMesh.new()
+	upper_water.top_radius = 1.85
+	upper_water.bottom_radius = 1.85
+	upper_water.height = 0.09
+	upper_water.radial_segments = 24
+	_mesh_node(fountain, upper_water, water, Vector3(0, 1.93, 0), "FountainUpperWater")
+	var jet := CylinderMesh.new()
+	jet.top_radius = 0.12
+	jet.bottom_radius = 0.18
+	jet.height = 1.25
+	jet.radial_segments = 12
+	_mesh_node(fountain, jet, water, Vector3(0, 2.55, 0), "FountainJet")
+	# Eight radial decorative accents break up the circular silhouette.
+	for i in range(8):
+		var angle := TAU * float(i) / 8.0
+		var accent := SphereMesh.new()
+		accent.radius = 0.22
+		accent.height = 0.44
+		accent.radial_segments = 10
+		accent.rings = 6
+		_mesh_node(fountain, accent, trim, Vector3(cos(angle) * 3.82, 0.72, sin(angle) * 3.82), "FountainAccent")
+	var collision := StaticBody3D.new()
+	collision.name = "FountainCollision"
+	fountain.add_child(collision)
+	var shape_node := CollisionShape3D.new()
+	var shape := CylinderShape3D.new()
+	shape.radius = 4.25
+	shape.height = 1.0
+	shape_node.shape = shape
+	shape_node.position.y = 0.35
+	collision.add_child(shape_node)
 
 func _build_road_network() -> void:
 	var asphalt := _mat("road_asphalt", Color(0.105, 0.13, 0.15), 0.95)
