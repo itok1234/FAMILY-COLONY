@@ -14,7 +14,8 @@ enum Quality { AUTO, PERFORMANCE, BALANCED, HIGH }
 @onready var environment_builder: Node = get_node_or_null(environment_builder_path)
 
 var _selected_quality: Quality = Quality.AUTO
-var _quality_picker: OptionButton
+var _quality_panel: Node3D
+var _quality_status: Label3D
 var _runtime_quality: Quality = Quality.BALANCED
 var _fps_sample_timer: float = 0.0
 var _low_fps_streak: int = 0
@@ -24,7 +25,7 @@ var _startup_grace: float = 12.0
 
 func _ready() -> void:
 	_load_saved_quality()
-	_build_quality_picker()
+	call_deferred("_build_quality_picker")
 	# Apply after sibling nodes finish _ready(), so EnvironmentBuilder cannot overwrite the selected density.
 	call_deferred("apply_quality", _selected_quality)
 
@@ -74,31 +75,114 @@ func _save_quality() -> void:
 
 
 func _build_quality_picker() -> void:
-	var layer := CanvasLayer.new()
-	layer.name = "GraphicsSettingsLayer"
-	layer.layer = 20
-	add_child(layer)
+	var camera := get_viewport().get_camera_3d()
+	if camera == null:
+		return
+	_quality_panel = Node3D.new()
+	_quality_panel.name = "SpatialGraphicsQualityPanel"
+	_quality_panel.position = Vector3(-1.05, 0.78, -3.2)
+	camera.add_child(_quality_panel)
+	var backing := MeshInstance3D.new()
+	var backing_mesh := BoxMesh.new()
+	backing_mesh.size = Vector3(2.35, 1.12, 0.08)
+	backing.mesh = backing_mesh
+	backing.material_override = _quality_material(Color("#10263a"), 0.25)
+	_quality_panel.add_child(backing)
+	var title := Label3D.new()
+	title.text = "KUALITAS GRAFIS"
+	title.font_size = 22
+	title.pixel_size = 0.002
+	title.position = Vector3(0, 0.36, -0.06)
+	title.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	title.modulate = Color("#f0d59b")
+	_quality_panel.add_child(title)
+	var labels := ["AUTO", "HEMAT", "SEIMBANG", "TINGGI"]
+	for index in range(labels.size()):
+		var area := Area3D.new()
+		area.name = "QualityOption_%d" % index
+		area.position = Vector3(-0.84 + float(index) * 0.56, -0.12, -0.10)
+		area.input_ray_pickable = true
+		area.collision_layer = 8
+		area.collision_mask = 0
+		area.set_meta("graphics_quality", index)
+		var collision := CollisionShape3D.new()
+		var shape := BoxShape3D.new()
+		shape.size = Vector3(0.50, 0.42, 0.18)
+		collision.shape = shape
+		area.add_child(collision)
+		var face := MeshInstance3D.new()
+		var face_mesh := BoxMesh.new()
+		face_mesh.size = Vector3(0.48, 0.40, 0.12)
+		face.mesh = face_mesh
+		face.material_override = _quality_material(Color("#b58a45") if index == int(_selected_quality) else Color("#31536a"), 0.32)
+		area.add_child(face)
+		var label := Label3D.new()
+		label.text = labels[index]
+		label.font_size = 15
+		label.pixel_size = 0.002
+		label.position.z = -0.075
+		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		label.modulate = Color.WHITE
+		area.add_child(label)
+		_quality_panel.add_child(area)
+	_quality_status = Label3D.new()
+	_quality_status.text = "PILIHAN: " + labels[int(_selected_quality)]
+	_quality_status.font_size = 15
+	_quality_status.pixel_size = 0.002
+	_quality_status.position = Vector3(0, -0.43, -0.07)
+	_quality_status.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_quality_status.modulate = Color("#c8dce8")
+	_quality_panel.add_child(_quality_status)
 
-	_quality_picker = OptionButton.new()
-	_quality_picker.name = "GraphicsQualityPicker"
-	_quality_picker.position = Vector2(18, 18)
-	_quality_picker.custom_minimum_size = Vector2(190, 44)
-	_quality_picker.add_item("Grafis: Otomatis", Quality.AUTO)
-	_quality_picker.add_item("Grafis: Hemat", Quality.PERFORMANCE)
-	_quality_picker.add_item("Grafis: Seimbang", Quality.BALANCED)
-	_quality_picker.add_item("Grafis: Tinggi", Quality.HIGH)
-	_quality_picker.item_selected.connect(_on_quality_selected)
-	for index in range(_quality_picker.item_count):
-		if _quality_picker.get_item_id(index) == int(_selected_quality):
-			_quality_picker.select(index)
-			break
-	layer.add_child(_quality_picker)
+
+func _quality_material(color: Color, roughness_value: float) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = roughness_value
+	material.metallic = 0.22
+	return material
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	var screen_position := Vector2.ZERO
+	var pressed := false
+	if event is InputEventScreenTouch and event.pressed:
+		screen_position = event.position
+		pressed = true
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		screen_position = event.position
+		pressed = true
+	if not pressed:
+		return
+	var camera := get_viewport().get_camera_3d()
+	if camera == null:
+		return
+	var origin := camera.project_ray_origin(screen_position)
+	var direction := camera.project_ray_normal(screen_position)
+	var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * 12.0)
+	query.collision_mask = 8
+	query.collide_with_areas = true
+	var hit := get_viewport().world_3d.direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return
+	var collider: Object = hit.get("collider")
+	if collider is Area3D and collider.has_meta("graphics_quality"):
+		_on_quality_selected(int(collider.get_meta("graphics_quality")))
+		get_viewport().set_input_as_handled()
 
 
 func _on_quality_selected(index: int) -> void:
-	_selected_quality = int(_quality_picker.get_item_id(index))
+	_selected_quality = clampi(index, int(Quality.AUTO), int(Quality.HIGH))
 	_save_quality()
 	apply_quality(_selected_quality)
+	if is_instance_valid(_quality_status):
+		var labels := ["AUTO", "HEMAT", "SEIMBANG", "TINGGI"]
+		_quality_status.text = "PILIHAN: " + labels[int(_selected_quality)]
+		for option in _quality_panel.get_children():
+			if option is Area3D and option.has_meta("graphics_quality"):
+				var face := option.get_child(1) as MeshInstance3D
+				if face != null:
+					face.material_override = _quality_material(Color("#b58a45") if int(option.get_meta("graphics_quality")) == int(_selected_quality) else Color("#31536a"), 0.32)
 
 
 func _resolve_auto_quality() -> Quality:
