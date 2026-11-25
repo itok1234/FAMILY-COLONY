@@ -153,6 +153,12 @@ func _join_or_create_lobby(peer_id: int) -> void:
 
 
 func _create_room_for_peer(peer_id: int, room_name: String, capacity: int) -> void:
+	# Harden the internal entry point against bypasses of API/RPC validation.
+	room_name = room_name.strip_edges()
+	if not _is_valid_room_name(room_name):
+		_send_result(peer_id, false, "Nama room tidak valid.")
+		return
+	capacity = clampi(capacity, 2, 64)
 	# Apply the same cooldown to the host and remote members. Previously the
 	# remote RPC enforced this, but the host-local path bypassed the limit.
 	var now := Time.get_ticks_msec() / 1000.0
