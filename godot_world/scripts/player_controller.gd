@@ -43,6 +43,11 @@ func _physics_process(delta: float) -> void:
 
 	# Keep movement aligned with the camera yaw so forward always means
 	# "toward the direction the player is looking" on both touch and desktop.
+	# Ignore tiny controller noise and clamp analog input to a unit vector.
+	if input_vector.length_squared() < 0.0025:
+		input_vector = Vector2.ZERO
+	elif input_vector.length_squared() > 1.0:
+		input_vector = input_vector.normalized()
 	var direction := Vector3(input_vector.x, 0.0, input_vector.y)
 	var camera_pivot := get_node_or_null("CameraPivot") as Node3D
 	if camera_pivot != null:
