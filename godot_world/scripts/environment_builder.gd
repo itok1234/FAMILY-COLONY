@@ -476,12 +476,34 @@ func _build_reference_social_gardens() -> void:
 			shrub.rings = 6
 			_mesh_node(bed, shrub, green_a if plant % 2 == 0 else green_b, Vector3(px, 0.35, pz), "GardenShrub")
 			if plant % 3 == 0:
-				var bloom := SphereMesh.new()
-				bloom.radius = 0.13
-				bloom.height = 0.22
-				bloom.radial_segments = 8
-				bloom.rings = 5
-				_mesh_node(bed, bloom, flower_a if island % 2 == 0 else flower_b, Vector3(px + 0.18, 0.65, pz + 0.12), "GardenBloom")
+				# Multi-petal flower cluster with a stem and two foliage leaves.
+				var stem_mat := _mat("garden_flower_stem", Color("#496c43"), 0.9)
+				var stem_mesh := CylinderMesh.new()
+				stem_mesh.top_radius = 0.035
+				stem_mesh.bottom_radius = 0.055
+				stem_mesh.height = 0.42
+				stem_mesh.radial_segments = 6
+				_mesh_node(bed, stem_mesh, stem_mat, Vector3(px + 0.18, 0.57, pz + 0.12), "GardenFlowerStem")
+				var bloom_center := Vector3(px + 0.18, 0.80, pz + 0.12)
+				var petal_material := flower_a if island % 2 == 0 else flower_b
+				for petal_index in range(5):
+					var petal_angle := TAU * float(petal_index) / 5.0
+					var petal := SphereMesh.new()
+					petal.radius = 0.09
+					petal.height = 0.13
+					petal.radial_segments = 7
+					petal.rings = 4
+					_mesh_node(bed, petal, petal_material, bloom_center + Vector3(cos(petal_angle) * 0.13, 0.0, sin(petal_angle) * 0.13), "GardenFlowerPetal")
+				var center_mat := _mat("garden_flower_center", Color("#d5b56e"), 0.65)
+				var center_mesh := SphereMesh.new()
+				center_mesh.radius = 0.055
+				center_mesh.height = 0.09
+				_mesh_node(bed, center_mesh, center_mat, bloom_center, "GardenFlowerCenter")
+				for leaf_side in [-1.0, 1.0]:
+					var leaf := SphereMesh.new()
+					leaf.radius = 0.11
+					leaf.height = 0.06
+					_mesh_node(bed, leaf, green_b, Vector3(px + 0.18 + float(leaf_side) * 0.10, 0.48, pz + 0.12 + float(leaf_side) * 0.07), "GardenFlowerLeaf")
 		_add_static_collision_box(bed, Vector3(3.6, 0.24, 2.25), Vector3(0, 0, 0), "SocialGardenIsland")
 
 func _build_benches() -> void:
