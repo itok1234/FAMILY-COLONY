@@ -11,6 +11,7 @@ var _head: Node3D
 var _name_label: Label3D
 var _left_eye: MeshInstance3D
 var _right_eye: MeshInstance3D
+var _mouth: MeshInstance3D
 var _blink_clock := 0.0
 var _blink_time := 3.2
 var _left_arm: Node3D
@@ -111,6 +112,9 @@ func _process(delta: float) -> void:
 	if _left_eye != null and _right_eye != null:
 		_left_eye.scale.y = lerpf(0.042, 0.006, blink)
 		_right_eye.scale.y = lerpf(0.042, 0.006, blink)
+	if _mouth != null:
+		# Tiny expression variation keeps the face from looking frozen; restrained for distant mobile view.
+		_mouth.scale.x = lerpf(0.09, 0.105, (sin(_time * 1.2) + 1.0) * 0.5)
 	if _action == "wave":
 		wave_weight = 1.0 if _action_time < 1.5 else maxf(0.0, 1.0 - (_action_time - 1.5) * 2.0)
 		if wave_weight <= 0.0:
@@ -219,7 +223,7 @@ func _build_avatar() -> void:
 	_add_sphere(_head, "LeftBrow", Vector3(-0.078, 0.079, -0.195), Vector3(0.047, 0.012, 0.014), hair)
 	_add_sphere(_head, "RightBrow", Vector3(0.078, 0.079, -0.195), Vector3(0.047, 0.012, 0.014), hair)
 	_add_sphere(_head, "Nose", Vector3(0, -0.018, -0.224), Vector3(0.032, 0.045, 0.035), skin)
-	_add_sphere(_head, "Mouth", Vector3(0, -0.105, -0.207), Vector3(0.045, 0.012, 0.012), lip)
+	_mouth = _add_sphere(_head, "Mouth", Vector3(0, -0.105, -0.207), Vector3(0.045, 0.012, 0.012), lip)
 
 	_name_label = Label3D.new()
 	_name_label.name = "VerifiedMemberName"
