@@ -8,37 +8,6 @@ extends CharacterBody3D
 
 var _is_seated := false
 var _is_sprinting := false
-var _sprint_button: Button
-
-func _ready() -> void:
-	_build_sprint_control()
-
-func _build_sprint_control() -> void:
-	var layer := CanvasLayer.new()
-	layer.name = "MovementActionHUD"
-	layer.layer = 11
-	add_child(layer)
-	_sprint_button = Button.new()
-	_sprint_button.name = "SprintButton"
-	_sprint_button.text = "LARI"
-	_sprint_button.anchor_left = 0.78
-	_sprint_button.anchor_right = 0.96
-	_sprint_button.anchor_top = 0.65
-	_sprint_button.anchor_bottom = 0.73
-	_sprint_button.offset_left = 0
-	_sprint_button.offset_right = 0
-	_sprint_button.offset_top = 0
-	_sprint_button.offset_bottom = 0
-	_sprint_button.custom_minimum_size = Vector2(92, 42)
-	_sprint_button.button_down.connect(_set_sprinting.bind(true))
-	_sprint_button.button_up.connect(_set_sprinting.bind(false))
-	layer.add_child(_sprint_button)
-
-func _set_sprinting(value: bool) -> void:
-	_is_sprinting = value
-	if is_instance_valid(_sprint_button):
-		_sprint_button.text = "LARI!" if value else "LARI"
-
 func set_seated(value: bool) -> void:
 	_is_seated = value
 	if value:
@@ -63,10 +32,14 @@ func _physics_process(delta: float) -> void:
 		return
 	var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var joystick := get_tree().get_first_node_in_group("mobile_joystick")
+	var touch_sprinting := false
 	if joystick != null and joystick.has_method("get_output"):
 		var touch_input: Vector2 = joystick.get_output()
 		if touch_input.length_squared() > 0.001:
 			input_vector = touch_input
+		if joystick.has_method("is_sprinting"):
+			touch_sprinting = bool(joystick.call("is_sprinting"))
+	_is_sprinting = touch_sprinting or Input.is_key_pressed(KEY_SHIFT)
 
 	# Keep movement aligned with the camera yaw so forward always means
 	# "toward the direction the player is looking" on both touch and desktop.
