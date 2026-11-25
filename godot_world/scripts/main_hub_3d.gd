@@ -690,9 +690,8 @@ func _open_destination_panel(destination_id: String) -> void:
 		# Keep the latest RoomManager snapshot received before this panel opens.
 		# Resetting it here hid existing rooms until the next network broadcast.
 	if destination_id == "games":
-		_create_hub_panel_button("HONEY HUNT", Vector3(-2.15, 0.15, -0.24), "game:honey_hunt", Vector3(2.0, 0.58, 0.16), Color("#a77a36"))
-		_create_hub_panel_button("GUESS WHO?", Vector3(0.0, 0.15, -0.24), "game:guess_who", Vector3(2.0, 0.58, 0.16))
-		_create_hub_panel_button("ROYAL BOMB", Vector3(2.15, 0.15, -0.24), "game:royal_bomb", Vector3(2.0, 0.58, 0.16))
+		_create_hub_panel_button("GUESS WHO?", Vector3(-1.15, 0.15, -0.24), "game:guess_who", Vector3(2.25, 0.58, 0.16))
+		_create_hub_panel_button("ROYAL BOMB", Vector3(1.15, 0.15, -0.24), "game:royal_bomb", Vector3(2.25, 0.58, 0.16))
 		_create_hub_panel_button("MURDER MYSTERY", Vector3(-1.15, -0.72, -0.24), "game:royal_murder_mystery", Vector3(2.25, 0.58, 0.16))
 		_create_hub_panel_button("ROYAL DICE", Vector3(1.15, -0.72, -0.24), "game:royal_dice", Vector3(2.25, 0.58, 0.16))
 	if destination_id != "chat":
