@@ -15,7 +15,7 @@ const HUB_ITEMS := [
 ]
 
 var _camera: Camera3D
-var _hint: Label
+var _hint: Label3D
 var _ray_length := 40.0
 var _touch_start := Vector2.ZERO
 var _bee_tap_count := 0
@@ -305,25 +305,33 @@ func _create_kiosk(item: Dictionary) -> void:
 
 
 func _build_hud() -> void:
-	var layer := CanvasLayer.new()
-	layer.name = "Accessible3DControls"
-	add_child(layer)
-	var panel := PanelContainer.new()
-	panel.anchor_left = 0.025
-	panel.anchor_top = 0.025
-	panel.anchor_right = 0.43
-	panel.anchor_bottom = 0.14
-	layer.add_child(panel)
-	var column := VBoxContainer.new()
-	panel.add_child(column)
-	var heading := Label.new()
+	# Diegetic information board: no CanvasLayer or flat 2D panel in the 3D hub.
+	var board := Node3D.new()
+	board.name = "SpatialInformationBoard"
+	board.position = Vector3(-8.2, 5.2, 5.2)
+	var backing := MeshInstance3D.new()
+	var backing_mesh := BoxMesh.new()
+	backing_mesh.size = Vector3(5.6, 1.75, 0.16)
+	backing.mesh = backing_mesh
+	backing.material_override = _material(Color("#14283d"), 0.32, 0.22)
+	board.add_child(backing)
+	var heading := Label3D.new()
 	heading.text = "FAMILY COLONY  •  3D HUB"
-	heading.add_theme_font_size_override("font_size", 18)
-	column.add_child(heading)
-	_hint = Label.new()
-	_hint.text = "Pilih salah satu bangunan 3D untuk membuka fitur."
-	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(_hint)
+	heading.font_size = 30
+	heading.pixel_size = 0.004
+	heading.position = Vector3(0, 0.43, -0.1)
+	heading.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	heading.modulate = Color("#f3d99a")
+	board.add_child(heading)
+	_hint = Label3D.new()
+	_hint.text = "Pilih bangunan 3D untuk membuka fitur."
+	_hint.font_size = 20
+	_hint.pixel_size = 0.004
+	_hint.position = Vector3(0, -0.28, -0.1)
+	_hint.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_hint.modulate = Color("#e5edf4")
+	board.add_child(_hint)
+	add_child(board)
 
 
 func _input(event: InputEvent) -> void:
