@@ -15,7 +15,6 @@ var _last_send_at: Dictionary = {}
 var _history: Array[Dictionary] = []
 var _current_room_id: String = ""
 
-
 func _ready() -> void:
 	_network = get_parent().get_node_or_null("MultiplayerManager")
 	_rooms = get_parent().get_node_or_null("RoomManager")
@@ -34,7 +33,6 @@ func _ready() -> void:
 	message_received.connect(_on_message_received)
 	chat_error.connect(_on_chat_error)
 
-
 func open_spatial_chat(active_camera: Camera3D) -> bool:
 	if not is_instance_valid(_chat_root) or active_camera == null:
 		return false
@@ -48,7 +46,6 @@ func open_spatial_chat(active_camera: Camera3D) -> bool:
 	_update_chat_draft()
 	return true
 
-
 func restore_spatial_chat(player_camera: Camera3D) -> void:
 	if not is_instance_valid(_chat_root) or player_camera == null:
 		return
@@ -60,15 +57,16 @@ func restore_spatial_chat(player_camera: Camera3D) -> void:
 	if is_instance_valid(_chat_panel):
 		_chat_panel.visible = false
 
-
 func get_recent_messages() -> Array[Dictionary]:
 	return _history.duplicate(true)
 
-
 func _is_safe_chat_text(text_value: String) -> bool:
-	# Explicit NUL check plus Unicode code point scan for other controls.
-	if text_value.contains(char(0)):
-		return false
+	# Inspect UTF-8 bytes for embedded NUL, then Unicode controls.
+	# String length/contains may treat NUL as a terminator on some paths.
+	var utf8_bytes := text_value.to_utf8_buffer()
+	for byte_value in utf8_bytes:
+		if byte_value == 0:
+			return false
 	for index in range(text_value.length()):
 		var code_point := text_value.unicode_at(index)
 		if code_point < 32 or code_point == 127:
@@ -98,7 +96,6 @@ func send_message(raw_text: String) -> bool:
 		_rpc_submit_message.rpc_id(1, clean_text)
 	return true
 
-
 func _accept_message(sender_id: int, clean_text: String) -> void:
 	if not multiplayer.is_server() or _rooms == null:
 		return
@@ -114,13 +111,7 @@ func _accept_message(sender_id: int, clean_text: String) -> void:
 		_reject_sender(sender_id, "Terlalu cepat mengirim pesan.")
 		return
 	_last_send_at[sender_id] = now
-	var message := {
-		"room_id": room_id,
-		"sender_peer_id": sender_id,
-		"sender_label": "Anggota #%d" % sender_id,
-		"text": clean_text,
-		"sent_at": int(Time.get_unix_time_from_system())
-	}
+	var message := {"room_id": room_id, "sender_peer_id": sender_id, "sender_label": "Anggota #%d" % sender_id, "text": clean_text, "sent_at": int(Time.get_unix_time_from_system())}
 	_store_message(message)
 	var room_peer_ids: Array = _rooms.call("get_room_peer_ids", room_id)
 	for peer_id in room_peer_ids:
@@ -128,9 +119,7 @@ func _accept_message(sender_id: int, clean_text: String) -> void:
 			continue
 		_rpc_receive_message.rpc_id(peer_id, message)
 
-
 func _prune_send_timestamps(peer_ids: Array[int], local_peer_id: int) -> int:
-	# Keep only the host-local timestamp or currently connected peers.
 	var removed := 0
 	for peer_id in _last_send_at.keys().duplicate():
 		if int(peer_id) != local_peer_id and not peer_ids.has(int(peer_id)):
@@ -138,19 +127,14 @@ func _prune_send_timestamps(peer_ids: Array[int], local_peer_id: int) -> int:
 			removed += 1
 	return removed
 
-
 func _on_peer_roster_changed(peer_ids: Array[int]) -> void:
-	# Drop per-peer throttling state after disconnect so stale peer IDs do not
-	# accumulate and a later connection cannot inherit an old cooldown.
 	_prune_send_timestamps(peer_ids, multiplayer.get_unique_id())
 	if not multiplayer.is_server() and peer_ids.is_empty():
 		_clear_local_chat_state()
 
-
 func _on_connection_state_changed(state: String, _detail: String) -> void:
 	if state == "offline" or state == "error":
 		_clear_local_chat_state()
-
 
 func _on_local_room_changed(room_id: String, _members: Array[int]) -> void:
 	if room_id == _current_room_id:
@@ -158,11 +142,9 @@ func _on_local_room_changed(room_id: String, _members: Array[int]) -> void:
 	_current_room_id = room_id
 	_clear_local_chat_history()
 
-
 func _clear_local_chat_state() -> void:
 	_current_room_id = ""
 	_clear_local_chat_history()
-
 
 func _clear_local_chat_history() -> void:
 	_history.clear()
@@ -171,7 +153,6 @@ func _clear_local_chat_history() -> void:
 	if is_instance_valid(_chat_error_label):
 		_chat_error_label.text = ""
 		_chat_error_label.visible = false
-
 
 func _store_message(message: Dictionary) -> void:
 	var message_room_id := str(message.get("room_id", ""))
@@ -182,13 +163,11 @@ func _store_message(message: Dictionary) -> void:
 		_history.pop_front()
 	message_received.emit(message.duplicate(true))
 
-
 func _reject_sender(peer_id: int, reason: String) -> void:
 	if peer_id == multiplayer.get_unique_id():
 		chat_error.emit(reason)
 	else:
 		_rpc_chat_error.rpc_id(peer_id, reason)
-
 
 @rpc("any_peer", "call_remote", "reliable")
 func _rpc_submit_message(raw_text: String) -> void:
@@ -209,7 +188,6 @@ func _rpc_submit_message(raw_text: String) -> void:
 		return
 	_accept_message(sender_id, clean_text)
 
-
 func _sanitize_received_message(message: Dictionary) -> Dictionary:
 	var sender_id_variant = message.get("sender_peer_id", null)
 	if not (sender_id_variant is int):
@@ -223,14 +201,7 @@ func _sanitize_received_message(message: Dictionary) -> Dictionary:
 		return {}
 	var sent_at_variant = message.get("sent_at", 0)
 	var sent_at := int(sent_at_variant) if sent_at_variant is int else 0
-	return {
-		"room_id": room_id,
-		"sender_peer_id": sender_id,
-		"sender_label": "Anggota #%d" % sender_id,
-		"text": text_value,
-		"sent_at": maxi(0, sent_at)
-	}
-
+	return {"room_id": room_id, "sender_peer_id": sender_id, "sender_label": "Anggota #%d" % sender_id, "text": text_value, "sent_at": maxi(0, sent_at)}
 
 @rpc("authority", "call_remote", "reliable")
 func _rpc_receive_message(message: Dictionary) -> void:
@@ -239,11 +210,9 @@ func _rpc_receive_message(message: Dictionary) -> void:
 		return
 	_store_message(clean_message)
 
-
 @rpc("authority", "call_remote", "reliable")
 func _rpc_chat_error(reason: String) -> void:
 	chat_error.emit(reason)
-
 
 var _chat_root: Node3D
 var _chat_panel: Node3D
@@ -254,32 +223,27 @@ var _chat_toggle: Area3D
 var _chat_draft := ""
 var _chat_camera: Camera3D
 
-
 func _build_chat_hud() -> void:
 	var player := get_parent().get_node_or_null("Player")
 	_chat_camera = player.get_node_or_null("CameraPivot/Camera3D") as Camera3D if player != null else null
 	if _chat_camera == null:
 		push_warning("FAMILY COLONY: 3D chat requires the player camera.")
 		return
-
 	_chat_root = Node3D.new()
 	_chat_root.name = "SpatialRoomChat"
 	_chat_camera.add_child(_chat_root)
-
 	_chat_toggle = _create_chat_button(_chat_root, "CHAT", Vector3(1.45, 0.0, -2.8), "toggle", Vector3(0.92, 0.5, 0.14), Color("#a77a36"))
 	_chat_panel = Node3D.new()
 	_chat_panel.name = "SpatialRoomChatPanel"
 	_chat_panel.position = Vector3(0, 0, -3.2)
 	_chat_panel.visible = false
 	_chat_root.add_child(_chat_panel)
-
 	var backing := MeshInstance3D.new()
 	var panel_mesh := BoxMesh.new()
 	panel_mesh.size = Vector3(5.7, 4.9, 0.14)
 	backing.mesh = panel_mesh
 	backing.material_override = _chat_material(Color("#10263b"))
 	_chat_panel.add_child(backing)
-
 	var title := Label3D.new()
 	title.text = "ALUN-ALUN CHAT"
 	title.font_size = 32
@@ -288,7 +252,6 @@ func _build_chat_hud() -> void:
 	title.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	title.modulate = Color("#f3d99a")
 	_chat_panel.add_child(title)
-
 	_chat_messages = Label3D.new()
 	_chat_messages.name = "ChatMessages3D"
 	_chat_messages.font_size = 17
@@ -297,7 +260,6 @@ func _build_chat_hud() -> void:
 	_chat_messages.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_chat_messages.modulate = Color("#e5edf4")
 	_chat_panel.add_child(_chat_messages)
-
 	_chat_error_label = Label3D.new()
 	_chat_error_label.font_size = 15
 	_chat_error_label.pixel_size = 0.0035
@@ -306,7 +268,6 @@ func _build_chat_hud() -> void:
 	_chat_error_label.modulate = Color("#ffb9a8")
 	_chat_error_label.visible = false
 	_chat_panel.add_child(_chat_error_label)
-
 	_chat_draft_label = Label3D.new()
 	_chat_draft_label.text = "PESAN: "
 	_chat_draft_label.font_size = 17
@@ -315,29 +276,22 @@ func _build_chat_hud() -> void:
 	_chat_draft_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_chat_draft_label.modulate = Color("#f3d99a")
 	_chat_panel.add_child(_chat_draft_label)
-
-	var row_one := "QWERTYUIOP"
-	var row_two := "ASDFGHJKL"
-	var row_three := "ZXCVBNM"
-	_create_chat_key_row(row_one, -2.05, 0.43)
-	_create_chat_key_row(row_two, -1.82, -0.12)
-	_create_chat_key_row(row_three, -1.58, -0.67)
+	_create_chat_key_row("QWERTYUIOP", -2.05, 0.43)
+	_create_chat_key_row("ASDFGHJKL", -1.82, -0.12)
+	_create_chat_key_row("ZXCVBNM", -1.58, -0.67)
 	_create_chat_button(_chat_panel, "SPASI", Vector3(-0.95, -1.28, -0.18), "space", Vector3(1.65, 0.42, 0.14), Color("#315b70"))
 	_create_chat_button(_chat_panel, "HAPUS", Vector3(0.55, -1.28, -0.18), "delete", Vector3(1.05, 0.42, 0.14), Color("#65568d"))
 	_create_chat_button(_chat_panel, "KIRIM", Vector3(1.95, -1.28, -0.18), "send", Vector3(1.05, 0.42, 0.14), Color("#a77a36"))
 	_create_chat_button(_chat_panel, "TUTUP", Vector3(0, -1.92, -0.18), "close", Vector3(1.55, 0.42, 0.14), Color("#52677a"))
 	_update_chat_messages()
 
-
 func _create_chat_key_row(characters: String, y_position: float, row_offset: float) -> void:
 	var count := characters.length()
 	var spacing := 0.46
-	# Center each keyboard row, then apply a subtle stagger for ergonomics.
 	var start_x := -float(count - 1) * spacing * 0.5 + row_offset
 	for i in range(count):
 		var character := characters.substr(i, 1)
 		_create_chat_button(_chat_panel, character, Vector3(start_x + float(i) * spacing, y_position, -0.18), "char:" + character, Vector3(0.4, 0.4, 0.14), Color("#315b70"))
-
 
 func _create_chat_button(parent: Node3D, label_text: String, local_position: Vector3, action_id: String, dimensions: Vector3, color: Color) -> Area3D:
 	var area := Area3D.new()
@@ -369,7 +323,6 @@ func _create_chat_button(parent: Node3D, label_text: String, local_position: Vec
 	parent.add_child(area)
 	return area
 
-
 func _chat_material(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
@@ -379,7 +332,6 @@ func _chat_material(color: Color) -> StandardMaterial3D:
 	material.emission = color.darkened(0.3)
 	material.emission_energy_multiplier = 0.16
 	return material
-
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_instance_valid(_chat_root) or not _chat_root.visible:
@@ -407,7 +359,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_handle_chat_key(str(collider.get_meta("chat_action")))
 		get_viewport().set_input_as_handled()
 
-
 func _handle_chat_key(action_id: String) -> void:
 	match action_id:
 		"toggle":
@@ -426,13 +377,11 @@ func _handle_chat_key(action_id: String) -> void:
 				_chat_draft += action_id.trim_prefix("char:")
 	_update_chat_draft()
 
-
 func _toggle_chat_panel() -> void:
 	if not is_instance_valid(_chat_panel):
 		return
 	_chat_panel.visible = not _chat_panel.visible
 	_update_chat_messages()
-
 
 func _send_chat_input() -> void:
 	if _chat_draft.strip_edges().is_empty():
@@ -441,11 +390,9 @@ func _send_chat_input() -> void:
 		_chat_draft = ""
 		_update_chat_draft()
 
-
 func _update_chat_draft() -> void:
 	if is_instance_valid(_chat_draft_label):
 		_chat_draft_label.text = "PESAN: " + _chat_draft
-
 
 func _update_chat_messages() -> void:
 	if not is_instance_valid(_chat_messages):
@@ -459,12 +406,10 @@ func _update_chat_messages() -> void:
 		lines.append("Belum ada pesan di room ini.")
 	_chat_messages.text = "\n".join(lines)
 
-
 func _on_message_received(_message: Dictionary) -> void:
 	if is_instance_valid(_chat_error_label):
 		_chat_error_label.visible = false
 	_update_chat_messages()
-
 
 func _on_chat_error(message: String) -> void:
 	if not is_instance_valid(_chat_error_label):
@@ -472,10 +417,8 @@ func _on_chat_error(message: String) -> void:
 	_chat_error_label.text = message
 	_chat_error_label.visible = true
 
-
 func _append_message_to_hud(_message: Dictionary) -> void:
 	_update_chat_messages()
-
 
 func _scroll_chat_to_bottom() -> void:
 	_update_chat_messages()
