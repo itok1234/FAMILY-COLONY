@@ -994,7 +994,7 @@ func set_cloud_matchmaking_state(state: String, detail: String) -> void:
 func _refresh_room_status_label(lan_state: String = "offline") -> void:
 	if not is_instance_valid(_room_status_label):
 		return
-	_room_status_label.text = "LAN: %s\\n%s\\nCLOUD: %s\\n%s\\nROOM: %s" % [lan_state.to_upper(), _room_connection_detail, _cloud_matchmaking_state, _cloud_matchmaking_detail, _room_current_id if not _room_current_id.is_empty() else "—"]
+	_room_status_label.text = "LAN: %s\n%s\nCLOUD: %s\n%s\nROOM: %s" % [lan_state.to_upper(), _room_connection_detail, _cloud_matchmaking_state, _cloud_matchmaking_detail, _room_current_id if not _room_current_id.is_empty() else "—"]
 
 
 func set_current_room(room_id: String, _members: Array[int]) -> void:
