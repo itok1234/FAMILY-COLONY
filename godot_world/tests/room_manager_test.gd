@@ -33,6 +33,11 @@ func _run_room_manager_tests() -> void:
 	_expect(not manager._is_valid_room_name("A"), "server validator must reject names shorter than two characters")
 	_expect(not manager._is_valid_room_name("X".repeat(33)), "server validator must reject names longer than 32 characters")
 	_expect(manager._is_valid_room_name("Valid Room"), "server validator must accept valid room names")
+	_expect(manager._is_valid_room_id("lobby"), "canonical lobby ID must be accepted")
+	_expect(manager._is_valid_room_id("room_2_12345"), "generated room IDs must be accepted")
+	_expect(not manager._is_valid_room_id("room\ninvalid"), "room IDs containing control characters must be rejected")
+	_expect(not manager._is_valid_room_id(""), "empty room IDs must be rejected")
+	_expect(not manager._is_valid_room_id("X".repeat(65)), "room IDs longer than 64 characters must be rejected")
 
 	# Five connected peers at capacity two must be assigned exactly once
 	# across three lobby shards.
