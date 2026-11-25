@@ -88,6 +88,19 @@ func _run_room_manager_tests() -> void:
 	_expect(manager.get_room_snapshot()[0]["id"] == "lobby", "cached snapshot must preserve room identity")
 
 
+	# Client snapshot normalization rejects malformed, duplicate, and oversized data.
+	var incoming_rooms: Array = [
+		{"id": "lobby", "name": "Lobby", "capacity": 16, "member_count": 3, "extra": "stripped"},
+		{"id": "lobby", "name": "Duplicate", "capacity": 16, "member_count": 1},
+		{"id": "bad\\nroom", "name": "Unsafe", "capacity": 4, "member_count": 1},
+		{"id": "room_bad", "name": "Over capacity", "capacity": 2, "member_count": 3},
+		{"id": "room_valid", "name": "Valid Room", "capacity": 8, "member_count": 4}
+	]
+	var normalized := manager._sanitize_room_snapshot(incoming_rooms)
+	_expect(normalized.size() == 2, "only valid, unique room cards should survive snapshot normalization")
+	_expect(normalized[0].id == "lobby" and not normalized[0].has("extra"), "snapshot output must normalize fields and strip extras")
+	_expect(normalized[1].id == "room_valid", "second valid room must remain in order")
+
 	# Custom-room lifecycle: joining a room must remove the peer from the
 	# previous lobby, and an empty custom room must be cleaned up.
 	manager._rooms["room_test"] = {"name": "Test Room", "capacity": 2, "members": []}
