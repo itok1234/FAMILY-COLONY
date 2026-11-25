@@ -215,7 +215,7 @@ func _sanitize_received_message(message: Dictionary) -> Dictionary:
 	var sender_id := int(sender_id_variant)
 	var room_id := str(message.get("room_id", "")).strip_edges()
 	var text_value := str(message.get("text", "")).strip_edges()
-	if sender_id <= 1 or room_id.is_empty() or text_value.is_empty():
+	if sender_id < 1 or room_id.is_empty() or text_value.is_empty():
 		return {}
 	if text_value.length() > max_message_characters or not _is_safe_chat_text(text_value):
 		return {}
