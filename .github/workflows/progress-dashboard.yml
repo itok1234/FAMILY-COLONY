@@ -2,8 +2,6 @@ name: FAMILY COLONY Progress Dashboard
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "*/15 * * * *"
   push:
     branches:
       - feature/direct-3d-entry
