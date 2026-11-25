@@ -46,7 +46,7 @@ func _clear_presence_state() -> void:
 	presence_snapshot_changed.emit([])
 
 
-func _on_local_room_changed(room_id: String, _members: Array[int]) -> void:
+func _on_local_room_changed(room_id: String, _members: Array) -> void:
 	if room_id != _current_room_id:
 		_current_presence_snapshot.clear()
 		presence_snapshot_changed.emit([])
