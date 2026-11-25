@@ -394,6 +394,42 @@ func _build_community_interior() -> void:
 	_box(room, Vector3(0.16, 0.18, 12), Vector3(-6.78, 4.85, 0), trim_material, "LeftCrown")
 	_box(room, Vector3(0.16, 0.18, 12), Vector3(6.78, 4.85, 0), trim_material, "RightCrown")
 
+	# Lounge finishes: wall feature panel, framed community display and ceiling accents.
+	var feature_panel_material := _mat("interior_feature_panel", Color("#263b50"), 0.68, 0.18)
+	var display_material := _mat("interior_display_glow", Color("#70c9ec"), 0.22, 0.16)
+	_box(room, Vector3(5.4, 2.6, 0.18), Vector3(0, 2.55, -5.78), feature_panel_material, "LoungeFeatureWall")
+	_box(room, Vector3(4.1, 1.75, 0.12), Vector3(0, 2.65, -5.62), trim_material, "CommunityDisplayFrame")
+	_box(room, Vector3(3.78, 1.48, 0.08), Vector3(0, 2.65, -5.52), display_material, "CommunityDisplay")
+	var display_label := Label3D.new()
+	display_label.name = "CommunityDisplayText"
+	display_label.text = "FAMILY COLONY\\nTOGETHER • CONNECT • BELONG"
+	display_label.font_size = 42
+	display_label.pixel_size = 0.006
+	display_label.position = Vector3(0, 2.65, -5.42)
+	display_label.modulate = Color("#eaf7ff")
+	display_label.outline_size = 5
+	display_label.outline_modulate = Color("#16314a")
+	display_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	room.add_child(display_label)
+	# Accent wall strips and restrained ceiling light fixtures.
+	var accent_material := _mat("interior_accent", Color("#8bb8c7"), 0.38, 0.2)
+	for strip_x in [-2.65, 2.65]:
+		_box(room, Vector3(0.12, 2.8, 0.14), Vector3(strip_x, 2.55, -5.66), accent_material, "FeatureWallAccent")
+	for light_x in [-4.0, -1.35, 1.35, 4.0]:
+		var fixture := BoxMesh.new()
+		fixture.size = Vector3(1.0, 0.08, 1.0)
+		_mesh_node(room, fixture, trim_material, Vector3(light_x, 4.72, -1.0), "CeilingFixture")
+		var fixture_glow := SphereMesh.new()
+		fixture_glow.radius = 0.16
+		fixture_glow.height = 0.32
+		fixture_glow.radial_segments = 10
+		_mesh_node(room, fixture_glow, lamp_material, Vector3(light_x, 4.62, -1.0), "CeilingFixtureGlow")
+	# Seating corner with a small ottoman and side table to reinforce lounge scale.
+	_box(room, Vector3(1.4, 0.48, 1.1), Vector3(4.8, 0.22, -2.8), sofa_material, "LoungeOttoman")
+	_box(room, Vector3(0.72, 0.55, 0.72), Vector3(5.3, 0.28, -4.0), table_material, "LoungeSideTable")
+	_box(room, Vector3(0.12, 0.28, 0.12), Vector3(5.0, 0.02, -4.25), trim_material, "SideTableLeg")
+	_box(room, Vector3(0.12, 0.28, 0.12), Vector3(5.6, 0.02, -4.25), trim_material, "SideTableLeg")
+
 	# Collision floor and perimeter so the avatar remains inside the room.
 	var floor_body := StaticBody3D.new()
 	floor_body.name = "InteriorCollision"
