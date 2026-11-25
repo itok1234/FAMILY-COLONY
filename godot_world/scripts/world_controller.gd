@@ -14,6 +14,7 @@ var _gate_status: Label3D
 var _world_exit_layer: Node3D
 var _is_exiting := false
 var _main_hub: Node3D
+var _developer_verification_pending := false
 
 
 func _ready() -> void:
@@ -154,6 +155,15 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 	if not bool(permissions.get("can_enter_world", false)):
 		_on_session_rejected("world_access_denied")
 		return
+	if _developer_verification_pending:
+		_developer_verification_pending = false
+		if str(_member.get("role", "")).to_lower() != "developer" or str(_member.get("username", "")).to_lower() != "edrick":
+			if is_instance_valid(_main_hub):
+				_main_hub.call("set_developer_status", "Identitas Developer tidak cocok dengan verifikasi server.")
+			return
+		if is_instance_valid(_main_hub):
+			_main_hub.call("show_developer_center", _member)
+		return
 	var avatar := player.get_node_or_null("AvatarVisual")
 	if avatar != null and avatar.has_method("set_display_name"):
 		avatar.call("set_display_name", str(_member.get("name", "Colony Member")))
@@ -174,6 +184,7 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 		_main_hub.name = "MainHub3D"
 		_main_hub.destination_requested.connect(_on_hub_destination_requested)
 		_main_hub.minigame_requested.connect(_on_hub_minigame_requested)
+		_main_hub.developer_authenticated.connect(_on_developer_authenticated)
 		add_child(_main_hub)
 	if is_instance_valid(_gate_layer):
 		_gate_layer.queue_free()
@@ -202,6 +213,23 @@ func _on_hub_destination_requested(destination_id: String) -> void:
 	_build_world_exit_button()
 
 
+func _on_developer_authenticated(member: Dictionary, access_token: String, _refresh_token: String, anon_key: String) -> void:
+	if str(member.get("role", "")).to_lower() != "developer" or str(member.get("username", "")).to_lower() != "edrick":
+		if is_instance_valid(_main_hub):
+			_main_hub.call("set_developer_status", "Akun ini tidak memiliki identitas Developer yang diizinkan.")
+		return
+	if access_token.strip_edges().is_empty() or anon_key.strip_edges().is_empty() or session_client == null:
+		if is_instance_valid(_main_hub):
+			_main_hub.call("set_developer_status", "Token Developer atau kunci publik server tidak tersedia.")
+		return
+	_developer_verification_pending = true
+	var request_error: Error = session_client.call("verify_access_token", access_token, anon_key)
+	if request_error != OK:
+		_developer_verification_pending = false
+		if is_instance_valid(_main_hub):
+			_main_hub.call("set_developer_status", "Verifikasi akses dunia gagal dimulai. Coba lagi.")
+
+
 func _on_hub_minigame_requested(game_id: String) -> void:
 	if game_id != "honey_hunt":
 		return
@@ -215,6 +243,11 @@ func _on_hub_minigame_requested(game_id: String) -> void:
 
 
 func _on_session_rejected(error_code: String) -> void:
+	if _developer_verification_pending:
+		_developer_verification_pending = false
+		if is_instance_valid(_main_hub):
+			_main_hub.call("set_developer_status", "Verifikasi Developer gagal: " + error_code.replace("_", " "))
+		return
 	_set_player_enabled(false)
 	_set_gate_status(
 		"Sesi belum dapat diverifikasi. "
