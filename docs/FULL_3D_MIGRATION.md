@@ -58,3 +58,11 @@ Do not label the product fully 3D until:
 - The developer PIN keypad is a 3D visual/authentication slice. Its success signal is exposed, but Developer Center data operations and handoff into the world-session authorization service are not yet integrated.
 - GitHub Actions Android smoke, debug build and signed-release workflows were triggered by the recent Godot changes. Their final outcomes must be checked before treating the build as validated.
 - This work does not yet replace the WebView launcher/login, HTML member home, profile, chat, settings or HTML mini-games. The app is not yet fully 3D and no member device test has been completed for this slice.
+
+## Spatial control migration (2026-11-25)
+- Removed the flat MobileHUD/MoveJoystick Control node from the main world scene.
+- Added camera-mounted 3D joystick ring/knob and 3D sprint orb with touch-drag input; the player controller now consumes movement/sprint state from this spatial control node.
+- Removed the flat CanvasLayer/Button sprint control from player_controller.gd.
+- Replaced the world session verification overlay and return action with a spatial 3D board and ray-pickable 3D return object.
+- These controls and gates have been committed but still require the latest Godot/Android workflow results and hands-on device checks for touch alignment, camera visibility, and movement feel.
+- Other existing 2D interfaces elsewhere in the app and Godot scripts are still present; the no-2D acceptance gate remains open.
