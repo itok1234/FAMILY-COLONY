@@ -1,19 +1,19 @@
 # FAMILY COLONY — Live Progress Dashboard
 
-> Generated automatically by GitHub Actions. Updated on code pushes, manual dispatch, and every 15 minutes.
+> Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Latest source commit:** [`691bbe5`](https://github.com/itok1234/FAMILY-COLONY/commit/691bbe5815c3f6f32f65f970ff0e938a3a9b7686)  
-> **Dashboard refreshed:** 2026-11-25T02:50:11.981Z
+> **Latest source commit:** [`95d2bb2`](https://github.com/itok1234/FAMILY-COLONY/commit/95d2bb2ff180fb781fa28c292fcd71a2d9c7026c)  
+> **Dashboard refreshed:** 2026-11-25T02:50:30.899Z
 
 ## Automated validation
 
 | Check | Latest branch result | Commit tested |
 |---|---|---|
-| Validate FAMILY COLONY 3D World | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45534858927) | bccf1d7 |
-| Validate FAMILY COLONY Android Build | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45534858873) | bccf1d7 |
-| FAMILY COLONY Embedded Godot Android Smoke Test | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45534858932) | bccf1d7 |
-| Build FAMILY COLONY Signed Release APK | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45534858876) | bccf1d7 |
+| Validate FAMILY COLONY 3D World | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45535744096) | 691bbe5 |
+| Validate FAMILY COLONY Android Build | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45535744052) | 691bbe5 |
+| FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45535744029) | 691bbe5 |
+| Build FAMILY COLONY Signed Release APK | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45535744039) | 691bbe5 |
 
 ## Implementation status
 
@@ -21,7 +21,8 @@
 |---|---|---|
 | Native 3D hub and world entry | IMPLEMENTED SLICE | Full app flow and feature parity |
 | Avatar profile and wardrobe | IMPLEMENTED SLICE | Cloud persistence and device UX |
-| Room-scoped avatar appearance sync | IMPLEMENTED — VALIDATION PENDING | Latest Godot/Android workflows and multi-device test |
+| Room-scoped avatar appearance sync | IMPLEMENTED SLICE — CI PASSED | Multi-device real-world test and persistence |
+| Room management | HOST + REMOTE ROOM-CREATION COOLDOWN | Multi-device room lifecycle and cloud persistence |
 | Member login and session | LEGACY WEBVIEW FLOW PRESERVED | Port login, refresh, logout and recovery to spatial 3D |
 | Developer Center | 3D ENTRY / NAVIGATION SLICE | Secure backend CRUD and operational tools |
 | Five mini-games | HONEY HUNT 3D; FOUR INITIAL LOCAL GAME LOOPS | Complete gameplay, polish, persistence and multiplayer |
@@ -40,7 +41,8 @@
 
 ## Status rules
 
-- This dashboard reports verified implementation slices and CI outcomes, not an invented overall percentage.
+- The 55% figure is a retained continuity baseline, not a newly audited exact measurement.
+- Feature statuses and CI outcomes are evidence-based; a workflow result applies only to its listed commit.
 - A workflow result applies only to the commit shown in its row.
 - "Implemented slice" does not mean the entire feature or application is complete.
 - A release APK build is not equivalent to physical-device acceptance or final product sign-off.
