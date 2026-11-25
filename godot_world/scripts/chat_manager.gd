@@ -127,12 +127,20 @@ func _accept_message(sender_id: int, clean_text: String) -> void:
 		_rpc_receive_message.rpc_id(peer_id, message)
 
 
+func _prune_send_timestamps(peer_ids: Array[int], local_peer_id: int) -> int:
+	# Keep only the host-local timestamp or currently connected peers.
+	var removed := 0
+	for peer_id in _last_send_at.keys().duplicate():
+		if int(peer_id) != local_peer_id and not peer_ids.has(int(peer_id)):
+			_last_send_at.erase(peer_id)
+			removed += 1
+	return removed
+
+
 func _on_peer_roster_changed(peer_ids: Array[int]) -> void:
 	# Drop per-peer throttling state after disconnect so stale peer IDs do not
 	# accumulate and a later connection cannot inherit an old cooldown.
-	for peer_id in _last_send_at.keys().duplicate():
-		if int(peer_id) != multiplayer.get_unique_id() and not peer_ids.has(int(peer_id)):
-			_last_send_at.erase(peer_id)
+	_prune_send_timestamps(peer_ids, multiplayer.get_unique_id())
 	if not multiplayer.is_server() and peer_ids.is_empty():
 		_clear_local_chat_state()
 
