@@ -41,6 +41,16 @@ var _room_snapshot_root: Node3D
 var _room_status_label: Label3D
 var _room_connection_detail := "Belum terhubung ke jaringan LAN."
 var _room_current_id := ""
+var _profile_avatar_body: MeshInstance3D
+var _profile_avatar_halo: MeshInstance3D
+var _profile_style_index := 0
+const PROFILE_STYLES := [
+	{"name":"OCEAN","body":Color("#456d83"),"halo":Color("#9bd4e4")},
+	{"name":"EMERALD","body":Color("#397b70"),"halo":Color("#a7dfbd")},
+	{"name":"ROYAL","body":Color("#65568d"),"halo":Color("#c6b1f0")},
+	{"name":"GOLD","body":Color("#92713d"),"halo":Color("#f0d18b")},
+	{"name":"SLATE","body":Color("#596674"),"halo":Color("#c4d0dc")}
+]
 
 
 func set_member_profile(member: Dictionary) -> void:
@@ -633,6 +643,7 @@ func _open_destination_panel(destination_id: String) -> void:
 
 
 func _build_profile_card() -> void:
+	_load_profile_style()
 	var display_name := str(_member_profile.get("name", "Anggota Colony")).strip_edges()
 	var username := str(_member_profile.get("username", "")).strip_edges()
 	var role := str(_member_profile.get("role", "member")).strip_edges()
@@ -646,7 +657,8 @@ func _build_profile_card() -> void:
 	body_mesh.height = 1.25
 	body.mesh = body_mesh
 	body.position.y = 0.12
-	body.material_override = _material(Color("#456d83"), 0.42, 0.18)
+	body.material_override = _material(PROFILE_STYLES[_profile_style_index].body, 0.42, 0.18)
+	_profile_avatar_body = body
 	avatar_root.add_child(body)
 	var head := MeshInstance3D.new()
 	var head_mesh := SphereMesh.new()
@@ -663,7 +675,8 @@ func _build_profile_card() -> void:
 	halo.mesh = halo_mesh
 	halo.position.y = 1.42
 	halo.rotation_degrees.x = 90.0
-	halo.material_override = _material(Color("#d8b66f"), 0.28, 0.35)
+	halo.material_override = _material(PROFILE_STYLES[_profile_style_index].halo, 0.28, 0.35)
+	_profile_avatar_halo = halo
 	avatar_root.add_child(halo)
 	_destination_panel.add_child(avatar_root)
 	var details := Label3D.new()
@@ -678,10 +691,85 @@ func _build_profile_card() -> void:
 	verified.text = "●  SESI AKUN TERVERIFIKASI"
 	verified.font_size = 15
 	verified.pixel_size = 0.0035
-	verified.position = Vector3(0, -1.25, -0.24)
+	verified.position = Vector3(0, -2.12, -0.24)
 	verified.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	verified.modulate = Color("#9ed6b2")
 	_destination_panel.add_child(verified)
+	var wardrobe_title := Label3D.new()
+	wardrobe_title.text = "GAYA AVATAR • PILIH TAMPILAN"
+	wardrobe_title.font_size = 15
+	wardrobe_title.pixel_size = 0.0035
+	wardrobe_title.position = Vector3(0, -1.25, -0.24)
+	wardrobe_title.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	wardrobe_title.modulate = Color("#f3d99a")
+	_destination_panel.add_child(wardrobe_title)
+	for i in range(PROFILE_STYLES.size()):
+		_create_profile_style_button(i, Vector3(-2.45 + float(i) * 1.22, -1.68, -0.28))
+
+
+func _load_profile_style() -> void:
+	var config := ConfigFile.new()
+	if config.load("user://family_colony_profile.cfg") == OK:
+		_profile_style_index = clampi(int(config.get_value("avatar", "style_index", 0)), 0, PROFILE_STYLES.size() - 1)
+	else:
+		_profile_style_index = 0
+
+
+func _save_profile_style() -> void:
+	var config := ConfigFile.new()
+	config.set_value("avatar", "style_index", _profile_style_index)
+	var error := config.save("user://family_colony_profile.cfg")
+	if error != OK:
+		push_warning("FAMILY COLONY: Avatar style could not be saved locally. Error: %s" % error)
+
+
+func _create_profile_style_button(style_index: int, local_position: Vector3) -> void:
+	var style: Dictionary = PROFILE_STYLES[style_index]
+	var area := Area3D.new()
+	area.name = "ProfileStyle_" + str(style_index)
+	area.position = local_position
+	area.input_ray_pickable = true
+	area.collision_layer = 2
+	area.collision_mask = 0
+	area.set_meta("hub_panel_action", "avatar_style:" + str(style_index))
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(1.08, 0.5, 0.2)
+	collision.shape = shape
+	area.add_child(collision)
+	var mesh := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(1.02, 0.44, 0.14)
+	mesh.mesh = box
+	mesh.material_override = _material(style.body, 0.34, 0.22)
+	area.add_child(mesh)
+	var label := Label3D.new()
+	label.text = str(style.name) + (" ✓" if style_index == _profile_style_index else "")
+	label.font_size = 13
+	label.pixel_size = 0.003
+	label.position.z = -0.1
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.modulate = Color("#ffffff")
+	area.add_child(label)
+	_destination_panel.add_child(area)
+
+
+func _apply_profile_style(style_index: int) -> void:
+	if style_index < 0 or style_index >= PROFILE_STYLES.size():
+		return
+	_profile_style_index = style_index
+	if is_instance_valid(_profile_avatar_body):
+		var body_material := _material(PROFILE_STYLES[style_index].body, 0.42, 0.18)
+		_profile_avatar_body.material_override = body_material
+	if is_instance_valid(_profile_avatar_halo):
+		var halo_material := _material(PROFILE_STYLES[style_index].halo, 0.28, 0.35)
+		_profile_avatar_halo.material_override = halo_material
+	_save_profile_style()
+	_hint.text = "Tampilan avatar disimpan: " + str(PROFILE_STYLES[style_index].name)
+	if is_instance_valid(_destination_panel):
+		_destination_panel.queue_free()
+	_destination_panel = null
+	_open_destination_panel("profile")
 
 
 func show_developer_center(member: Dictionary) -> void:
@@ -834,6 +922,9 @@ func _create_hub_panel_button(label_text: String, local_position: Vector3, actio
 
 
 func _handle_hub_panel_action(action_id: String) -> void:
+	if action_id.begins_with("avatar_style:"):
+		_apply_profile_style(int(action_id.trim_prefix("avatar_style:")))
+		return
 	if action_id.begins_with("developer:"):
 		var developer_action := action_id.trim_prefix("developer:")
 		if developer_action == "back":
