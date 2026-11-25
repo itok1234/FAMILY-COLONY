@@ -3,8 +3,8 @@
 > Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Latest source commit:** [`b4e7f44`](https://github.com/itok1234/FAMILY-COLONY/commit/b4e7f44a5a479a3ef5a9872ae64ebbcef7330cb8)  
-> **Dashboard refreshed:** 2026-11-25T03:21:40.583Z
+> **Latest source commit:** [`d9aace8`](https://github.com/itok1234/FAMILY-COLONY/commit/d9aace828df56c20c9bef8ff2d5c6b012f3fe04f)  
+> **Dashboard refreshed:** 2026-11-25T03:22:05.652Z
 
 ## Overall progress baseline
 
@@ -27,7 +27,7 @@
 | Native 3D hub and world entry | IMPLEMENTED SLICE | Full app flow and feature parity |
 | Avatar profile and wardrobe | IMPLEMENTED SLICE | Cloud persistence and device UX |
 | Room-scoped avatar appearance sync | IMPLEMENTED SLICE — CI PASSED | Multi-device real-world test and persistence |
-| Room & Lobby (active group 1) | 65% provisional — lobby sharding, capacity/cooldown controls and client room-snapshot cache; regression suite added, latest CI pending | Multi-device lifecycle, invitation/transition UI verification and cloud persistence |
+| Room & Lobby (active group 1) | 65% provisional — lobby sharding, capacity/cooldown controls and client room-snapshot cache; automated regression suite included in the Godot validation check above | Multi-device lifecycle, invitation/transition UI verification and cloud persistence |
 | Room management | LAN host-authoritative in-memory rooms; 64 custom-room cap; least-populated lobby shards; client snapshot cache | Cloud persistence and physical multi-device acceptance |
 | Member login and session | LEGACY WEBVIEW FLOW PRESERVED | Port login, refresh, logout and recovery to spatial 3D |
 | Developer Center | 3D ENTRY / NAVIGATION SLICE | Secure backend CRUD and operational tools |
