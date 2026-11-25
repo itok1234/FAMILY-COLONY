@@ -5,7 +5,7 @@ extends Node3D
 
 signal destination_requested(destination_id: String)
 signal developer_login_requested()
-signal developer_authenticated(member: Dictionary, access_token: String, refresh_token: String, anon_key: String)
+signal developer_authenticated(member: Dictionary, access_token: String, anon_key: String)
 signal minigame_requested(game_id: String)
 signal developer_center_action_requested(action_id: String)
 signal settings_action_requested(action_id: String)
@@ -367,11 +367,10 @@ func _on_developer_pin_response(result: int, response_code: int, _headers: Packe
 		_update_developer_pin_display()
 		return
 	var access_token := str(parsed.get("access_token", ""))
-	var refresh_token := str(parsed.get("refresh_token", ""))
 	var anon_key := str(parsed.get("anon_key", ""))
 	_developer_pin = ""
 	_developer_pin_status.text = "Verifikasi berhasil • sesi Developer aktif"
-	developer_authenticated.emit(member, access_token, refresh_token, anon_key)
+	developer_authenticated.emit(member, access_token, anon_key)
 	_hint.text = "Developer terverifikasi oleh server. Sesi siap diteruskan ke pusat aplikasi."
 
 func _build_kiosks() -> void:
