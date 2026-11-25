@@ -36,6 +36,22 @@ func _run() -> void:
 			_expect(has_mesh, "kiosk visual mesh missing: " + destination)
 			_expect(kiosk.get_node_or_null("StationLight") != null or kiosk.get_child_count() >= 7, "kiosk detail structure incomplete: " + destination)
 	_expect(hub.get_child_count() >= 8, "hub should generate a substantial 3D scene structure")
+	hub.call("_open_destination_panel", "games")
+	var games_panel := hub.get_node_or_null("SpatialFeaturePanel")
+	_expect(games_panel != null, "mini-game panel should be created in 3D")
+	var game_actions := []
+	if games_panel != null:
+		for game_button in games_panel.get_children():
+			if game_button is Area3D and game_button.has_meta("hub_panel_action"):
+				var action := str(game_button.get_meta("hub_panel_action"))
+				if action.begins_with("game:"):
+					game_actions.append(action)
+	_expect(game_actions.size() == 4, "Game Center must expose exactly four locked mini-games")
+	_expect(game_actions.has("game:guess_who"), "Guess Who entry missing")
+	_expect(game_actions.has("game:royal_bomb"), "Royal Bomb entry missing")
+	_expect(game_actions.has("game:royal_murder_mystery"), "Royal Murder Mystery entry missing")
+	_expect(game_actions.has("game:royal_dice"), "Royal Dice entry missing")
+	_expect(not game_actions.has("game:honey_hunt"), "legacy Honey Hunt must not appear in Game Center")
 	hub.call("_open_destination_panel", "chat")
 	_expect(hub.get_node_or_null("SpatialFeaturePanel") != null, "chat panel should be created in 3D")
 	var room_data := [
