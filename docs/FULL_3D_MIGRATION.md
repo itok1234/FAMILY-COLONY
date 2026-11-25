@@ -120,3 +120,9 @@ Do not label the product fully 3D until:
 - Refined the procedural avatar with layered hair/clothing details and a short randomized blink animation. It remains a procedural placeholder, not an imported production skeletal character model.
 - Godot parse/startup validation for commit `22fb2389735b22efc331962cf09538884e5dc39f` passed. Android debug/release and embedded smoke workflows for that commit were still running at the time of this update. The subsequent multiplayer status UI commit requires its own validation.
 - Remaining flat 2D interfaces outside this slice, WebView launcher/login and legacy HTML features are still not fully migrated.
+
+## Royal arena visual differentiation and remaining HUD migration (2026-11-25)
+- Replaced the LAN multiplayer connection status flat HUD with a spatial Label3D attached to the player camera. The underlying ENet implementation remains LAN-only.
+- Replaced the four royal mini-game shared arena's generic presentation with per-game accent themes (Guess Who cyan, Royal Bomb red, Murder Mystery violet, Royal Dice green), a 3D title crest and four decorative beacon plinths.
+- The arena work changes presentation only; it does not claim cross-device multiplayer, authoritative game rules or cloud result persistence.
+- Godot parse/startup validation passed for commit `0f7211d38ee0ac1176ec2ab201f83d0243b018d6`. The newer per-arena theme commit requires its own validation, and Android build/smoke runs for the immediately preceding commit were still in progress at the time of this note.
