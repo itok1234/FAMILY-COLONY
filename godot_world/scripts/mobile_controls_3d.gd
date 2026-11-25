@@ -123,6 +123,8 @@ func _notification(what: int) -> void:
 		_sprint_touch = -1
 		_action_touch = -1
 		_set_sprinting(false)
+		if is_instance_valid(_action_label):
+			_action_label.text = "AKSI"
 
 
 func _input(event: InputEvent) -> void:
