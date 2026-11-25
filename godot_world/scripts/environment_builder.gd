@@ -294,6 +294,11 @@ func _build_buildings() -> void:
 				_mesh_node(group, shrub_mesh, planter_green, Vector3(planter_x - 0.22 + float(shrub_index) * 0.22, 0.46, depth * 0.5 + 0.82), "EntrancePlanterShrub")
 		# Keep the doorway visually open; do not place a closed door slab in its void.
 		_box(group, Vector3(2.8, 0.18, 0.8), Vector3(0, 2.78, depth * 0.5 + 0.38), trim, "EntryCanopy")
+		# Layered entry framing and doorstep accent improve readability from mobile camera distance.
+		_box(group, Vector3(0.18, 2.75, 0.22), Vector3(-1.32, 1.36, depth * 0.5 + 0.23), trim, "EntryDoorFrameLeft")
+		_box(group, Vector3(0.18, 2.75, 0.22), Vector3(1.32, 1.36, depth * 0.5 + 0.23), trim, "EntryDoorFrameRight")
+		_box(group, Vector3(2.82, 0.18, 0.22), Vector3(0, 2.78, depth * 0.5 + 0.23), trim, "EntryDoorFrameTop")
+		_box(group, Vector3(2.7, 0.06, 1.5), Vector3(0, -0.08, depth * 0.5 + 1.45), roof, "DoorstepAccent")
 		# Entrance platform, step and readable building identity.
 		_box(group, Vector3(3.8, 0.24, 1.8), Vector3(0, -0.22, depth * 0.5 + 1.0), trim, "EntryLanding")
 		_box(group, Vector3(3.2, 0.18, 0.85), Vector3(0, -0.34, depth * 0.5 + 2.05), wall_material, "EntryStep")
