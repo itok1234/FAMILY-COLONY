@@ -809,8 +809,14 @@ func _show_royal_dice() -> void:
 	_royal_game_status.text = "RONDE %d/5\nKamu: %d poin   •   Royal Bot: %d poin\nKartu aktif: %s\nLempar dadu untuk menentukan hasil ronde." % [_royal_game_state.round, _royal_game_state.score, _royal_game_state.bot_score, _royal_game_state.card]
 	_add_royal_button("LEMPAR DADU", Vector3(0, 0.1, -0.24), "roll", Vector3(3.0, 0.72, 0.16), Color("#a77a36"))
 	var cards := ["ROYAL BOOST","HONEY SHIELD","SHADOW TRAP","LUCKY CROWN"]
+	# Use a 2x2 grid instead of a single horizontal strip: the previous
+	# arrangement pushed the fourth choice beyond the panel's visible bounds.
 	for i in range(cards.size()):
-		_add_royal_button(cards[i], Vector3(-2.25 + float(i) * 1.5, -0.95, -0.24), "card:" + cards[i], Vector3(1.35, 0.46, 0.16))
+		var column := i % 2
+		var row := int(i / 2)
+		var x := -1.35 if column == 0 else 1.35
+		var y := -0.92 if row == 0 else -1.48
+		_add_royal_button(cards[i], Vector3(x, y, -0.24), "card:" + cards[i], Vector3(2.45, 0.46, 0.16))
 
 
 func _dice_action(action: String) -> void:
