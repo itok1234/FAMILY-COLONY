@@ -224,9 +224,11 @@ func _apply_resolved_quality(resolved: Quality) -> void:
 			_set_scene_density(22, 8, 4)
 			_set_effects(true, true)
 		Quality.HIGH:
+			# High mode prioritizes visible scene fidelity: native render scale,
+			# stronger edge smoothing, and fuller landscaping density.
 			viewport.scaling_3d_scale = 1.0
-			viewport.msaa_3d = Viewport.MSAA_2X
-			_set_scene_density(26, 10, 5)
+			viewport.msaa_3d = Viewport.MSAA_4X
+			_set_scene_density(34, 12, 5)
 			_set_effects(true, true)
 
 
