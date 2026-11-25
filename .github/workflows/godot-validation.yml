@@ -57,6 +57,21 @@ jobs:
             exit 1
           fi
 
+      - name: Run Room and Lobby regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          godot --headless --path godot_world --script res://tests/room_manager_test.gd 2>&1 | tee "$log_file"
+          if ! grep -F "ROOM_MANAGER_TEST: PASS" "$log_file"; then
+            echo "::error::Room manager regression tests did not pass."
+            exit 1
+          fi
+          if grep -E "SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script" "$log_file"; then
+            echo "::error::Godot reported script or resource errors during Room and Lobby tests."
+            exit 1
+          fi
+
       - name: Run world startup smoke test
         shell: bash
         run: |
