@@ -248,7 +248,7 @@ func _build_avatar() -> void:
 	_add_sphere(_head, "Nose", Vector3(0, -0.018, -0.224), Vector3(0.032, 0.045, 0.035), skin)
 	_mouth = _add_sphere(_head, "Mouth", Vector3(0, -0.105, -0.207), Vector3(0.052, 0.016, 0.012), lip)
 	# Soft cheek highlights and a small lower-lip highlight improve face readability without heavy geometry.
-	var cheek_material := _material(Color("#c98279", 0.58))
+	var cheek_material := _material(Color("#c98279", 0.58), 0.72)
 	_add_sphere(_head, "CheekTintLeft", Vector3(-0.13, -0.075, -0.196), Vector3(0.046, 0.025, 0.008), cheek_material)
 	_add_sphere(_head, "CheekTintRight", Vector3(0.13, -0.075, -0.196), Vector3(0.046, 0.025, 0.008), cheek_material)
 	_add_sphere(_head, "LowerLipHighlight", Vector3(0, -0.122, -0.216), Vector3(0.022, 0.006, 0.004), eye_white)
