@@ -27,6 +27,10 @@
 | FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550100807) | 5a651c5 |
 | Build FAMILY COLONY Signed Release APK | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550100767) | 5a651c5 |
 
+## Recent code change
+
+- Commit `a8b0800`: Royal Murder Mystery answer choices arranged in a compact 2-column grid to improve reachability and reduce vertical clipping in mobile spatial HUD.
+
 ## Recent verified work
 
 - Royal Dice card-selection HUD moved to a 2×2 grid to keep buttons inside the panel (commit `5a651c5`); 3D-world validation on that commit passed.
