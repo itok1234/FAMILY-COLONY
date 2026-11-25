@@ -30,7 +30,7 @@ func _run_tests() -> void:
 	_expect(incoming.sender_label == "Anggota #7", "sender label must be generated from the peer ID")
 	_expect(incoming.text == "Halo Colony", "received text must be trimmed")
 	_expect(not incoming.has("extra"), "unrecognized packet fields must be stripped")
-	_expect(manager._sanitize_received_message({"room_id": "r", "sender_peer_id": 1, "text": "hi"}).is_empty(), "server peer ID must not be accepted as a member sender")
+	_expect(not manager._sanitize_received_message({"room_id": "r", "sender_peer_id": 1, "text": "hi"}).is_empty(), "host sender messages must be accepted")
 	_expect(manager._sanitize_received_message({"room_id": "r", "sender_peer_id": "7", "text": "hi"}).is_empty(), "sender ID must be an integer")
 	_expect(manager._sanitize_received_message({"room_id": "r", "sender_peer_id": 7, "text": "bad" + char(10) + "text"}).is_empty(), "unsafe incoming text must be rejected")
 	_expect(manager._sanitize_received_message({"room_id": "r", "sender_peer_id": 7, "text": "x".repeat(manager.max_message_characters + 1)}).is_empty(), "oversized incoming text must be rejected")
