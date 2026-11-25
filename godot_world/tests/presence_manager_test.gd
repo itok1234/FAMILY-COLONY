@@ -1,0 +1,36 @@
+extends SceneTree
+## Unit checks for presence snapshot filtering.
+
+const PresenceManagerScript = preload("res://scripts/presence_manager.gd")
+var failures: int = 0
+
+func _initialize() -> void:
+	call_deferred("_run_tests")
+
+func _expect(condition: bool, message: String) -> void:
+	if not condition:
+		failures += 1
+		push_error("PRESENCE_MANAGER_TEST: " + message)
+
+func _run_tests() -> void:
+	var manager = PresenceManagerScript.new()
+	var input_snapshot: Array = [
+		{"peer_id": 2, "state": "online"},
+		{"peer_id": 3, "state": "online", "display_name": "Member"},
+		{"peer_id": -1, "state": "online"},
+		{"peer_id": 4, "state": "offline"},
+		{"peer_id": "5", "state": "online"},
+		{"peer_id": 6, "state": "online", "extra": "untrusted"}
+	]
+	var clean := manager._sanitize_presence_snapshot(input_snapshot)
+	_expect(clean.size() == 3, "only positive integer peer IDs and online state should survive")
+	_expect(clean[0].peer_id == 2, "valid first entry should be retained")
+	_expect(clean[1].peer_id == 3 and clean[1].display_name == "Member", "known optional fields should survive")
+	_expect(clean[2].peer_id == 6 and not clean[2].has("extra"), "unrecognized fields should be discarded")
+	_expect(manager._sanitize_presence_snapshot([]).is_empty(), "empty snapshots should remain empty")
+	if failures == 0:
+		print("PRESENCE_MANAGER_TEST: PASS — snapshot entries filtered and bounded")
+	else:
+		push_error("PRESENCE_MANAGER_TEST: %d assertion(s) failed" % failures)
+	manager.free()
+	quit(0 if failures == 0 else 1)
