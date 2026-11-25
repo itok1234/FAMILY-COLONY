@@ -153,6 +153,14 @@ func _process(delta: float) -> void:
 	if _mouth != null:
 		# Tiny expression variation keeps the face from looking frozen; restrained for distant mobile view.
 		_mouth.scale.x = lerpf(0.09, 0.105, (sin(_time * 1.2) + 1.0) * 0.5)
+		var expression_height := 0.016
+		if _expression == "happy":
+			expression_height = 0.023
+		elif _expression == "sad":
+			expression_height = 0.010
+		elif _expression == "surprised":
+			expression_height = 0.032
+		_mouth.scale.y = expression_height)
 	if _action == "wave":
 		wave_weight = 1.0 if _action_time < 1.5 else maxf(0.0, 1.0 - (_action_time - 1.5) * 2.0)
 		if wave_weight <= 0.0:
@@ -179,7 +187,10 @@ func _process(delta: float) -> void:
 		position.y = idle * (1.0 - _motion) + body_bob + jump_weight * 0.48 + sin(_action_time * 7.0) * 0.07 * dance_weight - sit_weight * 0.28
 		position.x = sin(gait_phase * 0.5) * 0.035 * _motion
 		rotation.z = lerpf(rotation.z, sin(gait_phase) * 0.025 * _motion, minf(delta * 7.0, 1.0))
-		rotation.y = lerpf(rotation.y, sin(gait_phase * 0.5) * 0.035 * _motion, minf(delta * 5.0, 1.0))
+		var facing_target := sin(gait_phase * 0.5) * 0.035 * _motion
+		if _movement_direction.length() > 0.05:
+			facing_target = atan2(_movement_direction.x, _movement_direction.y)
+		rotation.y = lerpf(rotation.y, facing_target, minf(delta * 5.0, 1.0))
 		# Secondary motion: antenna sway and hair bounce respond to gait and idle breathing.
 		if _antenna_left != null and _antenna_right != null:
 			var antenna_sway := sin(_time * 2.6 + gait_phase * 0.18) * (0.035 + 0.08 * _motion)
