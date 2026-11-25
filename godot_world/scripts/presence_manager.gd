@@ -35,13 +35,21 @@ func _on_connection_state_changed(state: String, _detail: String) -> void:
 	if state == "connected":
 		_request_current_room_snapshot()
 	elif state == "offline" or state == "error":
-		_presence.clear()
-		_current_room_id = ""
-		_current_presence_snapshot.clear()
-		presence_snapshot_changed.emit([])
+		_clear_presence_state()
+
+
+func _clear_presence_state() -> void:
+	_presence.clear()
+	_last_snapshot_request_at.clear()
+	_current_room_id = ""
+	_current_presence_snapshot.clear()
+	presence_snapshot_changed.emit([])
 
 
 func _on_local_room_changed(room_id: String, _members: Array[int]) -> void:
+	if room_id != _current_room_id:
+		_current_presence_snapshot.clear()
+		presence_snapshot_changed.emit([])
 	_current_room_id = room_id
 	if multiplayer.is_server():
 		_current_presence_snapshot = _snapshot_for_room(room_id)
