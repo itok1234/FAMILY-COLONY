@@ -234,6 +234,20 @@ func _build_avatar() -> void:
 	_add_sphere(_head, "Nose", Vector3(0, -0.018, -0.224), Vector3(0.032, 0.045, 0.035), skin)
 	_mouth = _add_sphere(_head, "Mouth", Vector3(0, -0.105, -0.207), Vector3(0.045, 0.012, 0.012), lip)
 
+	# Signature colony insect features: two antennae and paired translucent wings.
+	var antenna_mat := _material(Color("#c5a86a"), 0.38)
+	var wing_mat := _material(Color("#b8dbe5", 0.42), 0.22)
+	wing_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	wing_mat.albedo_color = Color("#b8dbe5", 0.42)
+	wing_mat.metallic = 0.12
+	_add_capsule(_head, "AntennaLeft", Vector3(-0.085, 0.29, -0.045), 0.025, 0.28, antenna_mat)
+	_add_capsule(_head, "AntennaRight", Vector3(0.085, 0.29, -0.045), 0.025, 0.28, antenna_mat)
+	_add_sphere(_head, "AntennaTipLeft", Vector3(-0.085, 0.43, -0.045), Vector3(0.04, 0.04, 0.04), antenna_mat)
+	_add_sphere(_head, "AntennaTipRight", Vector3(0.085, 0.43, -0.045), Vector3(0.04, 0.04, 0.04), antenna_mat)
+	var wing_left := _add_sphere(self, "TransparentWingLeft", Vector3(-0.29, 1.32, 0.24), Vector3(0.28, 0.42, 0.055), wing_mat)
+	var wing_right := _add_sphere(self, "TransparentWingRight", Vector3(0.29, 1.32, 0.24), Vector3(0.28, 0.42, 0.055), wing_mat)
+	wing_left.rotation.z = 0.32
+	wing_right.rotation.z = -0.32
 	_name_label = Label3D.new()
 	_name_label.name = "VerifiedMemberName"
 	_name_label.text = "Colony Member"
