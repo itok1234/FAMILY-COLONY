@@ -528,7 +528,7 @@ func _add_royal_button(label_text: String, pos: Vector3, action: String, size: V
 
 
 func _unhandled_royal_game_input(event: InputEvent) -> void:
-	if not _royal_game_active or not is_instance_valid(_royal_game_hud):
+	if _royal_game_id.is_empty() or not is_instance_valid(_royal_game_hud):
 		return
 	var pressed: bool = event is InputEventScreenTouch and event.pressed
 	pressed = pressed or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
@@ -552,6 +552,8 @@ func _unhandled_royal_game_input(event: InputEvent) -> void:
 
 
 func _handle_royal_action(action: String) -> void:
+	if not _royal_game_active and action != "exit":
+		return
 	if action == "exit":
 		exit_royal_game()
 		return
@@ -618,13 +620,13 @@ func _guess_who_next() -> void:
 
 
 func _start_royal_bomb() -> void:
-	_royal_game_state = {"round":1,"score":0,"defuse":2,"bombs":3,"alive":true,"draws":0,"deck":_royal_game_rng.randi_range(1, 100)}
+	_royal_game_state = {"round":1,"score":0,"defuse":2,"armed_defuse":false,"bombs":3,"alive":true,"draws":0,"deck":_royal_game_rng.randi_range(1, 100)}
 	_show_royal_bomb()
 
 
 func _show_royal_bomb() -> void:
 	_clear_royal_game_panel()
-	_royal_game_status.text = "BERTAHAN DARI ROYAL BOMB!\nGiliran: %d/12   •   Skor: %d\nHoney Defuse: %d   •   Bom tersisa: %d\nAmbil kartu, gunakan Defuse, atau lewati giliran." % [_royal_game_state.round, _royal_game_state.score, _royal_game_state.defuse, _royal_game_state.bombs]
+	_royal_game_status.text = "BERTAHAN DARI ROYAL BOMB!\nGiliran: %d/12   •   Skor: %d\nHoney Defuse: %d   •   Aktif: %s   •   Bom tersisa: %d\nAmbil kartu, siapkan Defuse, atau lewati giliran." % [_royal_game_state.round, _royal_game_state.score, _royal_game_state.defuse, ("YA" if bool(_royal_game_state.armed_defuse) else "TIDAK"), _royal_game_state.bombs]
 	_add_royal_button("AMBIL KARTU", Vector3(-1.55, 0.05, -0.24), "draw", Vector3(2.5, 0.62, 0.16), Color("#a77a36"))
 	_add_royal_button("PAKAI HONEY DEFUSE", Vector3(1.55, 0.05, -0.24), "defuse", Vector3(2.5, 0.62, 0.16))
 	_add_royal_button("SKIP GILIRAN", Vector3(0, -0.82, -0.24), "skip", Vector3(2.5, 0.56, 0.16))
@@ -632,10 +634,10 @@ func _show_royal_bomb() -> void:
 
 func _royal_bomb_action(action: String) -> void:
 	if action == "defuse":
-		if int(_royal_game_state.defuse) > 0:
+		if int(_royal_game_state.defuse) > 0 and not bool(_royal_game_state.armed_defuse):
 			_royal_game_state.defuse -= 1
-			_royal_game_state.score += 2
-			_royal_game_status.text = "HONEY DEFUSE disiapkan. Satu pelindung digunakan."
+			_royal_game_state.armed_defuse = true
+			_royal_game_status.text = "HONEY DEFUSE aktif. Bom berikutnya akan dinetralkan."
 		else:
 			_royal_game_status.text = "Tidak ada Honey Defuse tersisa."
 		return
@@ -645,10 +647,10 @@ func _royal_bomb_action(action: String) -> void:
 		_royal_game_state.draws += 1
 		var card_roll := _royal_game_rng.randi_range(1, 100)
 		if card_roll <= 24:
-			if int(_royal_game_state.defuse) > 0:
-				_royal_game_state.defuse -= 1
+			if bool(_royal_game_state.armed_defuse):
+				_royal_game_state.armed_defuse = false
 				_royal_game_state.score += 3
-				_royal_game_status.text = "💣 ROYAL BOMB! Honey Defuse otomatis menyelamatkanmu."
+				_royal_game_status.text = "💣 ROYAL BOMB! Honey Defuse yang kamu siapkan berhasil menetralkan bom."
 			else:
 				_royal_game_state.alive = false
 				_finish_royal_game("TERELIMINASI OLEH ROYAL BOMB\nSkor akhir: %d" % _royal_game_state.score)
