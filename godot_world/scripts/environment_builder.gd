@@ -153,6 +153,27 @@ func _build_fountain_feature() -> void:
 	jet.height = 1.25
 	jet.radial_segments = 12
 	_mesh_node(fountain, jet, water, Vector3(0, 2.55, 0), "FountainJet")
+
+	# Central luminous crystal landmark with restrained mobile-friendly glow.
+	var crystal_material := _mat("fountain_crystal", Color("#62c9ef"), 0.2, 0.32)
+	crystal_material.emission_enabled = true
+	crystal_material.emission = Color("#45bce8")
+	crystal_material.emission_energy_multiplier = 1.25
+	var crystal_mesh := CylinderMesh.new()
+	crystal_mesh.top_radius = 0.0
+	crystal_mesh.bottom_radius = 0.38
+	crystal_mesh.height = 1.55
+	crystal_mesh.radial_segments = 6
+	var crystal := _mesh_node(fountain, crystal_mesh, crystal_material, Vector3(0, 3.08, 0), "FountainCrystal")
+	crystal.rotation_degrees.y = 30.0
+	var crystal_light := OmniLight3D.new()
+	crystal_light.name = "FountainAccentLight"
+	crystal_light.position = Vector3(0, 3.1, 0)
+	crystal_light.light_color = Color("#68c9f1")
+	crystal_light.light_energy = 0.7
+	crystal_light.omni_range = 6.5
+	crystal_light.shadow_enabled = false
+	fountain.add_child(crystal_light)
 	# Eight radial decorative accents break up the circular silhouette.
 	for i in range(8):
 		var angle := TAU * float(i) / 8.0
