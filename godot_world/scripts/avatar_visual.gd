@@ -12,6 +12,8 @@ var _name_label: Label3D
 var _left_eye: MeshInstance3D
 var _right_eye: MeshInstance3D
 var _mouth: MeshInstance3D
+var _left_brow: MeshInstance3D
+var _right_brow: MeshInstance3D
 var _blink_clock := 0.0
 var _blink_time := 3.2
 var _left_arm: Node3D
@@ -161,6 +163,19 @@ func _process(delta: float) -> void:
 		elif _expression == "surprised":
 			expression_height = 0.032
 		_mouth.scale.y = expression_height
+	if _left_brow != null and _right_brow != null:
+		var brow_tilt := 0.0
+		var brow_height := 0.079
+		if _expression == "sad":
+			brow_tilt = 0.12
+		elif _expression == "surprised":
+			brow_height = 0.095
+		elif _expression == "happy":
+			brow_tilt = -0.06
+		_left_brow.position.y = brow_height
+		_right_brow.position.y = brow_height
+		_left_brow.rotation.z = brow_tilt
+		_right_brow.rotation.z = -brow_tilt
 	if _action == "wave":
 		wave_weight = 1.0 if _action_time < 1.5 else maxf(0.0, 1.0 - (_action_time - 1.5) * 2.0)
 		if wave_weight <= 0.0:
@@ -302,8 +317,8 @@ func _build_avatar() -> void:
 	_right_eye = _add_sphere(_head, "RightEye", Vector3(0.078, 0.025, -0.213), Vector3(0.018, 0.026, 0.010), eyes)
 	_add_sphere(_head, "LeftEyeCatchlight", Vector3(-0.084, 0.035, -0.224), Vector3(0.008, 0.010, 0.004), eye_white)
 	_add_sphere(_head, "RightEyeCatchlight", Vector3(0.072, 0.035, -0.224), Vector3(0.008, 0.010, 0.004), eye_white)
-	_add_sphere(_head, "LeftBrow", Vector3(-0.078, 0.079, -0.195), Vector3(0.047, 0.012, 0.014), hair)
-	_add_sphere(_head, "RightBrow", Vector3(0.078, 0.079, -0.195), Vector3(0.047, 0.012, 0.014), hair)
+	_left_brow = _add_sphere(_head, "LeftBrow", Vector3(-0.078, 0.079, -0.195), Vector3(0.047, 0.012, 0.014), hair)
+	_right_brow = _add_sphere(_head, "RightBrow", Vector3(0.078, 0.079, -0.195), Vector3(0.047, 0.012, 0.014), hair)
 	_add_sphere(_head, "Nose", Vector3(0, -0.018, -0.224), Vector3(0.032, 0.045, 0.035), skin)
 	_mouth = _add_sphere(_head, "Mouth", Vector3(0, -0.105, -0.207), Vector3(0.052, 0.016, 0.012), lip)
 	# Soft cheek highlights and a small lower-lip highlight improve face readability without heavy geometry.
