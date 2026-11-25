@@ -205,6 +205,13 @@ func _build_avatar() -> void:
 	_add_capsule(_right_arm, "RightCuff", Vector3(0, -0.13, 0), 0.119, 0.10, trim)
 	_add_sphere(_left_arm, "LeftHand", Vector3(0, -0.34, 0), Vector3(0.105, 0.13, 0.09), skin)
 	_add_sphere(_right_arm, "RightHand", Vector3(0, -0.34, 0), Vector3(0.105, 0.13, 0.09), skin)
+	# Additional silhouette and material detail for the mobile avatar blockout.
+	_add_sphere(self, "LeftShoulderCap", Vector3(-0.34, 1.46, 0), Vector3(0.15, 0.16, 0.16), shirt)
+	_add_sphere(self, "RightShoulderCap", Vector3(0.34, 1.46, 0), Vector3(0.15, 0.16, 0.16), shirt)
+	_add_box(self, "LeftShoeSole", Vector3(-0.115, 0.13, -0.025), Vector3(0.19, 0.055, 0.31), trim)
+	_add_box(self, "RightShoeSole", Vector3(0.115, 0.13, -0.025), Vector3(0.19, 0.055, 0.31), trim)
+	_add_box(self, "LeftShoeUpper", Vector3(-0.115, 0.20, -0.04), Vector3(0.18, 0.12, 0.27), shoes)
+	_add_box(self, "RightShoeUpper", Vector3(0.115, 0.20, -0.04), Vector3(0.18, 0.12, 0.27), shoes)
 	# Subtle shoulder caps smooth the transition between torso and sleeves.
 	_add_sphere(self, "LeftShoulder", Vector3(-0.34, 1.42, 0), Vector3(0.17, 0.18, 0.17), shirt)
 	_add_sphere(self, "RightShoulder", Vector3(0.34, 1.42, 0), Vector3(0.17, 0.18, 0.17), shirt)
