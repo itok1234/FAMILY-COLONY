@@ -3,16 +3,8 @@
 > Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Latest source commit:** [`a8b0800`](https://github.com/itok1234/FAMILY-COLONY/commit/a8b0800af9ee051b96919569a2111d5708345c3e)  
-> **Dashboard refreshed:** 2026-11-25T04:59:40.607Z
-
-## Recent implementation update — 2026-11-25
-
-- Commit `1189726`: fixed spatial chat message line formatting; messages are now joined with real line breaks instead of literal escape text, improving readability in the 3D chat panel.
-
-- Commit `f8542ee`: fixed `RoomManager.get_room_snapshot()` so a server/host reads its live room registry even when running on the offline multiplayer peer (single-player/offline test harness). Previously the API returned the client cache in this mode, potentially hiding rooms.
-- Added regression assertion to `room_manager_test.gd` checking host snapshot visibility with three lobby shards.
-- Validation pipelines for this commit are running; results are not yet confirmed.
+> **Latest source commit:** [`1189726`](https://github.com/itok1234/FAMILY-COLONY/commit/1189726ab1373302bb545e40def9f5fbd58ed8d4)  
+> **Dashboard refreshed:** 2026-11-25T05:02:41.671Z
 
 ## FAST TRACK mode — ACTIVE
 
@@ -30,10 +22,10 @@
 
 | Check | Latest branch result | Commit tested |
 |---|---|---|
-| Validate FAMILY COLONY 3D World | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550100785) | 5a651c5 |
-| Validate FAMILY COLONY Android Build | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550100878) | 5a651c5 |
-| FAMILY COLONY Embedded Godot Android Smoke Test | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550100807) | 5a651c5 |
-| Build FAMILY COLONY Signed Release APK | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550100767) | 5a651c5 |
+| Validate FAMILY COLONY 3D World | [FAILURE](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550683820) | af950cf |
+| Validate FAMILY COLONY Android Build | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550683840) | af950cf |
+| FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550683825) | af950cf |
+| Build FAMILY COLONY Signed Release APK | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550683760) | af950cf |
 
 ## Implementation status
 
