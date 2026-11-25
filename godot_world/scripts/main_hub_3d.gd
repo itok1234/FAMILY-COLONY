@@ -1071,7 +1071,9 @@ func _render_room_snapshot_page() -> void:
 	if not is_instance_valid(_room_snapshot_root):
 		return
 	for child in _room_snapshot_root.get_children():
-		child.queue_free()
+		# Remove synchronously so freshly rendered page children keep stable names.
+		_room_snapshot_root.remove_child(child)
+		child.free()
 	var start_index := _room_snapshot_page * ROOM_SNAPSHOT_PAGE_SIZE
 	var end_index := mini(start_index + ROOM_SNAPSHOT_PAGE_SIZE, _room_snapshot_data.size())
 	var shown := 0
