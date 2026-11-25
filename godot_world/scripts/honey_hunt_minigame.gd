@@ -206,38 +206,6 @@ func _build_arena() -> void:
 	title.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_arena.add_child(title)
 
-	var crest := Label3D.new()
-	crest.text = theme_title
-	crest.font_size = 48
-	crest.pixel_size = 0.006
-	crest.position = Vector3(0, 2.8, -5.4)
-	crest.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	crest.modulate = theme_color.lightened(0.45)
-	crest.outline_size = 8
-	crest.outline_modulate = Color("#101d2b")
-	arena.add_child(crest)
-	# Four themed beacon plinths visually distinguish each royal arena.
-	for beacon_index in range(4):
-		var beacon_angle := TAU * float(beacon_index) / 4.0 + PI * 0.25
-		var beacon := Node3D.new()
-		beacon.position = Vector3(cos(beacon_angle) * 5.4, 0.0, sin(beacon_angle) * 5.4)
-		arena.add_child(beacon)
-		var plinth := MeshInstance3D.new()
-		var plinth_mesh := CylinderMesh.new()
-		plinth_mesh.top_radius = 0.58
-		plinth_mesh.bottom_radius = 0.78
-		plinth_mesh.height = 0.52
-		plinth.mesh = plinth_mesh
-		plinth.material_override = _material(Color("#8b7048"), 0.35, 0.38)
-		beacon.add_child(plinth)
-		var beacon_ring := MeshInstance3D.new()
-		var beacon_ring_mesh := TorusMesh.new()
-		beacon_ring_mesh.inner_radius = 0.40
-		beacon_ring_mesh.outer_radius = 0.48
-		beacon_ring.mesh = beacon_ring_mesh
-		beacon_ring.position.y = 0.36
-		beacon_ring.material_override = _material(theme_color, 0.25, 0.32)
-		beacon.add_child(beacon_ring)
 	var light := OmniLight3D.new()
 	light.position = Vector3(0, 8, 0)
 	light.light_color = Color(1.0, 0.78, 0.42)
@@ -486,6 +454,38 @@ func _build_royal_game_arena() -> void:
 	centerpiece.rotation_degrees.x = 90
 	centerpiece.material_override = _material(theme_color, 0.24, 0.42)
 	arena.add_child(centerpiece)
+	var crest := Label3D.new()
+	crest.text = theme_title
+	crest.font_size = 48
+	crest.pixel_size = 0.006
+	crest.position = Vector3(0, 2.8, -5.4)
+	crest.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	crest.modulate = theme_color.lightened(0.45)
+	crest.outline_size = 8
+	crest.outline_modulate = Color("#101d2b")
+	arena.add_child(crest)
+	# Four themed beacon plinths visually distinguish each royal arena.
+	for beacon_index in range(4):
+		var beacon_angle := TAU * float(beacon_index) / 4.0 + PI * 0.25
+		var beacon := Node3D.new()
+		beacon.position = Vector3(cos(beacon_angle) * 5.4, 0.0, sin(beacon_angle) * 5.4)
+		arena.add_child(beacon)
+		var plinth := MeshInstance3D.new()
+		var plinth_mesh := CylinderMesh.new()
+		plinth_mesh.top_radius = 0.58
+		plinth_mesh.bottom_radius = 0.78
+		plinth_mesh.height = 0.52
+		plinth.mesh = plinth_mesh
+		plinth.material_override = _material(Color("#8b7048"), 0.35, 0.38)
+		beacon.add_child(plinth)
+		var beacon_ring := MeshInstance3D.new()
+		var beacon_ring_mesh := TorusMesh.new()
+		beacon_ring_mesh.inner_radius = 0.40
+		beacon_ring_mesh.outer_radius = 0.48
+		beacon_ring.mesh = beacon_ring_mesh
+		beacon_ring.position.y = 0.36
+		beacon_ring.material_override = _material(theme_color, 0.25, 0.32)
+		beacon.add_child(beacon_ring)
 	var light := OmniLight3D.new()
 	light.position = Vector3(0, 8, 0)
 	light.light_color = theme_color
