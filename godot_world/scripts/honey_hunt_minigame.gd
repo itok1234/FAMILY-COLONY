@@ -57,7 +57,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(delta: float) -> void:
 	if _royal_game_active:
-		if _royal_game_id == "guess_who" and not _royal_game_state.is_empty():
+		if _royal_game_id == "guess_who" and not _royal_game_state.is_empty() and not bool(_royal_game_state.get("finished", false)):
 			_royal_game_state.seconds = maxf(0.0, float(_royal_game_state.seconds) - delta)
 			if _royal_game_state.seconds <= 0.0:
 				_royal_game_state.wrong += 1
