@@ -29,6 +29,19 @@ func set_motion_strength(value: float) -> void:
 	if _avatar != null and _avatar.has_method("set_motion_strength"):
 		_avatar.set_motion_strength(clampf(value, 0.0, 1.0))
 
+func set_movement_direction(direction: Vector2) -> void:
+	if _avatar != null and _avatar.has_method("set_movement_direction"):
+		_avatar.set_movement_direction(direction)
+
+func set_expression(expression_name: String) -> void:
+	if _avatar != null and _avatar.has_method("set_expression"):
+		_avatar.set_expression(expression_name)
+
+func get_animation_state() -> Dictionary:
+	if _avatar != null and _avatar.has_method("get_animation_state"):
+		return _avatar.get_animation_state()
+	return {}
+
 func play_social_action(action: String) -> bool:
 	if _avatar == null or not _avatar.has_method("play_action"):
 		return false
