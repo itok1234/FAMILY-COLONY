@@ -1,4 +1,6 @@
 extends Node3D
+
+const MAIN_HUB_SCENE: PackedScene = preload("res://scenes/main_hub_3d.tscn")
 ## FAMILY COLONY world scene controller.
 ## Android gameplay is locked until the existing app session is verified by Supabase.
 
@@ -11,6 +13,7 @@ var _gate_layer: CanvasLayer
 var _gate_status: Label
 var _world_exit_layer: CanvasLayer
 var _is_exiting := false
+var _main_hub: Node3D
 
 
 func _ready() -> void:
@@ -108,11 +111,36 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 	var avatar := player.get_node_or_null("AvatarVisual")
 	if avatar != null and avatar.has_method("set_display_name"):
 		avatar.call("set_display_name", str(_member.get("name", "Colony Member")))
-	_set_player_enabled(true)
-	_build_world_exit_button()
+	# After server verification, enter the native spatial 3D hub first.
+	# The existing WebView login/session remains the source of member identity.
+	_set_player_enabled(false)
+	var mobile_hud := get_node_or_null("MobileHUD")
+	if mobile_hud != null:
+		mobile_hud.visible = false
+	_main_hub = MAIN_HUB_SCENE.instantiate() as Node3D
+	if _main_hub != null:
+		_main_hub.name = "MainHub3D"
+		_main_hub.destination_requested.connect(_on_hub_destination_requested)
+		add_child(_main_hub)
 	if is_instance_valid(_gate_layer):
 		_gate_layer.queue_free()
 	_gate_layer = null
+
+
+func _on_hub_destination_requested(destination_id: String) -> void:
+	if destination_id != "world":
+		return
+	if is_instance_valid(_main_hub):
+		_main_hub.queue_free()
+	_main_hub = null
+	var mobile_hud := get_node_or_null("MobileHUD")
+	if mobile_hud != null:
+		mobile_hud.visible = true
+	_set_player_enabled(true)
+	var player_camera := player.get_node_or_null("CameraPivot/Camera3D") as Camera3D
+	if player_camera != null:
+		player_camera.current = true
+	_build_world_exit_button()
 
 
 func _on_session_rejected(error_code: String) -> void:
