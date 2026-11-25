@@ -619,7 +619,7 @@ func _open_destination_panel(destination_id: String) -> void:
 		_room_snapshot_root.position = Vector3(1.45, -1.28, -0.25)
 		_destination_panel.add_child(_room_snapshot_root)
 		_create_hub_panel_button("KEMBALI KE HUB", Vector3(0, -2.22, -0.24), "back", Vector3(2.6, 0.52, 0.16), Color("#315b70"))
-		_update_room_snapshot([])
+		set_room_snapshot([])
 	if destination_id == "games":
 		_create_hub_panel_button("HONEY HUNT", Vector3(-2.15, 0.15, -0.24), "game:honey_hunt", Vector3(2.0, 0.58, 0.16), Color("#a77a36"))
 		_create_hub_panel_button("GUESS WHO?", Vector3(0.0, 0.15, -0.24), "game:guess_who", Vector3(2.0, 0.58, 0.16))
@@ -890,7 +890,7 @@ func set_current_room(room_id: String, _members: Array[int]) -> void:
 	set_room_network_state("aktif", _room_connection_detail)
 
 
-func _update_room_snapshot(rooms: Array) -> void:
+func set_room_snapshot(rooms: Array) -> void:
 	if not is_instance_valid(_room_snapshot_root):
 		return
 	for child in _room_snapshot_root.get_children():
