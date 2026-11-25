@@ -119,11 +119,8 @@ func _clear_local_chat_state() -> void:
 
 func _clear_local_chat_history() -> void:
 	_history.clear()
-	if is_instance_valid(_chat_log):
-		for child in _chat_log.get_children():
-			child.queue_free()
-	if is_instance_valid(_chat_empty_label):
-		_chat_empty_label.visible = true
+	if is_instance_valid(_chat_messages):
+		_chat_messages.text = "Belum ada pesan di room ini."
 	if is_instance_valid(_chat_error_label):
 		_chat_error_label.text = ""
 		_chat_error_label.visible = false
@@ -179,172 +176,223 @@ func _rpc_chat_error(reason: String) -> void:
 	chat_error.emit(reason)
 
 
-var _chat_panel: PanelContainer
-var _chat_log: VBoxContainer
-var _chat_scroll: ScrollContainer
-var _chat_input: LineEdit
-var _chat_error_label: Label
-var _chat_toggle: Button
-var _chat_empty_label: Label
+var _chat_root: Node3D
+var _chat_panel: Node3D
+var _chat_messages: Label3D
+var _chat_draft_label: Label3D
+var _chat_error_label: Label3D
+var _chat_toggle: Area3D
+var _chat_draft := ""
+var _chat_camera: Camera3D
 
 
 func _build_chat_hud() -> void:
-	var layer := CanvasLayer.new()
-	layer.name = "RoomChatHUD"
-	layer.layer = 18
-	add_child(layer)
+	var player := get_parent().get_node_or_null("Player")
+	_chat_camera = player.get_node_or_null("CameraPivot/Camera3D") as Camera3D if player != null else null
+	if _chat_camera == null:
+		push_warning("FAMILY COLONY: 3D chat requires the player camera.")
+		return
 
-	_chat_toggle = Button.new()
-	_chat_toggle.name = "ChatToggle"
-	_chat_toggle.text = "CHAT ROOM"
-	_chat_toggle.anchor_left = 0.81
-	_chat_toggle.anchor_right = 0.97
-	_chat_toggle.anchor_top = 0.13
-	_chat_toggle.anchor_bottom = 0.20
-	_chat_toggle.offset_left = 0
-	_chat_toggle.offset_right = 0
-	_chat_toggle.offset_top = 0
-	_chat_toggle.offset_bottom = 0
-	_chat_toggle.custom_minimum_size = Vector2(110, 42)
-	_chat_toggle.pressed.connect(_toggle_chat_panel)
-	layer.add_child(_chat_toggle)
+	_chat_root = Node3D.new()
+	_chat_root.name = "SpatialRoomChat"
+	_chat_camera.add_child(_chat_root)
 
-	_chat_panel = PanelContainer.new()
-	_chat_panel.name = "RoomChatPanel"
-	_chat_panel.anchor_left = 0.54
-	_chat_panel.anchor_right = 0.98
-	_chat_panel.anchor_top = 0.43
-	_chat_panel.anchor_bottom = 0.96
-	_chat_panel.offset_left = 0
-	_chat_panel.offset_right = 0
-	_chat_panel.offset_top = 0
-	_chat_panel.offset_bottom = 0
+	_chat_toggle = _create_chat_button(_chat_root, "CHAT", Vector3(1.45, 0.0, -2.8), "toggle", Vector3(0.92, 0.5, 0.14), Color("#a77a36"))
+	_chat_panel = Node3D.new()
+	_chat_panel.name = "SpatialRoomChatPanel"
+	_chat_panel.position = Vector3(0, 0, -3.2)
 	_chat_panel.visible = false
-	layer.add_child(_chat_panel)
+	_chat_root.add_child(_chat_panel)
 
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
-	_chat_panel.add_child(margin)
+	var backing := MeshInstance3D.new()
+	var panel_mesh := BoxMesh.new()
+	panel_mesh.size = Vector3(5.7, 4.9, 0.14)
+	backing.mesh = panel_mesh
+	backing.material_override = _chat_material(Color("#10263b"))
+	_chat_panel.add_child(backing)
 
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 6)
-	margin.add_child(column)
+	var title := Label3D.new()
+	title.text = "ALUN-ALUN CHAT"
+	title.font_size = 32
+	title.pixel_size = 0.0035
+	title.position = Vector3(0, 2.12, -0.1)
+	title.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	title.modulate = Color("#f3d99a")
+	_chat_panel.add_child(title)
 
-	var header := HBoxContainer.new()
-	column.add_child(header)
+	_chat_messages = Label3D.new()
+	_chat_messages.name = "ChatMessages3D"
+	_chat_messages.font_size = 17
+	_chat_messages.pixel_size = 0.0035
+	_chat_messages.position = Vector3(-2.45, 1.42, -0.1)
+	_chat_messages.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_chat_messages.modulate = Color("#e5edf4")
+	_chat_panel.add_child(_chat_messages)
 
-	var title := Label.new()
-	title.text = "CHAT ROOM"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 17)
-	header.add_child(title)
-
-	var close_button := Button.new()
-	close_button.text = "TUTUP"
-	close_button.pressed.connect(_toggle_chat_panel)
-	header.add_child(close_button)
-
-	var identity_note := Label.new()
-	identity_note.text = "Nama pengirim sementara memakai ID koneksi, bukan identitas akun."
-	identity_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	identity_note.add_theme_font_size_override("font_size", 11)
-	column.add_child(identity_note)
-
-	_chat_scroll = ScrollContainer.new()
-	_chat_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_chat_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_chat_scroll.custom_minimum_size = Vector2(0, 150)
-	column.add_child(_chat_scroll)
-
-	_chat_log = VBoxContainer.new()
-	_chat_log.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_chat_log.add_theme_constant_override("separation", 4)
-	_chat_scroll.add_child(_chat_log)
-	_chat_empty_label = Label.new()
-	_chat_empty_label.text = "Belum ada pesan di room ini."
-	_chat_empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_chat_log.add_child(_chat_empty_label)
-
-	_chat_error_label = Label.new()
-	_chat_error_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_chat_error_label.add_theme_color_override("font_color", Color(1.0, 0.72, 0.58))
-	_chat_error_label.add_theme_font_size_override("font_size", 12)
+	_chat_error_label = Label3D.new()
+	_chat_error_label.font_size = 15
+	_chat_error_label.pixel_size = 0.0035
+	_chat_error_label.position = Vector3(0, 0.53, -0.1)
+	_chat_error_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_chat_error_label.modulate = Color("#ffb9a8")
 	_chat_error_label.visible = false
-	column.add_child(_chat_error_label)
+	_chat_panel.add_child(_chat_error_label)
 
-	var composer := HBoxContainer.new()
-	column.add_child(composer)
+	_chat_draft_label = Label3D.new()
+	_chat_draft_label.text = "PESAN: "
+	_chat_draft_label.font_size = 17
+	_chat_draft_label.pixel_size = 0.0035
+	_chat_draft_label.position = Vector3(-2.45, 0.18, -0.1)
+	_chat_draft_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_chat_draft_label.modulate = Color("#f3d99a")
+	_chat_panel.add_child(_chat_draft_label)
 
-	_chat_input = LineEdit.new()
-	_chat_input.placeholder_text = "Tulis pesan..."
-	_chat_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_chat_input.max_length = max_message_characters
-	_chat_input.text_submitted.connect(_on_chat_text_submitted)
-	composer.add_child(_chat_input)
+	var row_one := "QWERTYUIOP"
+	var row_two := "ASDFGHJKL"
+	var row_three := "ZXCVBNM"
+	_create_chat_key_row(row_one, -2.05, 0.43)
+	_create_chat_key_row(row_two, -1.82, -0.12)
+	_create_chat_key_row(row_three, -1.58, -0.67)
+	_create_chat_button(_chat_panel, "SPASI", Vector3(-0.95, -1.28, -0.18), "space", Vector3(1.65, 0.42, 0.14), Color("#315b70"))
+	_create_chat_button(_chat_panel, "HAPUS", Vector3(0.55, -1.28, -0.18), "delete", Vector3(1.05, 0.42, 0.14), Color("#65568d"))
+	_create_chat_button(_chat_panel, "KIRIM", Vector3(1.95, -1.28, -0.18), "send", Vector3(1.05, 0.42, 0.14), Color("#a77a36"))
+	_create_chat_button(_chat_panel, "TUTUP", Vector3(0, -1.92, -0.18), "close", Vector3(1.55, 0.42, 0.14), Color("#52677a"))
+	_update_chat_messages()
 
-	var send_button := Button.new()
-	send_button.text = "KIRIM"
-	send_button.pressed.connect(_send_chat_input)
-	composer.add_child(send_button)
+
+func _create_chat_key_row(characters: String, y_position: float, key_width: float) -> void:
+	var count := characters.length()
+	var spacing := 0.46
+	var start_x := -float(count - 1) * spacing * 0.5
+	for i in range(count):
+		var character := characters.substr(i, 1)
+		_create_chat_button(_chat_panel, character, Vector3(start_x + float(i) * spacing, y_position, -0.18), "char:" + character, Vector3(0.4, 0.4, 0.14), Color("#315b70"))
+
+
+func _create_chat_button(parent: Node3D, label_text: String, local_position: Vector3, action_id: String, dimensions: Vector3, color: Color) -> Area3D:
+	var area := Area3D.new()
+	area.name = "ChatKey_" + action_id.replace(":", "_")
+	area.position = local_position
+	area.input_ray_pickable = true
+	area.collision_layer = 64
+	area.collision_mask = 0
+	area.set_meta("chat_action", action_id)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = dimensions
+	collision.shape = shape
+	area.add_child(collision)
+	var mesh := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = dimensions * Vector3(0.96, 0.92, 0.72)
+	mesh.mesh = box
+	mesh.material_override = _chat_material(color)
+	area.add_child(mesh)
+	var label := Label3D.new()
+	label.text = label_text
+	label.font_size = 17 if label_text.length() <= 2 else 14
+	label.pixel_size = 0.0034
+	label.position.z = -dimensions.z * 0.42
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.modulate = Color("#ffffff")
+	area.add_child(label)
+	parent.add_child(area)
+	return area
+
+
+func _chat_material(color: Color) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = 0.34
+	material.metallic = 0.18
+	material.emission_enabled = true
+	material.emission = color.darkened(0.3)
+	material.emission_energy_multiplier = 0.16
+	return material
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not is_instance_valid(_chat_root) or not _chat_root.visible:
+		return
+	var pressed := false
+	var screen_position := Vector2.ZERO
+	if event is InputEventScreenTouch and event.pressed:
+		pressed = true
+		screen_position = event.position
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		pressed = true
+		screen_position = event.position
+	if not pressed or _chat_camera == null:
+		return
+	var origin := _chat_camera.project_ray_origin(screen_position)
+	var direction := _chat_camera.project_ray_normal(screen_position)
+	var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * 12.0)
+	query.collide_with_areas = true
+	query.collision_mask = 64
+	var hit := _chat_camera.get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return
+	var collider: Object = hit.get("collider")
+	if collider is Area3D and collider.has_meta("chat_action"):
+		_handle_chat_key(str(collider.get_meta("chat_action")))
+		get_viewport().set_input_as_handled()
+
+
+func _handle_chat_key(action_id: String) -> void:
+	match action_id:
+		"toggle":
+			_toggle_chat_panel()
+		"close":
+			_chat_panel.visible = false
+		"space":
+			if _chat_draft.length() < max_message_characters:
+				_chat_draft += " "
+		"delete":
+			_chat_draft = _chat_draft.left(maxi(0, _chat_draft.length() - 1))
+		"send":
+			_send_chat_input()
+		_:
+			if action_id.begins_with("char:") and _chat_draft.length() < max_message_characters:
+				_chat_draft += action_id.trim_prefix("char:")
+	_update_chat_draft()
 
 
 func _toggle_chat_panel() -> void:
+	if not is_instance_valid(_chat_panel):
+		return
 	_chat_panel.visible = not _chat_panel.visible
-	if _chat_panel.visible:
-		_scroll_chat_to_bottom()
+	_update_chat_messages()
 
 
 func _send_chat_input() -> void:
-	if not is_instance_valid(_chat_input):
+	if _chat_draft.strip_edges().is_empty():
 		return
-	var message_text := _chat_input.text
-	if message_text.strip_edges().is_empty():
+	if send_message(_chat_draft):
+		_chat_draft = ""
+		_update_chat_draft()
+
+
+func _update_chat_draft() -> void:
+	if is_instance_valid(_chat_draft_label):
+		_chat_draft_label.text = "PESAN: " + _chat_draft
+
+
+func _update_chat_messages() -> void:
+	if not is_instance_valid(_chat_messages):
 		return
-	if send_message(message_text):
-		_chat_input.clear()
+	var lines: Array[String] = []
+	var start_index := maxi(0, _history.size() - 6)
+	for i in range(start_index, _history.size()):
+		var message: Dictionary = _history[i]
+		lines.append("%s: %s" % [str(message.get("sender_label", "Anggota")), str(message.get("text", ""))])
+	if lines.is_empty():
+		lines.append("Belum ada pesan di room ini.")
+	_chat_messages.text = "\\n".join(lines)
 
 
-func _on_chat_text_submitted(_submitted_text: String) -> void:
-	_send_chat_input()
-
-
-func _on_message_received(message: Dictionary) -> void:
-	if is_instance_valid(_chat_error_label):
-		_chat_error_label.visible = false
-	_append_message_to_hud(message)
-
-
-func _on_chat_error(message: String) -> void:
-	if not is_instance_valid(_chat_error_label):
-		return
-	_chat_error_label.text = message
-	_chat_error_label.visible = true
-
-
-func _append_message_to_hud(message: Dictionary) -> void:
-	if not is_instance_valid(_chat_log):
-		return
-	if is_instance_valid(_chat_empty_label):
-		_chat_empty_label.visible = false
-	var line := Label.new()
-	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	line.text = "%s: %s" % [
-		str(message.get("sender_label", "Anggota")),
-		str(message.get("text", ""))
-	]
-	_chat_log.add_child(line)
-	while _chat_log.get_child_count() > history_limit:
-		var oldest := _chat_log.get_child(0)
-		_chat_log.remove_child(oldest)
-		oldest.queue_free()
-	call_deferred("_scroll_chat_to_bottom")
+func _append_message_to_hud(_message: Dictionary) -> void:
+	_update_chat_messages()
 
 
 func _scroll_chat_to_bottom() -> void:
-	if is_instance_valid(_chat_scroll):
-		var scrollbar := _chat_scroll.get_v_scroll_bar()
-		_chat_scroll.scroll_vertical = int(scrollbar.max_value)
+	_update_chat_messages()
