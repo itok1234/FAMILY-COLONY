@@ -77,3 +77,10 @@ Do not label the product fully 3D until:
 - Commit `1cf54ea2ae520e7cba96cbfc0f3c305db3c5da8e`: Godot 4.4.1 editor import/parse and headless world startup smoke test passed in GitHub Actions run `45516983108`.
 - Android debug APK build, signed release APK build and embedded Android emulator smoke test were still running when this record was updated; no APK from these latest changes is declared ready here.
 - No physical Redmi Note 8 Pro test has been performed for the new 3D touch controls, interaction panel or Honey Hunt spatial HUD.
+
+## Native 3D feature routing and Honey Hunt launch (2026-11-25)
+- Hub kiosks now open spatial 3D feature panels rather than only changing a hint label.
+- The 3D Game Center lists all five planned mini-games. Honey Hunt is connected to the existing 3D arena and starts from the 3D hub selection. Guess Who, Royal Bomb, Royal Murder Mystery and Royal Dice are visible in the menu but their gameplay has not yet been ported to Godot.
+- The 3D world kiosk now presents a dedicated 3D entry action before returning control to the playable world.
+- Profile, Chat and Settings panels currently communicate migration status; their data-backed feature screens are not complete.
+- Commit `ba5372779bcdd32a6a950e15899c3a476735587f` passed the Godot 4.4.1 parse/startup validation workflow. The follow-up wiring commits are pending their own workflow results.
