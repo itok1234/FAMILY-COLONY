@@ -323,3 +323,442 @@ func _material(color: Color, roughness: float = 0.75, metallic: float = 0.0) -> 
 	material.roughness = roughness
 	material.metallic = metallic
 	return material
+
+
+# ---------------------------------------------------------------------------
+# ROYAL GAME CENTER — 4 additional native 3D mini-games.
+# All menus, controls and feedback are spatial 3D objects (no CanvasLayer).
+# ---------------------------------------------------------------------------
+var _royal_game_id := ""
+var _royal_game_state: Dictionary = {}
+var _royal_game_hud: Node3D
+var _royal_game_panel: Node3D
+var _royal_game_status: Label3D
+var _royal_game_clock := 0.0
+var _royal_game_active := false
+var _royal_game_return_position := Vector3.ZERO
+var _royal_game_rng := RandomNumberGenerator.new()
+
+const ROYAL_GAME_ORIGIN := Vector3(0, 0, 205)
+const GUESS_WHO_ROSTER := [
+	{"name":"Luna Bee","category":"Member Fiktif","clues":["Selalu hadir membawa semangat positif.","Suka mengoleksi avatar bertema bunga.","Warna favoritnya ungu."],"options":["Luna Bee","Raja Madu","Bintang Hive","Milo Honey"]},
+	{"name":"Raja Madu","category":"Member Fiktif","clues":["Sering mengingatkan anggota untuk kompak.","Identik dengan simbol mahkota.","Julukannya terinspirasi dari hasil kerja lebah."],"options":["Luna Bee","Raja Madu","Bintang Hive","Milo Honey"]},
+	{"name":"Bintang Hive","category":"Member Fiktif","clues":["Suka membuat suasana room menjadi ramai.","Nama panggilannya berkaitan dengan cahaya malam.","Sering memakai emoji bintang."],"options":["Luna Bee","Raja Madu","Bintang Hive","Milo Honey"]},
+	{"name":"Milo Honey","category":"Member Fiktif","clues":["Nama panggilannya terdengar manis.","Suka membantu anggota baru mengenal koloni.","Identik dengan warna keemasan."],"options":["Luna Bee","Raja Madu","Bintang Hive","Milo Honey"]},
+	{"name":"Awan Ceria","category":"Member Fiktif","clues":["Suka suasana tenang dan santai.","Nama panggilannya terinspirasi dari langit.","Sering mengirim emoji awan."],"options":["Awan Ceria","Raja Madu","Bintang Hive","Milo Honey"]}
+]
+const MURDER_CASES := [
+	{"title":"MISTERI MENARA MADU","clue":"Penjaga melihat sosok membawa kunci istana. Jejak lilin ditemukan di dekat ruang harta.","answer":"The Alchemist","options":["The Alchemist","The Shadow","The Royal Guard"]},
+	{"title":"RAHASIA TAMAN KACA","clue":"Korban terakhir terlihat menerima pesan rahasia. Saksi mendengar langkah cepat menuju lorong utara.","answer":"The Shadow","options":["The Royal Guard","The Shadow","The Alchemist"]},
+	{"title":"MALAM DI AULA KERAJAAN","clue":"Pintu aula terkunci dari dalam. Hanya pemegang lencana kerajaan yang dapat membuka segelnya.","answer":"The Royal Guard","options":["The Shadow","The Alchemist","The Royal Guard"]}
+]
+
+
+func start_royal_game(game_id: String, actor: Node) -> String:
+	if not actor is CharacterBody3D:
+		return "Karakter tidak dapat mengikuti permainan."
+	if not ["guess_who", "royal_bomb", "royal_murder_mystery", "royal_dice"].has(game_id):
+		return "Mini-game tidak dikenal."
+	if _active or _royal_game_active:
+		return "Selesaikan permainan yang sedang aktif terlebih dahulu."
+	_player = actor as CharacterBody3D
+	_royal_game_id = game_id
+	_royal_game_return_position = _player.global_position
+	_player.velocity = Vector3.ZERO
+	_player.set_physics_process(false)
+	_player.global_position = ROYAL_GAME_ORIGIN + Vector3(0, 1.1, 4)
+	_royal_game_rng.randomize()
+	_royal_game_active = true
+	_royal_game_clock = 0.0
+	_build_royal_game_arena()
+	_attach_royal_game_hud()
+	match game_id:
+		"guess_who":
+			_start_guess_who()
+		"royal_bomb":
+			_start_royal_bomb()
+		"royal_murder_mystery":
+			_start_murder_mystery()
+		"royal_dice":
+			_start_royal_dice()
+	return "Mini-game " + game_id.to_upper().replace("_", " ") + " dimulai dalam arena 3D."
+
+
+func _build_royal_game_arena() -> void:
+	var arena := Node3D.new()
+	arena.name = "RoyalGameArena_" + _royal_game_id
+	arena.position = ROYAL_GAME_ORIGIN
+	add_child(arena)
+	var floor := MeshInstance3D.new()
+	var floor_mesh := CylinderMesh.new()
+	floor_mesh.top_radius = 15.0
+	floor_mesh.bottom_radius = 15.0
+	floor_mesh.height = 0.5
+	floor_mesh.radial_segments = 48
+	floor.mesh = floor_mesh
+	floor.position.y = -0.6
+	floor.material_override = _material(Color("#263c4b"), 0.78, 0.18)
+	arena.add_child(floor)
+	var floor_body := StaticBody3D.new()
+	var floor_hit := CollisionShape3D.new()
+	var floor_shape := CylinderShape3D.new()
+	floor_shape.radius = 15.0
+	floor_shape.height = 0.5
+	floor_hit.shape = floor_shape
+	floor_hit.position.y = -0.6
+	floor_body.add_child(floor_hit)
+	arena.add_child(floor_body)
+	for i in range(12):
+		var angle := TAU * float(i) / 12.0
+		var pillar := MeshInstance3D.new()
+		var pillar_mesh := CylinderMesh.new()
+		pillar_mesh.top_radius = 0.35
+		pillar_mesh.bottom_radius = 0.65
+		pillar_mesh.height = 4.0
+		pillar_mesh.radial_segments = 8
+		pillar.mesh = pillar_mesh
+		pillar.position = Vector3(cos(angle) * 13.0, 1.4, sin(angle) * 13.0)
+		pillar.material_override = _material(Color("#8b7048"), 0.38, 0.32)
+		arena.add_child(pillar)
+	var centerpiece := MeshInstance3D.new()
+	var center_mesh := TorusMesh.new()
+	center_mesh.inner_radius = 3.4
+	center_mesh.outer_radius = 3.7
+	centerpiece.mesh = center_mesh
+	centerpiece.position.y = 0.1
+	centerpiece.rotation_degrees.x = 90
+	centerpiece.material_override = _material(Color("#e5bd70"), 0.24, 0.42)
+	arena.add_child(centerpiece)
+	var light := OmniLight3D.new()
+	light.position = Vector3(0, 8, 0)
+	light.light_color = Color("#f2cf85")
+	light.light_energy = 1.5
+	light.omni_range = 28.0
+	arena.add_child(light)
+
+
+func _attach_royal_game_hud() -> void:
+	var camera := _player.get_node_or_null("CameraPivot/Camera3D") as Camera3D
+	if camera == null:
+		return
+	_royal_game_hud = Node3D.new()
+	_royal_game_hud.name = "RoyalGameSpatialHUD"
+	camera.add_child(_royal_game_hud)
+	_royal_game_hud.position = Vector3(0, 0, -4.2)
+
+
+func _clear_royal_game_panel() -> void:
+	if is_instance_valid(_royal_game_panel):
+		_royal_game_panel.queue_free()
+	_royal_game_panel = Node3D.new()
+	_royal_game_panel.name = "RoyalGamePanel3D"
+	_royal_game_hud.add_child(_royal_game_panel)
+	var backing := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(6.4, 5.3, 0.18)
+	backing.mesh = box
+	backing.material_override = _material(Color("#10243a"), 0.25, 0.34)
+	_royal_game_panel.add_child(backing)
+	var title := Label3D.new()
+	title.text = _royal_game_title()
+	title.font_size = 38
+	title.pixel_size = 0.0034
+	title.position = Vector3(0, 2.18, -0.12)
+	title.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	title.modulate = Color("#f3d99a")
+	_royal_game_panel.add_child(title)
+	_royal_game_status = Label3D.new()
+	_royal_game_status.font_size = 19
+	_royal_game_status.pixel_size = 0.0032
+	_royal_game_status.position = Vector3(0, 1.45, -0.12)
+	_royal_game_status.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_royal_game_status.modulate = Color("#e5edf4")
+	_royal_game_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_royal_game_panel.add_child(_royal_game_status)
+	_add_royal_button("KELUAR", Vector3(0, -2.28, -0.24), "exit", Vector3(2.0, 0.48, 0.16), Color("#7d493d"))
+
+
+func _royal_game_title() -> String:
+	match _royal_game_id:
+		"guess_who": return "GUESS WHO? • MYSTERY MEMBER"
+		"royal_bomb": return "ROYAL BOMB • HONEY BLAST"
+		"royal_murder_mystery": return "ROYAL MURDER MYSTERY"
+		"royal_dice": return "ROYAL DICE • KINGDOM OF FORTUNE"
+	return "ROYAL GAME"
+
+
+func _add_royal_button(label_text: String, pos: Vector3, action: String, size: Vector3 = Vector3(2.4, 0.52, 0.16), tint: Color = Color("#315b70")) -> void:
+	var area := Area3D.new()
+	area.name = "RoyalAction_" + str(_royal_game_panel.get_child_count())
+	area.position = pos
+	area.input_ray_pickable = true
+	area.collision_layer = 64
+	area.collision_mask = 0
+	area.set_meta("royal_action", action)
+	var hit := CollisionShape3D.new()
+	var hit_shape := BoxShape3D.new()
+	hit_shape.size = Vector3(size.x, size.y, 0.42)
+	hit.shape = hit_shape
+	area.add_child(hit)
+	var mesh := MeshInstance3D.new()
+	var visual := BoxMesh.new()
+	visual.size = size
+	mesh.mesh = visual
+	mesh.material_override = _material(tint, 0.28, 0.2)
+	area.add_child(mesh)
+	var label := Label3D.new()
+	label.text = label_text
+	label.font_size = 19 if label_text.length() < 18 else 15
+	label.pixel_size = 0.003
+	label.position.z = -0.12
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.modulate = Color.WHITE
+	area.add_child(label)
+	_royal_game_panel.add_child(area)
+
+
+func _unhandled_royal_game_input(event: InputEvent) -> void:
+	if not _royal_game_active or not is_instance_valid(_royal_game_hud):
+		return
+	var pressed := event is InputEventScreenTouch and event.pressed
+	pressed = pressed or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
+	if not pressed:
+		return
+	var camera := _player.get_node_or_null("CameraPivot/Camera3D") as Camera3D
+	if camera == null:
+		return
+	var origin := camera.project_ray_origin(event.position)
+	var direction := camera.project_ray_normal(event.position)
+	var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * 12.0)
+	query.collide_with_areas = true
+	query.collision_mask = 64
+	var hit := camera.get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return
+	var collider: Object = hit.get("collider")
+	if collider is Area3D and collider.has_meta("royal_action"):
+		_handle_royal_action(str(collider.get_meta("royal_action")))
+		get_viewport().set_input_as_handled()
+
+
+func _handle_royal_action(action: String) -> void:
+	if action == "exit":
+		exit_royal_game()
+		return
+	match _royal_game_id:
+		"guess_who": _guess_who_action(action)
+		"royal_bomb": _royal_bomb_action(action)
+		"royal_murder_mystery": _murder_action(action)
+		"royal_dice": _dice_action(action)
+
+
+func _start_guess_who() -> void:
+	var pool := GUESS_WHO_ROSTER.duplicate(true)
+	pool.shuffle()
+	_royal_game_state = {"pool":pool,"index":0,"score":0,"correct":0,"wrong":0,"hints":0,"clue":2,"seconds":25,"finished":false}
+	_show_guess_who_question()
+
+
+func _show_guess_who_question() -> void:
+	_clear_royal_game_panel()
+	var q: Dictionary = _royal_game_state.pool[_royal_game_state.index]
+	_royal_game_state.seconds = 25
+	_royal_game_state.clue = 2
+	_royal_game_status.text = "SOAL %d/%d   •   SKOR %d   •   25 DETIK\nKategori: %s\nPetunjuk 1: %s\nPetunjuk 2: %s" % [_royal_game_state.index + 1, _royal_game_state.pool.size(), _royal_game_state.score, q.category, q.clues[0], q.clues[1]]
+	var opts: Array = q.options.duplicate()
+	opts.shuffle()
+	for i in range(opts.size()):
+		_add_royal_button(str(opts[i]), Vector3(-1.55 + float(i % 2) * 3.1, 0.15 - float(i / 2) * 0.72, -0.24), "guess:" + str(opts[i]), Vector3(2.7, 0.48, 0.16))
+	_add_royal_button("BUKA PETUNJUK (-5)", Vector3(0, -1.45, -0.24), "hint", Vector3(2.7, 0.46, 0.16), Color("#8a6334"))
+	_add_royal_button("LEWATI SOAL", Vector3(0, -1.92, -0.24), "skip", Vector3(2.3, 0.42, 0.16))
+
+
+func _guess_who_action(action: String) -> void:
+	if action == "hint":
+		var q: Dictionary = _royal_game_state.pool[_royal_game_state.index]
+		var clue_index: int = int(_royal_game_state.clue)
+		if clue_index < q.clues.size():
+			_royal_game_state.clue = clue_index + 1
+			_royal_game_state.hints += 1
+			_royal_game_state.score = maxi(0, int(_royal_game_state.score) - 5)
+			_royal_game_status.text += "\nPetunjuk %d: %s" % [clue_index + 1, q.clues[clue_index]]
+		return
+	if action == "skip":
+		_royal_game_state.wrong += 1
+		_guess_who_next()
+		return
+	if action.begins_with("guess:"):
+		var q: Dictionary = _royal_game_state.pool[_royal_game_state.index]
+		if action.trim_prefix("guess:") == str(q.name):
+			_royal_game_state.correct += 1
+			_royal_game_state.score += maxi(5, 10 + int(_royal_game_state.seconds) / 3 - int(_royal_game_state.hints) * 2)
+			_royal_game_status.text += "\n✓ JAWABAN TEPAT: " + str(q.name)
+		else:
+			_royal_game_state.wrong += 1
+			_royal_game_status.text += "\n✕ Jawaban benar: " + str(q.name)
+		_guess_who_next()
+
+
+func _guess_who_next() -> void:
+	_royal_game_state.index += 1
+	if _royal_game_state.index >= _royal_game_state.pool.size():
+		_finish_royal_game("GUESS WHO SELESAI\nSkor: %d\nBenar: %d   Salah: %d\nPetunjuk dipakai: %d" % [_royal_game_state.score, _royal_game_state.correct, _royal_game_state.wrong, _royal_game_state.hints])
+	else:
+		_show_guess_who_question()
+
+
+func _start_royal_bomb() -> void:
+	_royal_game_state = {"round":1,"score":0,"defuse":2,"bombs":3,"alive":true,"draws":0,"deck":_royal_game_rng.randi_range(1, 100)}
+	_show_royal_bomb()
+
+
+func _show_royal_bomb() -> void:
+	_clear_royal_game_panel()
+	_royal_game_status.text = "BERTAHAN DARI ROYAL BOMB!\nGiliran: %d/12   •   Skor: %d\nHoney Defuse: %d   •   Bom tersisa: %d\nAmbil kartu, gunakan Defuse, atau lewati giliran." % [_royal_game_state.round, _royal_game_state.score, _royal_game_state.defuse, _royal_game_state.bombs]
+	_add_royal_button("AMBIL KARTU", Vector3(-1.55, 0.05, -0.24), "draw", Vector3(2.5, 0.62, 0.16), Color("#a77a36"))
+	_add_royal_button("PAKAI HONEY DEFUSE", Vector3(1.55, 0.05, -0.24), "defuse", Vector3(2.5, 0.62, 0.16))
+	_add_royal_button("SKIP GILIRAN", Vector3(0, -0.82, -0.24), "skip", Vector3(2.5, 0.56, 0.16))
+
+
+func _royal_bomb_action(action: String) -> void:
+	if action == "defuse":
+		if int(_royal_game_state.defuse) > 0:
+			_royal_game_state.defuse -= 1
+			_royal_game_state.score += 2
+			_royal_game_status.text = "HONEY DEFUSE disiapkan. Satu pelindung digunakan."
+		else:
+			_royal_game_status.text = "Tidak ada Honey Defuse tersisa."
+		return
+	if action == "skip":
+		_royal_game_state.round += 1
+	elif action == "draw":
+		_royal_game_state.draws += 1
+		var card_roll := _royal_game_rng.randi_range(1, 100)
+		if card_roll <= 24:
+			if int(_royal_game_state.defuse) > 0:
+				_royal_game_state.defuse -= 1
+				_royal_game_state.score += 3
+				_royal_game_status.text = "💣 ROYAL BOMB! Honey Defuse otomatis menyelamatkanmu."
+			else:
+				_royal_game_state.alive = false
+				_finish_royal_game("TERELIMINASI OLEH ROYAL BOMB\nSkor akhir: %d" % _royal_game_state.score)
+				return
+		else:
+			_royal_game_state.score += 1
+			_royal_game_status.text = "🍯 HONEY DROP! Kamu mendapat 1 poin."
+		# Simulated bot table resolves its turn after each player draw.
+		if _royal_game_rng.randf() > 0.38:
+			_royal_game_state.score += 1
+			_royal_game_status.text += "\nBot lawan terkena kartu aman. +1 bonus bertahan."
+		else:
+			_royal_game_status.text += "\nSatu bot lawan tereliminasi!"
+			_royal_game_state.bombs = maxi(0, int(_royal_game_state.bombs) - 1)
+		_royal_game_state.round += 1
+	if int(_royal_game_state.round) > 12 or int(_royal_game_state.bombs) <= 0:
+		_finish_royal_game("ROYAL BOMB BERAKHIR\nSkor bertahan: %d\nKartu diambil: %d" % [_royal_game_state.score, _royal_game_state.draws])
+	else:
+		_show_royal_bomb()
+
+
+func _start_murder_mystery() -> void:
+	var cases := MURDER_CASES.duplicate(true)
+	cases.shuffle()
+	_royal_game_state = {"cases":cases,"index":0,"score":0,"correct":0,"wrong":0}
+	_show_murder_case()
+
+
+func _show_murder_case() -> void:
+	_clear_royal_game_panel()
+	var c: Dictionary = _royal_game_state.cases[_royal_game_state.index]
+	_royal_game_status.text = "KASUS %d/3  •  DETEKTIF KERAJAAN\n%s\n\nBUKTI: %s\n\nPilih tersangka yang paling mungkin." % [_royal_game_state.index + 1, c.title, c.clue]
+	var opts: Array = c.options.duplicate()
+	opts.shuffle()
+	for i in range(opts.size()):
+		_add_royal_button(str(opts[i]), Vector3(0, 0.12 - float(i) * 0.68, -0.24), "suspect:" + str(opts[i]), Vector3(3.5, 0.5, 0.16))
+
+
+func _murder_action(action: String) -> void:
+	if not action.begins_with("suspect:"):
+		return
+	var c: Dictionary = _royal_game_state.cases[_royal_game_state.index]
+	if action.trim_prefix("suspect:") == str(c.answer):
+		_royal_game_state.correct += 1
+		_royal_game_state.score += 100
+		_royal_game_status.text += "\n✓ KASUS TERPECAHKAN! +100"
+	else:
+		_royal_game_state.wrong += 1
+		_royal_game_status.text += "\n✕ BUKTI TIDAK COCOK. Pelaku: " + str(c.answer)
+	_royal_game_state.index += 1
+	if _royal_game_state.index >= _royal_game_state.cases.size():
+		_finish_royal_game("HASIL PENYELIDIKAN\nSkor: %d\nKasus terpecahkan: %d/3\nKesalahan: %d" % [_royal_game_state.score, _royal_game_state.correct, _royal_game_state.wrong])
+	else:
+		_show_murder_case()
+
+
+func _start_royal_dice() -> void:
+	_royal_game_state = {"round":1,"rounds":5,"score":0,"bot_score":0,"last_roll":0,"card":"ROYAL BOOST"}
+	_show_royal_dice()
+
+
+func _show_royal_dice() -> void:
+	_clear_royal_game_panel()
+	_royal_game_status.text = "RONDE %d/5\nKamu: %d poin   •   Royal Bot: %d poin\nKartu aktif: %s\nLempar dadu untuk menentukan hasil ronde." % [_royal_game_state.round, _royal_game_state.score, _royal_game_state.bot_score, _royal_game_state.card]
+	_add_royal_button("LEMPAR DADU", Vector3(0, 0.1, -0.24), "roll", Vector3(3.0, 0.72, 0.16), Color("#a77a36"))
+	var cards := ["ROYAL BOOST","HONEY SHIELD","SHADOW TRAP","LUCKY CROWN"]
+	for i in range(cards.size()):
+		_add_royal_button(cards[i], Vector3(-2.25 + float(i) * 1.5, -0.95, -0.24), "card:" + cards[i], Vector3(1.35, 0.46, 0.16))
+
+
+func _dice_action(action: String) -> void:
+	if action.begins_with("card:"):
+		_royal_game_state.card = action.trim_prefix("card:")
+		_royal_game_status.text = "Kartu dipilih: " + str(_royal_game_state.card) + "\nLempar dadu untuk memakai efek kartu."
+		return
+	if action != "roll":
+		return
+	var roll := _royal_game_rng.randi_range(1, 6)
+	var bot_roll := _royal_game_rng.randi_range(1, 6)
+	var card := str(_royal_game_state.card)
+	var bonus := 0
+	if card == "ROYAL BOOST": bonus = 2
+	elif card == "HONEY SHIELD": bonus = 1
+	elif card == "SHADOW TRAP": bot_roll = maxi(1, bot_roll - 2)
+	elif card == "LUCKY CROWN": roll = mini(6, roll + 1)
+	var total := roll + bonus
+	if total > bot_roll:
+		_royal_game_state.score += 2
+	elif total == bot_roll:
+		_royal_game_state.score += 1
+	else:
+		_royal_game_state.bot_score += 2
+	_royal_game_status.text = "🎲 DADU KAMU: %d (+%d)  •  BOT: %d\nKartu: %s\nSkor: %d — %d" % [roll, bonus, bot_roll, card, _royal_game_state.score, _royal_game_state.bot_score]
+	_royal_game_state.round += 1
+	_royal_game_state.card = "ROYAL BOOST"
+	if int(_royal_game_state.round) > 5:
+		var outcome := "KAMU MENANG!" if int(_royal_game_state.score) > int(_royal_game_state.bot_score) else ("SERI!" if int(_royal_game_state.score) == int(_royal_game_state.bot_score) else "ROYAL BOT MENANG!")
+		_finish_royal_game("ROYAL DICE SELESAI\n%s\nSkor akhir: %d — %d" % [outcome, _royal_game_state.score, _royal_game_state.bot_score])
+	else:
+		_show_royal_dice()
+
+
+func _finish_royal_game(summary: String) -> void:
+	_clear_royal_game_panel()
+	_royal_game_status.text = summary + "\n\nTekan KELUAR untuk kembali ke Game Center."
+	_royal_game_active = false
+
+
+func exit_royal_game() -> void:
+	if is_instance_valid(_player):
+		_player.velocity = Vector3.ZERO
+		_player.global_position = _royal_game_return_position
+		_player.set_physics_process(true)
+	if is_instance_valid(_royal_game_hud):
+		_royal_game_hud.queue_free()
+	_royal_game_hud = null
+	var arena := get_node_or_null("RoyalGameArena_" + _royal_game_id)
+	if arena != null:
+		arena.queue_free()
+	_royal_game_active = false
+	_royal_game_id = ""
+	_royal_game_state.clear()
+	_player = null
