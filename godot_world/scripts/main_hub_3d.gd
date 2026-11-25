@@ -746,6 +746,8 @@ func _create_developer_center_button(label_text: String, local_position: Vector3
 func set_developer_status(message: String) -> void:
 	if is_instance_valid(_developer_pin_status):
 		_developer_pin_status.text = message
+	if is_instance_valid(_hint):
+		_hint.text = message
 
 
 func _destination_title(destination_id: String) -> String:
