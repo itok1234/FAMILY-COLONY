@@ -392,6 +392,18 @@ func _build_lamps() -> void:
 		bulb.radius = 0.17
 		bulb.height = 0.34
 		_mesh_node(lamps_root, bulb, warm, Vector3(x, 3.55, z), "LampBulb")
+		var lantern_cap := CylinderMesh.new()
+		lantern_cap.top_radius = 0.18
+		lantern_cap.bottom_radius = 0.23
+		lantern_cap.height = 0.10
+		lantern_cap.radial_segments = 12
+		_mesh_node(lamps_root, lantern_cap, metal, Vector3(x, 3.78, z), "LampLanternCap")
+		var lantern_collar := CylinderMesh.new()
+		lantern_collar.top_radius = 0.12
+		lantern_collar.bottom_radius = 0.14
+		lantern_collar.height = 0.08
+		lantern_collar.radial_segments = 12
+		_mesh_node(lamps_root, lantern_collar, metal, Vector3(x, 3.34, z), "LampLanternCollar")
 		# Local warm pool of light; shadows are disabled to keep Android rendering inexpensive.
 		var lamp_light := OmniLight3D.new()
 		lamp_light.name = "StreetLampLight"
