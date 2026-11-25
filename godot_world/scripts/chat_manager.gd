@@ -308,10 +308,11 @@ func _build_chat_hud() -> void:
 	_update_chat_messages()
 
 
-func _create_chat_key_row(characters: String, y_position: float, key_width: float) -> void:
+func _create_chat_key_row(characters: String, y_position: float, row_offset: float) -> void:
 	var count := characters.length()
 	var spacing := 0.46
-	var start_x := -float(count - 1) * spacing * 0.5
+	# Center each keyboard row, then apply a subtle stagger for ergonomics.
+	var start_x := -float(count - 1) * spacing * 0.5 + row_offset
 	for i in range(count):
 		var character := characters.substr(i, 1)
 		_create_chat_button(_chat_panel, character, Vector3(start_x + float(i) * spacing, y_position, -0.18), "char:" + character, Vector3(0.4, 0.4, 0.14), Color("#315b70"))
