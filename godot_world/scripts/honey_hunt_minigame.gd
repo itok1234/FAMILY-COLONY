@@ -979,7 +979,11 @@ func _dice_action(action: String) -> void:
 	if int(_royal_game_state.round) > 5:
 		return
 	if action.begins_with("card:"):
-		_royal_game_state.card = action.trim_prefix("card:")
+		var selected_card := action.trim_prefix("card:")
+		var allowed_cards := ["ROYAL BOOST", "HONEY SHIELD", "SHADOW TRAP", "LUCKY CROWN"]
+		if not allowed_cards.has(selected_card):
+			return
+		_royal_game_state.card = selected_card
 		_royal_game_status.text = "Kartu dipilih: " + str(_royal_game_state.card) + "\nLempar dadu untuk memakai efek kartu."
 		return
 	if action != "roll":
