@@ -62,6 +62,12 @@ func get_room_snapshot() -> Array:
 func _on_connection_state_changed(state: String, _detail: String) -> void:
 	if state == "connected":
 		_rpc_request_room_snapshot.rpc_id(1)
+	elif state == "offline" or state == "error":
+		# Do not leave stale room cards or membership visible after disconnect.
+		_rooms.clear()
+		_peer_room.clear()
+		room_list_changed.emit([])
+		local_room_changed.emit("", [])
 
 
 func _on_peer_roster_changed(peer_ids: Array[int]) -> void:
