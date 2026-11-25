@@ -167,6 +167,7 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 	if _main_hub != null:
 		_main_hub.name = "MainHub3D"
 		_main_hub.destination_requested.connect(_on_hub_destination_requested)
+		_main_hub.minigame_requested.connect(_on_hub_minigame_requested)
 		add_child(_main_hub)
 	if is_instance_valid(_gate_layer):
 		_gate_layer.queue_free()
@@ -187,6 +188,18 @@ func _on_hub_destination_requested(destination_id: String) -> void:
 	if player_camera != null:
 		player_camera.current = true
 	_build_world_exit_button()
+
+
+func _on_hub_minigame_requested(game_id: String) -> void:
+	if game_id != "honey_hunt":
+		return
+	var manager := get_node_or_null("MiniGameManager")
+	if manager == null or not manager.has_method("start_honey_hunt"):
+		push_warning("FAMILY COLONY: Honey Hunt manager is not available.")
+		return
+	var result := str(manager.call("start_honey_hunt", player))
+	if not result.begins_with("Mini-game HONEY HUNT dimulai"):
+		push_warning("FAMILY COLONY: " + result)
 
 
 func _on_session_rejected(error_code: String) -> void:
