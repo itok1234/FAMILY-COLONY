@@ -208,15 +208,34 @@ func _rpc_submit_message(raw_text: String) -> void:
 	_accept_message(sender_id, clean_text)
 
 
+func _sanitize_received_message(message: Dictionary) -> Dictionary:
+	var sender_id_variant = message.get("sender_peer_id", null)
+	if not (sender_id_variant is int):
+		return {}
+	var sender_id := int(sender_id_variant)
+	var room_id := str(message.get("room_id", "")).strip_edges()
+	var text_value := str(message.get("text", "")).strip_edges()
+	if sender_id <= 1 or room_id.is_empty() or text_value.is_empty():
+		return {}
+	if text_value.length() > max_message_characters or not _is_safe_chat_text(text_value):
+		return {}
+	var sent_at_variant = message.get("sent_at", 0)
+	var sent_at := int(sent_at_variant) if sent_at_variant is int else 0
+	return {
+		"room_id": room_id,
+		"sender_peer_id": sender_id,
+		"sender_label": "Anggota #%d" % sender_id,
+		"text": text_value,
+		"sent_at": maxi(0, sent_at)
+	}
+
+
 @rpc("authority", "call_remote", "reliable")
 func _rpc_receive_message(message: Dictionary) -> void:
-	var text_value := str(message.get("text", ""))
-	var message_room_id := str(message.get("room_id", ""))
-	if text_value.strip_edges().is_empty() or text_value.length() > max_message_characters or not _is_safe_chat_text(text_value):
+	var clean_message := _sanitize_received_message(message)
+	if clean_message.is_empty() or str(clean_message.get("room_id", "")) != _current_room_id:
 		return
-	if message_room_id.is_empty() or message_room_id != _current_room_id:
-		return
-	_store_message(message)
+	_store_message(clean_message)
 
 
 @rpc("authority", "call_remote", "reliable")
