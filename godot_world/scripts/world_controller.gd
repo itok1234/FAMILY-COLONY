@@ -188,9 +188,11 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 		_main_hub.minigame_requested.connect(_on_hub_minigame_requested)
 		_main_hub.developer_authenticated.connect(_on_developer_authenticated)
 		_main_hub.developer_center_action_requested.connect(_on_developer_center_action_requested)
+		_main_hub.avatar_appearance_changed.connect(_on_hub_avatar_appearance_changed)
 		_main_hub.settings_action_requested.connect(_on_hub_settings_action_requested)
 		_main_hub.room_action_requested.connect(_on_room_action_requested)
 		add_child(_main_hub)
+		_on_hub_avatar_appearance_changed(_main_hub.call("get_profile_appearance"))
 		var room_manager := get_node_or_null("RoomManager")
 		var multiplayer_manager := get_node_or_null("MultiplayerManager")
 		if room_manager != null:
@@ -209,6 +211,12 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 	if is_instance_valid(_gate_layer):
 		_gate_layer.queue_free()
 	_gate_layer = null
+
+
+func _on_hub_avatar_appearance_changed(appearance: Dictionary) -> void:
+	var avatar := player.get_node_or_null("AvatarVisual")
+	if avatar != null and avatar.has_method("apply_appearance"):
+		avatar.call("apply_appearance", appearance)
 
 
 func _on_hub_destination_requested(destination_id: String) -> void:
