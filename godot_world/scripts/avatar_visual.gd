@@ -184,6 +184,17 @@ func _build_avatar() -> void:
 	_add_sphere(_head, "LeftHairLock", Vector3(-0.19, -0.005, -0.005), Vector3(0.055, 0.19, 0.085), hair)
 	_add_sphere(_head, "RightHairLock", Vector3(0.19, -0.005, -0.005), Vector3(0.055, 0.19, 0.085), hair)
 	_add_sphere(_head, "HairCrownVolume", Vector3(0, 0.19, 0.015), Vector3(0.205, 0.09, 0.20), hair)
+	# Extra tapered side/back strands add depth to the silhouette from multiple camera angles.
+	for strand_index in range(5):
+		var strand_side := -1.0 if strand_index % 2 == 0 else 1.0
+		var strand_x := strand_side * (0.13 + float(strand_index % 3) * 0.035)
+		var strand_y := -0.12 - float(strand_index / 2) * 0.045
+		var strand_z := 0.075 + float(strand_index % 2) * 0.04
+		var hair_strand := _add_capsule(_head, "HairDepthStrand_%d" % strand_index, Vector3(strand_x, strand_y, strand_z), 0.035, 0.24, hair)
+		hair_strand.rotation.z = strand_side * 0.22
+	# A compact scarf collar layer visually separates the neck from the shirt.
+	var collar_accent := _material(Color("#c5a86a"), 0.52)
+	_add_sphere(self, "NecklineAccent", Vector3(0, 1.48, 0), Vector3(0.20, 0.075, 0.19), collar_accent)
 	# Layered tapered locks give the procedural hair a less helmet-like silhouette.
 	for side in [-1.0, 1.0]:
 		var lock := _add_capsule(_head, "LayeredHairLock_%s" % str(side), Vector3(side * 0.185, -0.075, -0.075), 0.045, 0.30, hair)
