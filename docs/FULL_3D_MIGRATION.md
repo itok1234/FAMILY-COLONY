@@ -84,3 +84,9 @@ Do not label the product fully 3D until:
 - The 3D world kiosk now presents a dedicated 3D entry action before returning control to the playable world.
 - Profile, Chat and Settings panels currently communicate migration status; their data-backed feature screens are not complete.
 - Commit `ba5372779bcdd32a6a950e15899c3a476735587f` passed the Godot 4.4.1 parse/startup validation workflow. The follow-up wiring commits are pending their own workflow results.
+
+## Spatial room chat presentation (2026-11-25)
+- Replaced the RoomChatHUD CanvasLayer, PanelContainer, VBoxContainer, LineEdit and flat Buttons with a camera-mounted spatial 3D board.
+- The 3D chat panel renders recent room messages with Label3D and provides a touch-selectable 3D QWERTY keypad, space, delete, send and close controls. Message send still uses the existing room transport and validation; it is not upgraded to cross-network cloud chat.
+- Chat input is suspended while the hub is open and restored after entering the world.
+- First validation caught missing signal callback methods after the HUD rewrite; the handlers have been restored in commit `fea7ac5507a9ce88e9b98a57eb5205480623c3b4`. Latest Godot validation is running.
