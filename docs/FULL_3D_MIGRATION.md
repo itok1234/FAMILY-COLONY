@@ -130,3 +130,7 @@ Do not label the product fully 3D until:
 ## Validation correction — royal arena decoration placement (2026-11-25)
 - The first per-arena decoration edit placed its crest/beacon block in the wrong function scope; Godot parse validation correctly rejected it in run `45525328832`.
 - Corrected the block placement in commit `d0b0e6e7affee29958a91b91a197f67d94e88504`; a fresh Godot parse/startup, Android debug, embedded smoke and signed-release workflow set has been triggered and must pass before this arena slice is considered validated.
+
+## Credential boundary hardening (2026-11-25)
+- Removed the Developer refresh token from the Godot signal contract and from the 3D hub's parsed response values. Only the short-lived access token and public publishable key are handed to the world-session verifier; refresh credentials remain in the Android host authentication layer.
+- This reduces exposure of long-lived credentials inside the game scene graph and makes the native host the sole refresh-token owner. It does not replace server-side authorization or device security testing.
