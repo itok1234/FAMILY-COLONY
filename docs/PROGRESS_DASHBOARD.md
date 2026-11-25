@@ -65,7 +65,8 @@
 - [ ] Room-scoped chat works in the supported multiplayer mode.
 - [ ] All five mini-games have a complete basic win/lose gameplay loop.
 - [ ] Essential settings work; core scenes remain bright, readable and fully 3D.
-- [x] Android debug build, embedded Android smoke test and signed APK build passed on commit ac8a280.\n- [ ] Godot project parse/startup workflow was cancelled on commit ac8a280; standalone rerun still required.
+- [x] Android debug build, embedded Android smoke test and signed APK build passed on commit ac8a280.
+- [ ] Godot project parse/startup workflow was cancelled on commit ac8a280; standalone rerun still required.
 - [ ] APK installed and verified on a physical Android device.
 
 ## Post-MVP gates
