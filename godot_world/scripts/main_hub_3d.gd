@@ -46,6 +46,7 @@ var _room_status_label: Label3D
 var _room_connection_detail := "Belum terhubung ke jaringan LAN."
 var _room_lan_state := "offline"
 var _room_current_id := ""
+var _room_current_members: Array[int] = []
 var _cloud_matchmaking_state := "BELUM DIMINTA"
 var _cloud_matchmaking_detail := "Server cloud belum diperiksa."
 var _profile_avatar_body: MeshInstance3D
@@ -1002,12 +1003,16 @@ func set_cloud_matchmaking_state(state: String, detail: String) -> void:
 func _refresh_room_status_label() -> void:
 	if not is_instance_valid(_room_status_label):
 		return
-	_room_status_label.text = "LAN: %s\n%s\nCLOUD: %s\n%s\nROOM: %s" % [_room_lan_state, _room_connection_detail, _cloud_matchmaking_state, _cloud_matchmaking_detail, _room_current_id if not _room_current_id.is_empty() else "—"]
+	var room_status := "—"
+	if not _room_current_id.is_empty():
+		room_status = "%s • %d anggota" % [_room_current_id, _room_current_members.size()]
+	_room_status_label.text = "LAN: %s\n%s\nCLOUD: %s\n%s\nROOM: %s" % [_room_lan_state, _room_connection_detail, _cloud_matchmaking_state, _cloud_matchmaking_detail, room_status]
 
 
-func set_current_room(room_id: String, _members: Array[int]) -> void:
+func set_current_room(room_id: String, members: Array[int]) -> void:
 	_room_current_id = room_id
-	set_room_network_state("aktif", _room_connection_detail)
+	_room_current_members = members.duplicate()
+	set_room_network_state("aktif" if not room_id.is_empty() else "offline", _room_connection_detail)
 
 
 func set_room_snapshot(rooms: Array) -> void:
