@@ -9,6 +9,7 @@ signal developer_authenticated(member: Dictionary, access_token: String, anon_ke
 signal minigame_requested(game_id: String)
 signal developer_center_action_requested(action_id: String)
 signal settings_action_requested(action_id: String)
+signal room_action_requested(action_id: String)
 
 const FC_AUTH_URL := "https://irwtnqekrwhgompulach.supabase.co/functions/v1/fc-member-auth"
 
@@ -36,6 +37,10 @@ var _destination_panel: Node3D
 var _panel_title: Label3D
 var _panel_body: Label3D
 var _member_profile: Dictionary = {}
+var _room_snapshot_root: Node3D
+var _room_status_label: Label3D
+var _room_connection_detail := "Belum terhubung ke jaringan LAN."
+var _room_current_id := ""
 
 
 func set_member_profile(member: Dictionary) -> void:
@@ -595,14 +600,34 @@ func _open_destination_panel(destination_id: String) -> void:
 		_create_hub_panel_button("AUTO", Vector3(0, -0.66, -0.24), "settings:quality:0", Vector3(1.35, 0.5, 0.16))
 		_create_hub_panel_button("TENTANG STUDIO", Vector3(0, -1.3, -0.24), "settings:credits", Vector3(2.8, 0.5, 0.16))
 	if destination_id == "chat":
-		_create_hub_panel_button("BUKA CHAT 3D", Vector3(0, -0.48, -0.24), "open_chat", Vector3(2.8, 0.62, 0.16), Color("#397b70"))
+		_create_hub_panel_button("BUKA CHAT 3D", Vector3(0, 0.62, -0.24), "open_chat", Vector3(2.8, 0.56, 0.16), Color("#397b70"))
+		_create_hub_panel_button("HOST LAN", Vector3(-1.62, -0.12, -0.24), "room:host", Vector3(2.55, 0.5, 0.16), Color("#315b70"))
+		_create_hub_panel_button("BUAT ROOM", Vector3(1.62, -0.12, -0.24), "room:create", Vector3(2.55, 0.5, 0.16), Color("#a77a36"))
+		_create_hub_panel_button("MASUK LOBBY", Vector3(-1.62, -0.78, -0.24), "room:lobby", Vector3(2.55, 0.5, 0.16), Color("#397b70"))
+		_create_hub_panel_button("KELUAR ROOM", Vector3(1.62, -0.78, -0.24), "room:leave", Vector3(2.55, 0.5, 0.16), Color("#65568d"))
+		_room_status_label = Label3D.new()
+		_room_status_label.name = "RoomStatus3D"
+		_room_status_label.text = "LAN: OFFLINE • Room: —"
+		_room_status_label.font_size = 15
+		_room_status_label.pixel_size = 0.0032
+		_room_status_label.position = Vector3(-2.7, -1.38, -0.24)
+		_room_status_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_room_status_label.modulate = Color("#c9d9e5")
+		_destination_panel.add_child(_room_status_label)
+		_room_snapshot_root = Node3D.new()
+		_room_snapshot_root.name = "RoomList3D"
+		_room_snapshot_root.position = Vector3(1.45, -1.28, -0.25)
+		_destination_panel.add_child(_room_snapshot_root)
+		_create_hub_panel_button("KEMBALI KE HUB", Vector3(0, -2.22, -0.24), "back", Vector3(2.6, 0.52, 0.16), Color("#315b70"))
+		_update_room_snapshot([])
 	if destination_id == "games":
 		_create_hub_panel_button("HONEY HUNT", Vector3(-2.15, 0.15, -0.24), "game:honey_hunt", Vector3(2.0, 0.58, 0.16), Color("#a77a36"))
 		_create_hub_panel_button("GUESS WHO?", Vector3(0.0, 0.15, -0.24), "game:guess_who", Vector3(2.0, 0.58, 0.16))
 		_create_hub_panel_button("ROYAL BOMB", Vector3(2.15, 0.15, -0.24), "game:royal_bomb", Vector3(2.0, 0.58, 0.16))
 		_create_hub_panel_button("MURDER MYSTERY", Vector3(-1.15, -0.72, -0.24), "game:royal_murder_mystery", Vector3(2.25, 0.58, 0.16))
 		_create_hub_panel_button("ROYAL DICE", Vector3(1.15, -0.72, -0.24), "game:royal_dice", Vector3(2.25, 0.58, 0.16))
-	_create_hub_panel_button("KEMBALI KE HUB", Vector3(0, -2.05, -0.24), "back", Vector3(2.6, 0.62, 0.16), Color("#315b70"))
+	if destination_id != "chat":
+		_create_hub_panel_button("KEMBALI KE HUB", Vector3(0, -2.05, -0.24), "back", Vector3(2.6, 0.62, 0.16), Color("#315b70"))
 	add_child(_destination_panel)
 	_hint.text = "Panel 3D terbuka: " + destination_id.to_upper()
 
@@ -827,6 +852,9 @@ func _handle_hub_panel_action(action_id: String) -> void:
 	if action_id == "open_chat":
 		destination_requested.emit("chat_open")
 		return
+	if action_id.begins_with("room:"):
+		room_action_requested.emit(action_id.trim_prefix("room:"))
+		return
 	if action_id == "enter_world":
 		if is_instance_valid(_destination_panel):
 			_destination_panel.queue_free()
@@ -849,6 +877,84 @@ func _handle_hub_panel_action(action_id: String) -> void:
 			minigame_requested.emit(game_id)
 			return
 		_hint.text = "Mini-game tidak dikenali: " + game_id
+
+
+func set_room_network_state(state: String, detail: String) -> void:
+	_room_connection_detail = detail
+	if is_instance_valid(_room_status_label):
+		_room_status_label.text = "LAN: %s\\n%s\\nROOM: %s" % [state.to_upper(), detail, _room_current_id if not _room_current_id.is_empty() else "—"]
+
+
+func set_current_room(room_id: String, _members: Array[int]) -> void:
+	_room_current_id = room_id
+	set_room_network_state("aktif", _room_connection_detail)
+
+
+func _update_room_snapshot(rooms: Array) -> void:
+	if not is_instance_valid(_room_snapshot_root):
+		return
+	for child in _room_snapshot_root.get_children():
+		child.queue_free()
+	var shown := 0
+	for room_variant in rooms:
+		if shown >= 3 or not (room_variant is Dictionary):
+			break
+		var room: Dictionary = room_variant
+		var room_id := str(room.get("id", ""))
+		var room_name := str(room.get("name", "Room"))
+		var member_count := int(room.get("member_count", 0))
+		var capacity := int(room.get("capacity", 0))
+		var row := Node3D.new()
+		row.position.y = -float(shown) * 0.48
+		var label := Label3D.new()
+		label.text = "%s  %d/%d" % [room_name.left(13), member_count, capacity]
+		label.font_size = 13
+		label.pixel_size = 0.003
+		label.position = Vector3(-1.35, 0, 0)
+		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		label.modulate = Color("#e5edf4")
+		row.add_child(label)
+		_room_snapshot_root.add_child(row)
+		_create_room_join_button(room_id, shown)
+		shown += 1
+	if shown == 0:
+		var empty_label := Label3D.new()
+		empty_label.text = "Belum ada room terdaftar."
+		empty_label.font_size = 13
+		empty_label.pixel_size = 0.003
+		empty_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		empty_label.modulate = Color("#c9d9e5")
+		_room_snapshot_root.add_child(empty_label)
+
+
+func _create_room_join_button(room_id: String, index: int) -> void:
+	var area := Area3D.new()
+	area.name = "JoinRoom_" + str(index)
+	area.position = Vector3(1.15, -float(index) * 0.48, 0)
+	area.input_ray_pickable = true
+	area.collision_layer = 2
+	area.collision_mask = 0
+	area.set_meta("hub_panel_action", "room:join:" + room_id)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(0.72, 0.32, 0.14)
+	collision.shape = shape
+	area.add_child(collision)
+	var mesh := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(0.68, 0.29, 0.1)
+	mesh.mesh = box
+	mesh.material_override = _material(Color("#397b70"), 0.35, 0.12)
+	area.add_child(mesh)
+	var label := Label3D.new()
+	label.text = "GABUNG"
+	label.font_size = 12
+	label.pixel_size = 0.003
+	label.position.z = -0.06
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.modulate = Color.WHITE
+	area.add_child(label)
+	_room_snapshot_root.add_child(area)
 
 
 func _material(color: Color, roughness: float = 0.65, metallic: float = 0.0) -> StandardMaterial3D:
