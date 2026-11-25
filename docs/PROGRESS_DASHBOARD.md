@@ -3,8 +3,8 @@
 > Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Latest source commit:** [`79d2a35`](https://github.com/itok1234/FAMILY-COLONY/commit/79d2a354631738ec46059d389152035a384b46d2)  
-> **Dashboard refreshed:** 2026-11-25T05:59:39.413Z
+> **Latest source commit:** [`f95dbc4`](https://github.com/itok1234/FAMILY-COLONY/commit/f95dbc405f0bb6fde9a08c840df70c036274fadb)  
+> **Dashboard refreshed:** 2026-11-25T05:59:47.112Z
 
 ## FAST TRACK mode — ACTIVE
 
@@ -22,10 +22,10 @@
 
 | Check | Latest branch result | Commit tested |
 |---|---|---|
-| Validate FAMILY COLONY 3D World | [CANCELLED](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554694230) | ac8a280 |
-| Validate FAMILY COLONY Android Build | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45557341490) | 79d2a35 |
-| FAMILY COLONY Embedded Godot Android Smoke Test | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554694184) | ac8a280 |
-| Build FAMILY COLONY Signed Release APK | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554694251) | ac8a280 |
+| Validate FAMILY COLONY 3D World | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45557351627) | f95dbc4 |
+| Validate FAMILY COLONY Android Build | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45557351681) | f95dbc4 |
+| FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45557351607) | f95dbc4 |
+| Build FAMILY COLONY Signed Release APK | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45557351583) | f95dbc4 |
 
 ## Implementation status
 
@@ -42,11 +42,6 @@
 | Multiplayer | LAN ENet FOUNDATION + HOST MOVEMENT RATE LIMIT (40 HZ) | Cloud-authoritative transport and server-side identity binding |
 | Full 3D acceptance | NOT COMPLETE | Remove member-facing 2D/WebView only after feature parity |
 | Release readiness | CI CHECKS TRACKED ABOVE | Physical-device regression, security and release sign-off |
-
-## Latest implementation increment
-
-- Commit `79d2a354`: internal room creation entry point now independently trims/rejects invalid names and clamps capacity to 2–64, even if public/RPC validation is bypassed.
-- Commit `f95dbc40`: regression assertions added for internal validation, name trimming, and capacity clamping. CI is pending for these commits; do not claim tests passed until workflow results confirm.
 
 ## FAST TRACK execution
 
