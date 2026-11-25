@@ -22,10 +22,10 @@
 
 | Check | Latest branch result | Commit tested |
 |---|---|---|
-| Validate FAMILY COLONY 3D World | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554669291) | 764aa63 |
-| Validate FAMILY COLONY Android Build | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554669079) | 764aa63 |
-| FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554669087) | 764aa63 |
-| Build FAMILY COLONY Signed Release APK | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554668997) | 764aa63 |
+| Validate FAMILY COLONY 3D World | [CANCELLED](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554694230) | ac8a280 |
+| Validate FAMILY COLONY Android Build | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554694363) | ac8a280 |
+| FAMILY COLONY Embedded Godot Android Smoke Test | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554694184) | ac8a280 |
+| Build FAMILY COLONY Signed Release APK | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554694251) | ac8a280 |
 
 ## Implementation status
 
@@ -59,7 +59,7 @@
 - [ ] Room-scoped chat works in the supported multiplayer mode.
 - [ ] All five mini-games have a complete basic win/lose gameplay loop.
 - [ ] Essential settings work; core scenes remain bright, readable and fully 3D.
-- [x] Godot validation, Android build, embedded Android smoke test and signed APK build passed on commit 775dd42.
+- [x] Android debug build, embedded Android smoke test and signed APK build passed on commit ac8a280.\n- [ ] Godot project parse/startup workflow was cancelled on commit ac8a280; standalone rerun still required.
 - [ ] APK installed and verified on a physical Android device.
 
 ## Post-MVP gates
