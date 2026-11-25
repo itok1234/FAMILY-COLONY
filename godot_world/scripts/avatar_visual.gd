@@ -121,8 +121,8 @@ func _process(delta: float) -> void:
 	var gait_phase := _time * gait_rate
 	if _wing_left != null and _wing_right != null:
 		var wing_flap := sin(_time * 8.0) * 0.10 + sin(_time * 3.0) * 0.035
-		_wing_left.rotation.z = 0.32 + wing_flap
-		_wing_right.rotation.z = -0.32 - wing_flap
+		__wing_left.rotation.z = 0.32 + wing_flap
+		__wing_right.rotation.z = -0.32 - wing_flap
 		_wing_left.rotation.x = sin(_time * 5.5) * 0.12
 		_wing_right.rotation.x = -sin(_time * 5.5) * 0.12
 		# Slow, layered flutter at rest; walking increases the flutter amplitude slightly.
