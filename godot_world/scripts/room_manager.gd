@@ -26,8 +26,13 @@ func _ready() -> void:
 
 func create_room(room_name: String, capacity: int = -1) -> void:
 	var clean_name := room_name.strip_edges()
-	if clean_name.length() < 2 or clean_name.length() > 32:
-		room_action_result.emit(false, "Nama room harus 2–32 karakter.")
+	var has_control_character := false
+	for character in clean_name:
+		if character.unicode_at(0) < 32 or character.unicode_at(0) == 127:
+			has_control_character = true
+			break
+	if clean_name.length() < 2 or clean_name.length() > 32 or has_control_character:
+		room_action_result.emit(false, "Nama room harus 2–32 karakter dan tidak boleh berisi karakter kontrol.")
 		return
 	var chosen_capacity := default_room_capacity if capacity < 2 else mini(capacity, 64)
 	if multiplayer.is_server():
