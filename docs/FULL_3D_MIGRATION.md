@@ -113,3 +113,10 @@ Do not label the product fully 3D until:
 - New game controls, labels, result feedback and exit actions are camera-mounted spatial 3D objects using ray-pickable Area3D surfaces; no CanvasLayer or flat Control HUD is used by these new loops.
 - This is a first integrated gameplay slice, not feature-complete parity with every legacy HTML game rule. Royal Bomb opponents and Royal Dice/Murder opponents are local simulations; there is no cross-device multiplayer, server-authoritative result validation, member rewards, admin question CRUD sync, or cloud persistence in these new 3D loops yet.
 - Godot parse/startup, Android build, embedded smoke and signed-release workflows were triggered for validation. Do not treat an APK as ready until the latest workflows pass and physical-device play checks are completed.
+
+## Spatial graphics and multiplayer status UI (2026-11-25)
+- Replaced the Godot graphics-quality OptionButton/CanvasLayer overlay with a camera-mounted spatial 3D selector (Auto, Hemat, Seimbang, Tinggi). Selection still persists to the existing local settings file and updates render scale, MSAA, world density and effects.
+- Replaced the LAN multiplayer status CanvasLayer/Label HUD with a camera-mounted Label3D status readout. The transport remains LAN ENet; this visual conversion does not make it cloud multiplayer.
+- Refined the procedural avatar with layered hair/clothing details and a short randomized blink animation. It remains a procedural placeholder, not an imported production skeletal character model.
+- Godot parse/startup validation for commit `22fb2389735b22efc331962cf09538884e5dc39f` passed. Android debug/release and embedded smoke workflows for that commit were still running at the time of this update. The subsequent multiplayer status UI commit requires its own validation.
+- Remaining flat 2D interfaces outside this slice, WebView launcher/login and legacy HTML features are still not fully migrated.
