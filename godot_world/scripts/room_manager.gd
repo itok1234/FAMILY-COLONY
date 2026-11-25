@@ -47,7 +47,10 @@ func join_room(room_id: String) -> void:
 
 func leave_room() -> void:
 	if multiplayer.is_server():
-		_leave_room_for_peer(multiplayer.get_unique_id())
+		var local_peer := multiplayer.get_unique_id()
+		_leave_room_for_peer(local_peer)
+		_join_or_create_lobby(local_peer)
+		_broadcast_room_state()
 	else:
 		_rpc_request_leave_room.rpc_id(1)
 
