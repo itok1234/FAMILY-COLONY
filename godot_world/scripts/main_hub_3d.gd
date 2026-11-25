@@ -24,6 +24,7 @@ const HUB_ITEMS := [
 
 var _camera: Camera3D
 var _hint: Label3D
+var _member_board_label: Label3D
 var _ray_length := 40.0
 var _touch_start := Vector2.ZERO
 var _bee_tap_count := 0
@@ -64,6 +65,7 @@ const PROFILE_STYLES := [
 func set_member_profile(member: Dictionary) -> void:
 	# Identity comes only from the verified world-session response.
 	_member_profile = member.duplicate(true)
+	_refresh_member_board()
 
 
 func _ready() -> void:
@@ -554,7 +556,26 @@ func _build_hud() -> void:
 	_hint.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_hint.modulate = Color("#e5edf4")
 	board.add_child(_hint)
+	_member_board_label = Label3D.new()
+	_member_board_label.name = "MemberWelcomeLabel"
+	_member_board_label.text = "SELAMAT DATANG, COLONY MEMBER"
+	_member_board_label.font_size = 17
+	_member_board_label.pixel_size = 0.0038
+	_member_board_label.position = Vector3(0, -0.68, -0.1)
+	_member_board_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_member_board_label.modulate = Color("#a9d6e7")
+	board.add_child(_member_board_label)
+	_refresh_member_board()
 	add_child(board)
+
+
+func _refresh_member_board() -> void:
+	if not is_instance_valid(_member_board_label):
+		return
+	var name_value := str(_member_profile.get("name", _member_profile.get("username", "COLONY MEMBER"))).strip_edges()
+	if name_value.is_empty():
+		name_value = "COLONY MEMBER"
+	_member_board_label.text = "SELAMAT DATANG, " + name_value.left(24).to_upper()
 
 
 func _input(event: InputEvent) -> void:
