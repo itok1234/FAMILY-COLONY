@@ -752,17 +752,31 @@ func _unhandled_royal_game_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+var _royal_action_lock := false
+
+
+func _release_royal_action_lock() -> void:
+	_royal_action_lock = false
+
+
 func _handle_royal_action(action: String) -> void:
+	# Block duplicate touch/mouse events in the same frame so they cannot
+	# double-score, skip multiple questions, or consume multiple bomb turns.
+	if _royal_action_lock:
+		return
 	if not _royal_game_active and action != "exit":
 		return
 	if action == "exit":
+		_royal_action_lock = true
 		exit_royal_game()
 		return
+	_royal_action_lock = true
 	match _royal_game_id:
 		"guess_who": _guess_who_action(action)
 		"royal_bomb": _royal_bomb_action(action)
 		"royal_murder_mystery": _murder_action(action)
 		"royal_dice": _dice_action(action)
+	call_deferred("_release_royal_action_lock")
 
 
 func _start_guess_who() -> void:
