@@ -61,7 +61,7 @@ jobs:
             const now = new Date().toISOString();
             const body = `# FAMILY COLONY — Live Progress Dashboard
 
-            > Generated automatically by GitHub Actions. Updated on code pushes, manual dispatch, and every 15 minutes.
+            > Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
             >
             > **Branch:** \`${branch}\`  
             > **Latest source commit:** [\`${head.slice(0, 7)}\`](https://github.com/${owner}/${repo}/commit/${head})  
@@ -79,7 +79,7 @@ jobs:
             |---|---|---|
             | Native 3D hub and world entry | IMPLEMENTED SLICE | Full app flow and feature parity |
             | Avatar profile and wardrobe | IMPLEMENTED SLICE | Cloud persistence and device UX |
-            | Room-scoped avatar appearance sync | IMPLEMENTED — VALIDATION PENDING | Latest Godot/Android workflows and multi-device test |
+            | Room-scoped avatar appearance sync | IMPLEMENTED SLICE — CI PASSED | Multi-device real-world test and persistence |\n            | Room management | HOST + REMOTE ROOM-CREATION COOLDOWN | Multi-device room lifecycle and cloud persistence |
             | Member login and session | LEGACY WEBVIEW FLOW PRESERVED | Port login, refresh, logout and recovery to spatial 3D |
             | Developer Center | 3D ENTRY / NAVIGATION SLICE | Secure backend CRUD and operational tools |
             | Five mini-games | HONEY HUNT 3D; FOUR INITIAL LOCAL GAME LOOPS | Complete gameplay, polish, persistence and multiplayer |
@@ -98,7 +98,7 @@ jobs:
 
             ## Status rules
 
-            - This dashboard reports verified implementation slices and CI outcomes, not an invented overall percentage.
+            - The 55% figure is a retained continuity baseline, not a newly audited exact measurement.\n            - Feature statuses and CI outcomes are evidence-based; a workflow result applies only to its listed commit.
             - A workflow result applies only to the commit shown in its row.
             - "Implemented slice" does not mean the entire feature or application is complete.
             - A release APK build is not equivalent to physical-device acceptance or final product sign-off.
