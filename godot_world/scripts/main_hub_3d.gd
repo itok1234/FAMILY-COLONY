@@ -588,9 +588,12 @@ func _open_destination_panel(destination_id: String) -> void:
 	if destination_id == "world":
 		_create_hub_panel_button("MASUK KE DUNIA", Vector3(0, 0.0, -0.24), "enter_world", Vector3(2.8, 0.68, 0.16), Color("#a77a36"))
 	if destination_id == "settings":
-		_create_hub_panel_button("SUARA & VOLUME", Vector3(0, 0.55, -0.24), "settings:audio", Vector3(2.8, 0.58, 0.16), Color("#a77a36"))
-		_create_hub_panel_button("KUALITAS GRAFIS", Vector3(0, -0.18, -0.24), "settings:graphics", Vector3(2.8, 0.58, 0.16))
-		_create_hub_panel_button("TENTANG STUDIO", Vector3(0, -0.91, -0.24), "settings:credits", Vector3(2.8, 0.58, 0.16))
+		_create_hub_panel_button("SUARA & VOLUME", Vector3(0, 0.78, -0.24), "settings:audio", Vector3(2.8, 0.52, 0.16), Color("#a77a36"))
+		_create_hub_panel_button("HEMAT", Vector3(-1.5, 0.02, -0.24), "settings:quality:1", Vector3(1.35, 0.5, 0.16))
+		_create_hub_panel_button("SEIMBANG", Vector3(0, 0.02, -0.24), "settings:quality:2", Vector3(1.35, 0.5, 0.16))
+		_create_hub_panel_button("TINGGI", Vector3(1.5, 0.02, -0.24), "settings:quality:3", Vector3(1.35, 0.5, 0.16))
+		_create_hub_panel_button("AUTO", Vector3(0, -0.66, -0.24), "settings:quality:0", Vector3(1.35, 0.5, 0.16))
+		_create_hub_panel_button("TENTANG STUDIO", Vector3(0, -1.3, -0.24), "settings:credits", Vector3(2.8, 0.5, 0.16))
 	if destination_id == "games":
 		_create_hub_panel_button("HONEY HUNT", Vector3(-2.15, 0.15, -0.24), "game:honey_hunt", Vector3(2.0, 0.58, 0.16), Color("#a77a36"))
 		_create_hub_panel_button("GUESS WHO?", Vector3(0.0, 0.15, -0.24), "game:guess_who", Vector3(2.0, 0.58, 0.16))
@@ -760,7 +763,7 @@ func _destination_description(destination_id: String) -> String:
 			return "PROFIL ANGGOTA\n" + display_name + "\\n@" + username + "  •  " + role + "\\nData profil berasal dari sesi akun terverifikasi."
 		"chat": return "Bertemu • mengobrol • room\\nLayanan chat lintas jaringan dan panel 3D sedang dimigrasikan."
 		"games": return "Pilih salah satu dari lima permainan 3D.\\nSetiap permainan memiliki ruang, aturan, dan papan hasil tersendiri."
-		"settings": return "Audio • kualitas grafis • kontrol\\nPengaturan 3D akan mengikuti kemampuan perangkat."
+		"settings": return "Atur audio dan kualitas grafis langsung di dunia 3D.\\nHEMAT • SEIMBANG • TINGGI • AUTO"
 		"world": return "Masuk ke dunia 3D dan jelajahi Bee Kingdom.\\nBerjalan, berinteraksi, dan bermain bersama."
 		_: return "Fitur sedang disiapkan."
 
@@ -809,7 +812,7 @@ func _handle_hub_panel_action(action_id: String) -> void:
 		return
 	if action_id.begins_with("settings:"):
 		settings_action_requested.emit(action_id.trim_prefix("settings:"))
-		_hint.text = "Pengaturan 3D dibuka: " + action_id.trim_prefix("settings:").to_upper()
+		_hint.text = "Pengaturan 3D diperbarui: " + action_id.trim_prefix("settings:").replace(":", " ").to_upper()
 		return
 	if action_id == "enter_world":
 		if is_instance_valid(_destination_panel):
