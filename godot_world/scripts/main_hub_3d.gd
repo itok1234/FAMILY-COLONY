@@ -477,7 +477,7 @@ func _pick_destination(screen_position: Vector2) -> void:
 	var direction := _camera.project_ray_normal(screen_position)
 	var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * _ray_length)
 	query.collide_with_areas = true
-	query.collision_mask = 2
+	query.collision_mask = 6
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	if hit.is_empty():
 		return
