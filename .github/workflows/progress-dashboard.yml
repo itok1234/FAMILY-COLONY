@@ -97,7 +97,7 @@ jobs:
 
             - **Active group:** 1 — Room & Lobby.
             - **Group progress:** 65% provisional / 35% remaining. Do not mark complete until automated regression checks, real multi-device lifecycle tests, invitation/transition verification and cloud persistence gates pass.
-            - **New regression coverage:** lobby sharding/capacity, unique peer assignment, empty-shard cleanup, reconnect/rejoin and client room-snapshot caching. The Godot validation workflow executes `godot_world/tests/room_manager_test.gd`.
+            - **New regression coverage:** lobby sharding/capacity, unique peer assignment, empty-shard cleanup, reconnect/rejoin and client room-snapshot caching. The Godot validation workflow executes godot_world/tests/room_manager_test.gd.
 
             ## Final acceptance gates
 
