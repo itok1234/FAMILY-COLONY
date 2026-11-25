@@ -94,9 +94,11 @@ func _process(delta: float) -> void:
 	# Natural periodic blink; keep it subtle and inexpensive for mobile devices.
 	_blink_clock += delta
 	var blink := 0.0
-	if _blink_clock >= _blink_time:
-		blink = 1.0 - absf(fmod(_blink_clock - _blink_time, 1.0) - 0.5) * 2.0
-		if _blink_clock - _blink_time > 0.42:
+	var blink_elapsed := _blink_clock - _blink_time
+	if blink_elapsed >= 0.0:
+		if blink_elapsed <= 0.22:
+			blink = sin(PI * blink_elapsed / 0.22)
+		else:
 			_blink_clock = 0.0
 			_blink_time = randf_range(2.6, 5.0)
 	if _left_eye != null and _right_eye != null:
