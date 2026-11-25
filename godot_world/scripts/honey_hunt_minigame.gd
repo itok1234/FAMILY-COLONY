@@ -834,11 +834,17 @@ func _guess_who_action(action: String) -> void:
 		_royal_game_state.score = maxi(0, int(_royal_game_state.score) - 5)
 		_royal_game_status.text += "\nPetunjuk %d: %s" % [clue_index + 1, q.clues[clue_index]]
 		return
+	if bool(_royal_game_state.get("pending_next", false)):
+		if action == "next_question":
+			_royal_game_state.pending_next = false
+			_guess_who_next()
+		return
 	if action == "skip":
 		_royal_game_state.wrong += 1
 		_royal_game_state.score = maxi(0, int(_royal_game_state.score) - 5)
-		_royal_game_status.text += "\nSoal dilewati (-5 poin)."
-		_guess_who_next()
+		_royal_game_status.text += "\\nSoal dilewati (-5 poin)."
+		_royal_game_state.pending_next = true
+		_add_royal_button("SOAL BERIKUTNYA", Vector3(0, -2.0, -0.24), "next_question", Vector3(2.7, 0.46, 0.16))
 		return
 	if action.begins_with("guess:"):
 		var q: Dictionary = _royal_game_state.pool[question_index]
@@ -853,7 +859,8 @@ func _guess_who_action(action: String) -> void:
 			_royal_game_state.wrong += 1
 			_royal_game_state.score = maxi(0, int(_royal_game_state.score) - 10)
 			_royal_game_status.text += "\n✕ Jawaban salah (-10). Jawaban benar: " + str(q.name)
-		_guess_who_next()
+		_royal_game_state.pending_next = true
+		_add_royal_button("SOAL BERIKUTNYA", Vector3(0, -2.0, -0.24), "next_question", Vector3(2.7, 0.46, 0.16))
 
 
 func _guess_who_next() -> void:
@@ -958,6 +965,11 @@ func _show_murder_case() -> void:
 func _murder_action(action: String) -> void:
 	if not _royal_game_active or _royal_game_id != "royal_murder_mystery":
 		return
+	if bool(_royal_game_state.get("pending_next", false)):
+		if action == "next_case":
+			_royal_game_state.pending_next = false
+			_show_murder_case()
+		return
 	if not action.begins_with("suspect:"):
 		return
 	if _royal_game_state.is_empty() or not _royal_game_state.has("cases"):
@@ -977,11 +989,12 @@ func _murder_action(action: String) -> void:
 		_royal_game_state.wrong += 1
 		_royal_game_state.score = maxi(0, int(_royal_game_state.score) - 25)
 		_royal_game_status.text += "\n✕ BUKTI TIDAK COCOK (-25). Pelaku: " + str(c.answer)
-	_royal_game_state.index += 1
-	if _royal_game_state.index >= _royal_game_state.cases.size():
+	if _royal_game_state.index >= _royal_game_state.cases.size() - 1:
+		_royal_game_state.index += 1
 		_finish_royal_game("HASIL PENYELIDIKAN\nSkor: %d\nKasus terpecahkan: %d/3\nKesalahan: %d" % [_royal_game_state.score, _royal_game_state.correct, _royal_game_state.wrong])
 	else:
-		_show_murder_case()
+		_royal_game_state.pending_next = true
+		_add_royal_button("KASUS BERIKUTNYA", Vector3(0, -2.0, -0.24), "next_case", Vector3(2.7, 0.46, 0.16))
 
 
 func _start_royal_dice() -> void:
