@@ -34,6 +34,17 @@ func _is_valid_room_name(room_name: String) -> bool:
 	return true
 
 
+
+func _is_valid_room_id(room_id: String) -> bool:
+	var clean_id := room_id.strip_edges()
+	if clean_id.length() < 3 or clean_id.length() > 64:
+		return false
+	for character in clean_id:
+		var codepoint := character.unicode_at(0)
+		if codepoint < 32 or codepoint == 127:
+			return false
+	return true
+
 func create_room(room_name: String, capacity: int = -1) -> void:
 	var clean_name := room_name.strip_edges()
 	if not _is_valid_room_name(clean_name):
@@ -48,7 +59,7 @@ func create_room(room_name: String, capacity: int = -1) -> void:
 
 func join_room(room_id: String) -> void:
 	var clean_id := room_id.strip_edges()
-	if clean_id.is_empty():
+	if not _is_valid_room_id(clean_id):
 		room_action_result.emit(false, "ID room tidak valid.")
 		return
 	if multiplayer.is_server():
@@ -265,7 +276,7 @@ func _rpc_request_join_room(room_id: String) -> void:
 	var clean_id := room_id.strip_edges()
 	if sender <= 1 or not multiplayer.get_peers().has(sender):
 		return
-	if room_id.length() > 64 or clean_id.length() < 3 or clean_id.length() > 64:
+	if not _is_valid_room_id(room_id):
 		_send_result(sender, false, "ID room tidak valid.")
 		return
 	if clean_id == "lobby":
