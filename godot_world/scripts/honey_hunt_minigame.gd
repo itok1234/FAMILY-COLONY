@@ -769,7 +769,10 @@ func _update_guess_who_clock() -> void:
 	if not is_instance_valid(_royal_game_status) or _royal_game_state.is_empty():
 		return
 	var question: Dictionary = _royal_game_state.pool[_royal_game_state.index]
-	_royal_game_status.text = "SOAL %d/%d   •   SKOR %d   •   %02d DETIK\\nKategori: %s\\nPetunjuk 1: %s\\nPetunjuk 2: %s" % [_royal_game_state.index + 1, _royal_game_state.pool.size(), _royal_game_state.score, ceili(_royal_game_state.seconds), question.category, question.clues[0], question.clues[1]]
+	var clue_text := "Petunjuk 1: %s\\nPetunjuk 2: %s" % [question.clues[0], question.clues[1]]
+	if int(_royal_game_state.clue) > 2 and question.clues.size() > 2:
+		clue_text += "\\nPetunjuk 3: " + str(question.clues[2])
+	_royal_game_status.text = "SOAL %d/%d   •   SKOR %d   •   %02d DETIK\\nKategori: %s\\n%s" % [_royal_game_state.index + 1, _royal_game_state.pool.size(), _royal_game_state.score, ceili(_royal_game_state.seconds), question.category, clue_text]
 
 
 func _show_guess_who_question() -> void:
