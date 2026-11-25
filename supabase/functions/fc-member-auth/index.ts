@@ -358,7 +358,9 @@ Deno.serve(async req => {
       if (authError || !authData.user) return json({ error: "invalid_session" }, 401);
       const { data: staff, error: staffError } = await admin.from("fc_members")
         .select("member_id,role,status").eq("auth_user_id", authData.user.id).maybeSingle();
-      if (staffError || !staff || staff.status !== "Aktif" || !["Kepsuk","Deputi","Admin"].includes(staff.role))
+      if (staffError || !staff ||
+          String(staff.status || "").trim().toLowerCase() !== "aktif" ||
+          !["kepsuk","deputi","admin"].includes(String(staff.role || "").trim().toLowerCase()))
         return json({ error: "not_authorized" }, 403);
       const applicationId = String(body.application_id || "");
       const decision = String(body.decision || "");
