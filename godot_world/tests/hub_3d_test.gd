@@ -68,6 +68,12 @@ func _run() -> void:
 			if room_child is Label3D and room_child.text == "Belum ada room terdaftar.":
 				empty_state_found = true
 		_expect(empty_state_found, "empty room list should show empty-state message")
+		hub.call("set_room_snapshot", ["invalid-row", {"id":"room_d","name":"Room Delta","member_count":4,"capacity":8}])
+		await process_frame
+		var malformed_data_button := room_root.get_node_or_null("JoinRoom_0") as Area3D
+		_expect(malformed_data_button != null, "valid room should still render beside malformed room data")
+		if malformed_data_button != null:
+			_expect(str(malformed_data_button.get_meta("hub_panel_action", "")).contains("room_d"), "malformed room data should be skipped without shifting valid room identity")
 	_expect(hub.get_node_or_null("CentralHall") != null or hub.get_child_count() > 5, "hub should generate central hall and spatial elements")
 	if failures == 0:
 		print("HUB_3D_TEST: PASS — camera, environment, information board, developer access and five kiosks")
