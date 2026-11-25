@@ -256,6 +256,18 @@ func _build_avatar() -> void:
 	var wing_right := _add_sphere(self, "TransparentWingRight", Vector3(0.29, 1.32, 0.24), Vector3(0.28, 0.42, 0.055), wing_mat)
 	wing_left.rotation.z = 0.32
 	wing_right.rotation.z = -0.32
+	# Thin luminous vein accents give the translucent colony wings a layered silhouette.
+	var wing_vein_material := _material(Color("#d8edf3", 0.72), 0.28)
+	wing_vein_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	wing_vein_material.emission_enabled = true
+	wing_vein_material.emission = Color("#9bd6e6")
+	wing_vein_material.emission_energy_multiplier = 0.22
+	for wing_side in [-1.0, 1.0]:
+		for vein_index in range(3):
+			var vein_y := 1.31 + float(vein_index - 1) * 0.17
+			var vein_x := wing_side * (0.29 + float(vein_index) * 0.035)
+			var vein := _add_capsule(self, "WingVein_%s_%d" % [str(wing_side), vein_index], Vector3(vein_x, vein_y, 0.19), 0.012, 0.32, wing_vein_material)
+			vein.rotation.z = wing_side * (0.25 + float(vein_index) * 0.12)
 	_name_label = Label3D.new()
 	_name_label.name = "VerifiedMemberName"
 	_name_label.text = "Colony Member"
