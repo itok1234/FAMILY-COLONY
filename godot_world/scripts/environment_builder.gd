@@ -225,6 +225,22 @@ func _build_buildings() -> void:
 				_box(group, Vector3(1.42, 1.43, 0.07), Vector3(wx, y, depth * 0.5 + 0.15), glass, "FrontWindow")
 		_box(group, Vector3(2.1, 2.7, 0.12), Vector3(0, 1.35, depth * 0.5 + 0.06), roof, "EntryDoor")
 		_box(group, Vector3(2.8, 0.18, 0.8), Vector3(0, 2.78, depth * 0.5 + 0.38), trim, "EntryCanopy")
+		# Entrance platform, step and readable building identity.
+		_box(group, Vector3(3.8, 0.24, 1.8), Vector3(0, -0.22, depth * 0.5 + 1.0), trim, "EntryLanding")
+		_box(group, Vector3(3.2, 0.18, 0.85), Vector3(0, -0.34, depth * 0.5 + 2.05), wall_material, "EntryStep")
+		_add_static_collision_box(group, Vector3(3.5, 0.3, 2.4), Vector3(0, -0.2, depth * 0.5 + 1.35), "EntryLanding")
+		var sign_plate := _box(group, Vector3(width * 0.55, 0.65, 0.16), Vector3(0, height - 0.7, depth * 0.5 + 0.2), roof, "BuildingSignPlate")
+		var building_sign := Label3D.new()
+		building_sign.name = "BuildingIdentity"
+		building_sign.text = "COLONY HUB %02d" % (i + 1)
+		building_sign.position = Vector3(0, height - 0.7, depth * 0.5 + 0.32)
+		building_sign.font_size = 32
+		building_sign.pixel_size = 0.012
+		building_sign.outline_size = 5
+		building_sign.modulate = Color(0.91, 0.84, 0.65)
+		building_sign.outline_modulate = Color(0.12, 0.15, 0.17)
+		building_sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		group.add_child(building_sign)
 
 func _build_trees() -> void:
 	var trees_root := Node3D.new()
