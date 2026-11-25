@@ -1040,6 +1040,11 @@ func _dice_action(action: String) -> void:
 		return
 	if int(_royal_game_state.round) > 5:
 		return
+	if bool(_royal_game_state.get("pending_next", false)):
+		if action == "next_round":
+			_royal_game_state.pending_next = false
+			_show_royal_dice()
+		return
 	if action.begins_with("card:"):
 		var selected_card := action.trim_prefix("card:")
 		var allowed_cards := ["ROYAL BOOST", "HONEY SHIELD", "SHADOW TRAP", "LUCKY CROWN"]
@@ -1074,6 +1079,9 @@ func _dice_action(action: String) -> void:
 		_royal_game_state.score += 1
 	else:
 		_royal_game_state.bot_score += 2
+	_royal_game_state.last_roll = roll
+	_royal_game_state.last_bot_roll = bot_roll
+	_royal_game_state.last_effect = card_effect
 	_royal_game_status.text = "🎲 DADU KAMU: %d (+%d)  •  BOT: %d\n%s\nSkor: %d — %d" % [roll, bonus, bot_roll, card_effect, _royal_game_state.score, _royal_game_state.bot_score]
 	_royal_game_state.round += 1
 	_royal_game_state.card = "ROYAL BOOST"
@@ -1081,7 +1089,8 @@ func _dice_action(action: String) -> void:
 		var outcome := "KAMU MENANG!" if int(_royal_game_state.score) > int(_royal_game_state.bot_score) else ("SERI!" if int(_royal_game_state.score) == int(_royal_game_state.bot_score) else "ROYAL BOT MENANG!")
 		_finish_royal_game("ROYAL DICE SELESAI\n%s\nSkor akhir: %d — %d" % [outcome, _royal_game_state.score, _royal_game_state.bot_score])
 	else:
-		_show_royal_dice()
+		_royal_game_state.pending_next = true
+		_add_royal_button("RONDE BERIKUTNYA", Vector3(0, -2.0, -0.24), "next_round", Vector3(2.7, 0.46, 0.16))
 
 
 func _finish_royal_game(summary: String) -> void:
