@@ -1,7 +1,7 @@
 extends Node3D
-## FAMILY COLONY — first native 3D hub slice.
-## This scene is intentionally isolated until authentication/session flows are
-## migrated; it does not replace the current launcher scene prematurely.
+## FAMILY COLONY — native spatial 3D member hub.
+## Instantiated by world_controller after Supabase session verification.
+## Art is currently procedural blockout geometry; production asset integration remains.
 
 signal destination_requested(destination_id: String)
 signal developer_login_requested()
