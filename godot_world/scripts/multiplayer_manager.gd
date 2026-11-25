@@ -163,7 +163,7 @@ func _on_server_disconnected() -> void:
 
 
 
-func _on_local_room_changed(room_id: String, members: Array[int]) -> void:
+func _on_local_room_changed(room_id: String, members: Array) -> void:
 	# A room is also the visibility boundary: clients must not see or receive
 	# movement from avatars assigned to another room.
 	var visible_peers: Dictionary = {}
