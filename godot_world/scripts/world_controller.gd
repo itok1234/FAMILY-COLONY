@@ -217,6 +217,9 @@ func _on_hub_avatar_appearance_changed(appearance: Dictionary) -> void:
 	var avatar := player.get_node_or_null("AvatarVisual")
 	if avatar != null and avatar.has_method("apply_appearance"):
 		avatar.call("apply_appearance", appearance)
+		var multiplayer_manager := get_node_or_null("MultiplayerManager")
+		if multiplayer_manager != null and multiplayer_manager.has_method("broadcast_local_appearance"):
+			multiplayer_manager.call("broadcast_local_appearance", avatar.call("get_appearance_snapshot"))
 
 
 func _on_hub_destination_requested(destination_id: String) -> void:
