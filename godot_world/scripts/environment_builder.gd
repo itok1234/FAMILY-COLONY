@@ -28,6 +28,7 @@ func _ready() -> void:
 	_build_plaza_ring_details()
 	_build_reference_social_gardens()
 	_build_plaza_accent_lighting()
+	_build_reference_city_skyline()
 
 func apply_quality_density(trees: int, lamps: int, buildings: int) -> void:
 	tree_count = maxi(0, trees)
@@ -91,6 +92,45 @@ func _add_static_collision_box(parent: Node3D, size: Vector3, at: Vector3, label
 	body.add_child(collision)
 	return body
 
+func _build_reference_city_skyline() -> void:
+	## Distant skyline framing the Colony plaza; silhouettes and facade strips are low-cost scenic meshes.
+	var skyline := Node3D.new()
+	skyline.name = "ReferenceCitySkyline"
+	add_child(skyline)
+	var glass_materials := [
+		_mat("skyline_glass_blue", Color("#416f91"), 0.28, 0.35),
+		_mat("skyline_glass_cyan", Color("#557f98"), 0.24, 0.32),
+		_mat("skyline_glass_slate", Color("#3a526c"), 0.35, 0.28)
+	]
+	var trim := _mat("skyline_trim", Color("#aebec9"), 0.42, 0.18)
+	var tower_specs := [
+		Vector3(-54.0, 34.0, -72.0), Vector3(-42.0, 27.0, -98.0),
+		Vector3(-30.0, 42.0, -116.0), Vector3(-18.0, 24.0, -126.0),
+		Vector3(18.0, 29.0, -126.0), Vector3(31.0, 45.0, -112.0),
+		Vector3(44.0, 32.0, -96.0), Vector3(56.0, 38.0, -76.0)
+	]
+	for i in range(tower_specs.size()):
+		var spec: Vector3 = tower_specs[i]
+		var tower := Node3D.new()
+		tower.name = "SkylineTower_%02d" % i
+		tower.position = Vector3(spec.x, 0.0, spec.z)
+		skyline.add_child(tower)
+		var width := 8.0 + float(i % 3) * 1.5
+		var depth := 7.0 + float(i % 2) * 2.0
+		var height := spec.y
+		var glass: Material = glass_materials[i % glass_materials.size()]
+		_box(tower, Vector3(width, height, depth), Vector3(0, height * 0.5, 0), glass, "TowerGlassBody")
+		_box(tower, Vector3(width + 0.7, 0.45, depth + 0.7), Vector3(0, height + 0.2, 0), trim, "TowerRoofCap")
+		for facade_side in [-1.0, 1.0]:
+			var side: float = float(facade_side)
+			_box(tower, Vector3(0.16, height * 0.92, depth + 0.25), Vector3(side * (width * 0.5 + 0.08), height * 0.5, 0), trim, "TowerVerticalEdge")
+		for floor_index in range(1, 7):
+			var floor_y := height * float(floor_index) / 7.0
+			_box(tower, Vector3(width * 0.92, 0.12, depth + 0.12), Vector3(0, floor_y, 0), trim, "TowerFloorBand")
+		# A narrow crown element creates varied skyline silhouettes without expensive lights.
+		if i % 2 == 0:
+			_box(tower, Vector3(width * 0.28, 2.4, 0.28), Vector3(0, height + 1.4, 0), trim, "TowerCrown")
+	
 func _build_central_plaza() -> void:
 	var stone := _mat("plaza_stone", Color(0.63, 0.65, 0.62))
 	var inset := _mat("plaza_inset", Color(0.43, 0.51, 0.53))
