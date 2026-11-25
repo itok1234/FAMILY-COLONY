@@ -1,9 +1,9 @@
 # FAMILY COLONY — Live Progress Dashboard
 
-> Generated automatically by GitHub Actions. Updated on code pushes, manual dispatch, and every 15 minutes.
+> Generated automatically by GitHub Actions. Updated automatically on tracked code pushes, or manually through GitHub Actions. No timed schedule is enabled on this feature branch.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Latest source commit:** [`c59a360`](https://github.com/itok1234/FAMILY-COLONY/commit/c59a36005c5ad4df9146586bd62cafcdf104742a)  
+> **Latest dashboard source commit:** [`71d4244`](https://github.com/itok1234/FAMILY-COLONY/commit/71d4244c8a227852eab82f89b783ddee0be8a560)  
 > **Dashboard refreshed:** 2026-11-25T02:26:19.753Z
 
 ## Automated validation
