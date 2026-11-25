@@ -50,6 +50,9 @@ func _run() -> void:
 	var updated_appearance: Dictionary = avatar.call("get_appearance_snapshot")
 	_expect(updated_appearance.has("top") and updated_appearance.has("shoes"), "appearance preview should retain clothing slots")
 	_expect(updated_appearance["top"] == Color.from_string("#ff0000", Color.WHITE).to_html(true), "appearance preview should apply requested clothing color")
+	avatar.call("reset_appearance_preview")
+	var reset_appearance: Dictionary = avatar.call("get_appearance_snapshot")
+	_expect(reset_appearance["top"] != Color.from_string("#ff0000", Color.WHITE).to_html(true), "appearance preview should restore default top color")
 	if failures == 0:
 		print("AVATAR_3D_TEST: PASS — head, name label, materials, shoulder and shoe details")
 	else:
