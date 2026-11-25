@@ -219,17 +219,34 @@ func _leave_room_for_peer(peer_id: int) -> void:
 func _broadcast_room_state() -> void:
 	var snapshot := _public_room_snapshot()
 	room_list_changed.emit(snapshot)
-	if multiplayer.is_server():
-		_rpc_receive_room_snapshot.rpc(snapshot)
+	if not multiplayer.is_server():
+		return
+
+	# OfflinePeer is used by deterministic headless tests and local-only
+	# sessions. Never issue RPCs to simulated IDs that are not transport peers.
+	var connected_peers: Array[int] = []
+	for connected_id in multiplayer.get_peers():
+		connected_peers.append(int(connected_id))
+	if connected_peers.is_empty():
 		for peer_id in _peer_room.keys():
-			var room_id := String(_peer_room[peer_id])
-			var ids: Array[int] = []
-			for member_id in _rooms[room_id]["members"]:
-				ids.append(int(member_id))
+			var local_room_id := String(_peer_room[peer_id])
+			var local_ids: Array[int] = []
+			for member_id in _rooms[local_room_id]["members"]:
+				local_ids.append(int(member_id))
 			if int(peer_id) == multiplayer.get_unique_id():
-				local_room_changed.emit(room_id, ids)
-			else:
-				_rpc_receive_local_room.rpc_id(int(peer_id), room_id, ids)
+				local_room_changed.emit(local_room_id, local_ids)
+		return
+
+	_rpc_receive_room_snapshot.rpc(snapshot)
+	for peer_id in _peer_room.keys():
+		var room_id := String(_peer_room[peer_id])
+		var ids: Array[int] = []
+		for member_id in _rooms[room_id]["members"]:
+			ids.append(int(member_id))
+		if int(peer_id) == multiplayer.get_unique_id():
+			local_room_changed.emit(room_id, ids)
+		elif connected_peers.has(int(peer_id)):
+			_rpc_receive_local_room.rpc_id(int(peer_id), room_id, ids)
 
 
 func _public_room_snapshot() -> Array:
