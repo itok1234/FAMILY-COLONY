@@ -9,6 +9,10 @@ var _action_time := 0.0
 var _is_seated := false
 var _head: Node3D
 var _name_label: Label3D
+var _left_eye: MeshInstance3D
+var _right_eye: MeshInstance3D
+var _blink_clock := 0.0
+var _blink_time := 3.2
 var _left_arm: Node3D
 var _right_arm: Node3D
 var _left_leg: Node3D
@@ -87,6 +91,17 @@ func _process(delta: float) -> void:
 	var idle := sin(_time * 1.55) * 0.018
 	var wave_weight := 0.0
 	var sit_weight := 0.0
+	# Natural periodic blink; keep it subtle and inexpensive for mobile devices.
+	_blink_clock += delta
+	var blink := 0.0
+	if _blink_clock >= _blink_time:
+		blink = 1.0 - absf(fmod(_blink_clock - _blink_time, 1.0) - 0.5) * 2.0
+		if _blink_clock - _blink_time > 0.42:
+			_blink_clock = 0.0
+			_blink_time = randf_range(2.6, 5.0)
+	if _left_eye != null and _right_eye != null:
+		_left_eye.scale.y = lerpf(0.042, 0.006, blink)
+		_right_eye.scale.y = lerpf(0.042, 0.006, blink)
 	if _action == "wave":
 		wave_weight = 1.0 if _action_time < 1.5 else maxf(0.0, 1.0 - (_action_time - 1.5) * 2.0)
 		if wave_weight <= 0.0:
@@ -127,6 +142,10 @@ func _build_avatar() -> void:
 	var trim := _material(Color(0.78, 0.67, 0.43), 0.52)
 	_add_box(self, "CollarFront", Vector3(0, 1.48, -0.245), Vector3(0.22, 0.075, 0.045), trim)
 	_add_box(self, "ShirtPlacket", Vector3(0, 1.16, -0.286), Vector3(0.035, 0.48, 0.025), trim)
+	_add_box(self, "LeftChestPocket", Vector3(-0.17, 1.31, -0.276), Vector3(0.12, 0.14, 0.025), shirt)
+	_add_box(self, "PocketStitch", Vector3(-0.17, 1.385, -0.293), Vector3(0.13, 0.012, 0.012), trim)
+	_add_box(self, "WaistBelt", Vector3(0, 0.88, -0.214), Vector3(0.43, 0.055, 0.035), trim)
+	_add_box(self, "BeltBuckle", Vector3(0, 0.88, -0.239), Vector3(0.075, 0.065, 0.018), _material(Color("#e5c47d"), 0.3, 0.22))
 	for button_index in range(3):
 		_add_sphere(self, "ShirtButton_%d" % button_index, Vector3(0, 1.31 - float(button_index) * 0.14, -0.306), Vector3(0.018, 0.018, 0.012), trim)
 	_add_capsule(self, "Neck", Vector3(0, 1.61, 0), 0.105, 0.22, skin)
@@ -141,14 +160,20 @@ func _build_avatar() -> void:
 	_add_sphere(_head, "LeftHairLock", Vector3(-0.19, -0.005, -0.005), Vector3(0.055, 0.19, 0.085), hair)
 	_add_sphere(_head, "RightHairLock", Vector3(0.19, -0.005, -0.005), Vector3(0.055, 0.19, 0.085), hair)
 	_add_sphere(_head, "HairCrownVolume", Vector3(0, 0.19, 0.015), Vector3(0.205, 0.09, 0.20), hair)
+	# Layered tapered locks give the procedural hair a less helmet-like silhouette.
+	for side in [-1.0, 1.0]:
+		var lock := _add_capsule(_head, "LayeredHairLock_%s" % str(side), Vector3(side * 0.185, -0.075, -0.075), 0.045, 0.30, hair)
+		lock.rotation.z = side * -0.18
+	_add_sphere(_head, "HairFringeLeft", Vector3(-0.085, 0.105, -0.185), Vector3(0.105, 0.065, 0.045), hair)
+	_add_sphere(_head, "HairFringeRight", Vector3(0.075, 0.115, -0.185), Vector3(0.105, 0.065, 0.045), hair)
 	_add_sphere(_head, "CheekLeft", Vector3(-0.125, -0.065, -0.165), Vector3(0.075, 0.06, 0.04), skin)
 	_add_sphere(_head, "CheekRight", Vector3(0.125, -0.065, -0.165), Vector3(0.075, 0.06, 0.04), skin)
 	_add_sphere(_head, "LeftEar", Vector3(-0.222, -0.005, -0.005), Vector3(0.045, 0.075, 0.055), skin)
 	_add_sphere(_head, "RightEar", Vector3(0.222, -0.005, -0.005), Vector3(0.045, 0.075, 0.055), skin)
 	_add_sphere(_head, "LeftEyeWhite", Vector3(-0.078, 0.025, -0.195), Vector3(0.035, 0.03, 0.018), eye_white)
 	_add_sphere(_head, "RightEyeWhite", Vector3(0.078, 0.025, -0.195), Vector3(0.035, 0.03, 0.018), eye_white)
-	_add_sphere(_head, "LeftEye", Vector3(-0.078, 0.025, -0.213), Vector3(0.014, 0.021, 0.009), eyes)
-	_add_sphere(_head, "RightEye", Vector3(0.078, 0.025, -0.213), Vector3(0.014, 0.021, 0.009), eyes)
+	_left_eye = _add_sphere(_head, "LeftEye", Vector3(-0.078, 0.025, -0.213), Vector3(0.014, 0.021, 0.009), eyes)
+	_right_eye = _add_sphere(_head, "RightEye", Vector3(0.078, 0.025, -0.213), Vector3(0.014, 0.021, 0.009), eyes)
 	_add_sphere(_head, "LeftBrow", Vector3(-0.078, 0.079, -0.195), Vector3(0.047, 0.012, 0.014), hair)
 	_add_sphere(_head, "RightBrow", Vector3(0.078, 0.079, -0.195), Vector3(0.047, 0.012, 0.014), hair)
 	_add_sphere(_head, "Nose", Vector3(0, -0.018, -0.224), Vector3(0.032, 0.045, 0.035), skin)
@@ -194,18 +219,19 @@ func _make_limb(node_name: String, at: Vector3, mat: Material, radius: float, he
 	_add_capsule(pivot, "Limb", Vector3(0, -height * 0.25, 0), radius, height, mat)
 	return pivot
 
-func _add_capsule(parent: Node3D, node_name: String, at: Vector3, radius: float, height: float, mat: Material) -> void:
+func _add_capsule(parent: Node3D, node_name: String, at: Vector3, radius: float, height: float, mat: Material) -> MeshInstance3D:
 	var mesh := CapsuleMesh.new()
 	mesh.radius = radius
 	mesh.height = height
-	_add_mesh(parent, node_name, at, mesh, mat)
+	return _add_mesh(parent, node_name, at, mesh, mat)
 
-func _add_sphere(parent: Node3D, node_name: String, at: Vector3, scale_value: Vector3, mat: Material) -> void:
+func _add_sphere(parent: Node3D, node_name: String, at: Vector3, scale_value: Vector3, mat: Material) -> MeshInstance3D:
 	var mesh := SphereMesh.new()
 	mesh.radius = 0.5
 	mesh.height = 1.0
 	var instance := _add_mesh(parent, node_name, at, mesh, mat)
 	instance.scale = scale_value * 2.0
+	return instance
 
 func _add_box(parent: Node3D, node_name: String, at: Vector3, dimensions: Vector3, mat: Material) -> void:
 	var mesh := BoxMesh.new()
