@@ -234,6 +234,14 @@ func _on_developer_authenticated(member: Dictionary, access_token: String, anon_
 
 
 func _on_hub_settings_action_requested(action_id: String) -> void:
+	if action_id.begins_with("quality:"):
+		var quality := get_node_or_null("QualityManager")
+		var selected := action_id.trim_prefix("quality:").to_int()
+		if quality != null and quality.has_method("select_quality"):
+			quality.call("select_quality", selected)
+			if is_instance_valid(_main_hub):
+				_main_hub.call("set_developer_status", "Kualitas grafis tersimpan.")
+		return
 	var settings := get_node_or_null("AudioStudioSettings")
 	if settings == null:
 		return
