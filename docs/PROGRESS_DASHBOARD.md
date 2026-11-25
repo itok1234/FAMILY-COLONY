@@ -49,6 +49,13 @@
 | Full 3D acceptance | NOT COMPLETE | Remove member-facing 2D/WebView only after feature parity |
 | Release readiness | CI CHECKS TRACKED ABOVE | Physical-device regression, security and release sign-off |
 
+## FAST TRACK milestone ladder
+
+- Work in focused, complete packages and aim for the next overall milestone, not scattered micro-progress: **60% → 70% → 80% → 90% → 100%**.
+- Keep the existing 57% baseline until evidence-based completed work justifies reaching 60%; at 60%, record the milestone and immediately target 70%, repeating onward.
+- Milestone percentages are checkpoints, not promises or fabricated estimates. Update the dashboard with completed package evidence, commits, and validation status at each checkpoint.
+- **Current target: 60%** (3 percentage points from continuity baseline).
+
 ## FAST TRACK execution
 
 - **Active workstream:** Room & Lobby foundation, then integrate the shortest end-to-end playable path.
