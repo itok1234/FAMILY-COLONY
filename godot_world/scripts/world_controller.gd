@@ -244,14 +244,19 @@ func _on_hub_settings_action_requested(action_id: String) -> void:
 
 
 func _on_hub_minigame_requested(game_id: String) -> void:
-	if game_id != "honey_hunt":
-		return
 	var manager := get_node_or_null("MiniGameManager")
-	if manager == null or not manager.has_method("start_honey_hunt"):
-		push_warning("FAMILY COLONY: Honey Hunt manager is not available.")
+	if manager == null:
+		push_warning("FAMILY COLONY: Mini-game manager is not available.")
 		return
-	var result := str(manager.call("start_honey_hunt", player))
-	if not result.begins_with("Mini-game HONEY HUNT dimulai"):
+	var result := ""
+	if game_id == "honey_hunt" and manager.has_method("start_honey_hunt"):
+		result = str(manager.call("start_honey_hunt", player))
+	elif manager.has_method("start_royal_game"):
+		result = str(manager.call("start_royal_game", game_id, player))
+	else:
+		push_warning("FAMILY COLONY: Mini-game 3D handler is not available for " + game_id)
+		return
+	if not result.to_lower().contains("dimulai"):
 		push_warning("FAMILY COLONY: " + result)
 
 
