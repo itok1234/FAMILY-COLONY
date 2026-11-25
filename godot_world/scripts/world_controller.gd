@@ -196,8 +196,24 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 
 
 func _on_hub_destination_requested(destination_id: String) -> void:
+	if destination_id == "chat_open":
+		var chat_manager := get_node_or_null("ChatManager")
+		var hub_camera := _main_hub.get_node_or_null("HubCamera") as Camera3D if is_instance_valid(_main_hub) else null
+		if chat_manager != null and chat_manager.has_method("open_spatial_chat") and hub_camera != null:
+			chat_manager.call("open_spatial_chat", hub_camera)
+			chat_manager.set_process_unhandled_input(true)
+			if is_instance_valid(_main_hub):
+				_main_hub.queue_free()
+			_main_hub = null
+			return
+		push_warning("FAMILY COLONY: Spatial chat could not attach to the active 3D camera.")
+		return
 	if destination_id != "world":
 		return
+	var player_camera_for_chat := player.get_node_or_null("CameraPivot/Camera3D") as Camera3D
+	var chat_manager_for_restore := get_node_or_null("ChatManager")
+	if chat_manager_for_restore != null and chat_manager_for_restore.has_method("restore_spatial_chat") and player_camera_for_chat != null:
+		chat_manager_for_restore.call("restore_spatial_chat", player_camera_for_chat)
 	if is_instance_valid(_main_hub):
 		_main_hub.queue_free()
 	_main_hub = null
