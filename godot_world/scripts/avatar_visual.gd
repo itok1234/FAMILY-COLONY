@@ -101,6 +101,12 @@ func _process(delta: float) -> void:
 		_wing_right.rotation.z = -0.32 - wing_flap
 		_wing_left.rotation.x = sin(_time * 5.5) * 0.12
 		_wing_right.rotation.x = -sin(_time * 5.5) * 0.12
+		# Slow, layered flutter at rest; walking increases the flutter amplitude slightly.
+		var flutter := sin(_time * 10.0) * (0.018 + 0.035 * _motion)
+		_wing_left.scale.y = 0.84 + flutter
+		_wing_right.scale.y = 0.84 - flutter
+		_wing_left.position.y = 1.32 + sin(_time * 6.0) * 0.025
+		_wing_right.position.y = 1.32 - sin(_time * 6.0) * 0.025
 	var leg_swing := sin(gait_phase) * 0.48 * _motion
 	var arm_swing := -leg_swing * 0.72
 	var body_bob := absf(cos(gait_phase)) * 0.045 * _motion
