@@ -3,8 +3,8 @@
 > Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Latest source commit:** [`ed433b8`](https://github.com/itok1234/FAMILY-COLONY/commit/ed433b861a0609fe519a5928fc1481862a45c80f)  
-> **Dashboard refreshed:** 2026-11-25T02:57:55.272Z
+> **Latest source commit:** [`b829f73`](https://github.com/itok1234/FAMILY-COLONY/commit/b829f73fa4a7771f9ce2748d9a49a88dc7710572)  
+> **Dashboard refreshed:** 2026-11-25T02:58:21.227Z
 
 ## Overall progress baseline
 
@@ -15,7 +15,7 @@
 
 | Check | Latest branch result | Commit tested |
 |---|---|---|
-| Validate FAMILY COLONY 3D World | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45536615507) | ed433b8 |
+| Validate FAMILY COLONY 3D World | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45536615507) | ed433b8 |
 | Validate FAMILY COLONY Android Build | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45536615501) | ed433b8 |
 | FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45536615514) | ed433b8 |
 | Build FAMILY COLONY Signed Release APK | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45536615512) | ed433b8 |
@@ -31,7 +31,7 @@
 | Member login and session | LEGACY WEBVIEW FLOW PRESERVED | Port login, refresh, logout and recovery to spatial 3D |
 | Developer Center | 3D ENTRY / NAVIGATION SLICE | Secure backend CRUD and operational tools |
 | Five mini-games | HONEY HUNT 3D; FOUR INITIAL LOCAL GAME LOOPS | Complete gameplay, polish, persistence and multiplayer |
-| Multiplayer | LAN ENet FOUNDATION | Cloud-authoritative transport and abuse controls |
+| Multiplayer | LAN ENet FOUNDATION + HOST MOVEMENT RATE LIMIT (40 HZ) | Cloud-authoritative transport and server-side identity binding |
 | Full 3D acceptance | NOT COMPLETE | Remove member-facing 2D/WebView only after feature parity |
 | Release readiness | CI CHECKS TRACKED ABOVE | Physical-device regression, security and release sign-off |
 
