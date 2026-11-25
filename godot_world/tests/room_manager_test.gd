@@ -16,6 +16,7 @@ func _expect(condition: bool, message: String) -> void:
 
 func _run_room_manager_tests() -> void:
 	var manager = RoomManagerScript.new()
+	root.add_child(manager)
 	manager.default_room_capacity = 2
 
 	# Five connected peers at capacity two must be assigned exactly once
