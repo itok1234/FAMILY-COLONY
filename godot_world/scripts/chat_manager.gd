@@ -136,7 +136,7 @@ func _on_connection_state_changed(state: String, _detail: String) -> void:
 	if state == "offline" or state == "error":
 		_clear_local_chat_state()
 
-func _on_local_room_changed(room_id: String, _members: Array[int]) -> void:
+func _on_local_room_changed(room_id: String, _members: Array) -> void:
 	if room_id == _current_room_id:
 		return
 	_current_room_id = room_id
