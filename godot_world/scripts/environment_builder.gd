@@ -458,6 +458,31 @@ func _build_community_interior() -> void:
 
 	_box(room, Vector3(4.2, 0.55, 1.65), Vector3(-3.8, 0.1, -1.8), sofa_material, "LoungeSofa")
 	_box(room, Vector3(4.2, 1.15, 0.35), Vector3(-3.8, 0.75, -2.45), sofa_material, "SofaBack")
+
+	# Lounge upholstery and layered rug: visual-only shapes with no extra physics.
+	var rug_material := _mat("lounge_rug", Color("#647b8d"), 0.92)
+	var rug_border_material := _mat("lounge_rug_border", Color("#d2c2a0"), 0.8)
+	var cushion_material := _mat("lounge_cushion", Color("#91b7c6"), 0.95)
+	var cushion_light := _mat("lounge_cushion_light", Color("#e0d8c8"), 0.95)
+	_box(room, Vector3(7.8, 0.06, 5.2), Vector3(-1.2, -0.37, -1.4), rug_material, "LoungeRug")
+	_box(room, Vector3(7.55, 0.035, 0.12), Vector3(-1.2, -0.325, -3.92), rug_border_material, "RugBorder")
+	_box(room, Vector3(7.55, 0.035, 0.12), Vector3(-1.2, -0.325, 1.12), rug_border_material, "RugBorder")
+	_box(room, Vector3(0.12, 0.035, 5.0), Vector3(-5.03, -0.325, -1.4), rug_border_material, "RugBorder")
+	_box(room, Vector3(0.12, 0.035, 5.0), Vector3(2.63, -0.325, -1.4), rug_border_material, "RugBorder")
+	# Seat cushions spaced along the sofa, plus soft back accent pillows.
+	for cushion_index in range(3):
+		var cushion_x := -5.15 + float(cushion_index) * 1.35
+		_box(room, Vector3(1.15, 0.16, 1.42), Vector3(cushion_x, 0.43, -1.78), cushion_material if cushion_index % 2 == 0 else cushion_light, "SeatCushion")
+		var pillow := BoxMesh.new()
+		pillow.size = Vector3(0.72, 0.72, 0.22)
+		var pillow_node := _mesh_node(room, pillow, cushion_light if cushion_index % 2 == 0 else cushion_material, Vector3(cushion_x, 1.05, -2.34), "BackAccentPillow")
+		pillow_node.rotation.z = -0.12
+	# Companion sofa along the opposite side of the coffee table.
+	_box(room, Vector3(4.0, 0.55, 1.55), Vector3(0.6, 0.1, 0.65), sofa_material, "OppositeLoungeSofa")
+	_box(room, Vector3(4.0, 1.05, 0.32), Vector3(0.6, 0.72, 1.35), sofa_material, "OppositeSofaBack")
+	for cushion_index in range(3):
+		var cushion_x := -0.72 + float(cushion_index) * 1.32
+		_box(room, Vector3(1.1, 0.14, 1.32), Vector3(cushion_x, 0.42, 0.65), cushion_light if cushion_index % 2 == 0 else cushion_material, "OppositeSeatCushion")
 	_box(room, Vector3(2.6, 0.18, 1.5), Vector3(0.4, 0.35, -1.7), table_material, "CoffeeTable")
 	_box(room, Vector3(0.18, 0.35, 0.18), Vector3(-0.65, 0.05, -1.7), trim_material, "TableLeg")
 	_box(room, Vector3(0.18, 0.35, 0.18), Vector3(1.45, 0.05, -1.7), trim_material, "TableLeg")
