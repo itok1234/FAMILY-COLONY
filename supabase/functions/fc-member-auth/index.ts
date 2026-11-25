@@ -471,7 +471,8 @@ Deno.serve(async req => {
       const { data: staff } = await admin.from("fc_members")
         .select("member_id,role,status")
         .eq("auth_user_id", authData.user.id).maybeSingle();
-      if (!staff || staff.status !== "Aktif" || !["Kepsuk", "Deputi", "Admin"].includes(staff.role)) {
+      if (!staff || String(staff.status || "").trim().toLowerCase() !== "aktif" ||
+          !["kepsuk", "deputi", "admin"].includes(String(staff.role || "").trim().toLowerCase())) {
         return json({ error: "not_authorized" }, 403);
       }
       const username = String(body.username || "").trim().replace(/^@/, "").toLowerCase();
