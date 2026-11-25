@@ -216,7 +216,7 @@ func _on_hub_destination_requested(destination_id: String) -> void:
 	_build_world_exit_button()
 
 
-func _on_developer_authenticated(member: Dictionary, access_token: String, _refresh_token: String, anon_key: String) -> void:
+func _on_developer_authenticated(member: Dictionary, access_token: String, anon_key: String) -> void:
 	if str(member.get("role", "")).to_lower() != "developer" or str(member.get("username", "")).to_lower() != "edrick":
 		if is_instance_valid(_main_hub):
 			_main_hub.call("set_developer_status", "Akun ini tidak memiliki identitas Developer yang diizinkan.")
