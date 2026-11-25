@@ -8,6 +8,7 @@ signal developer_login_requested()
 signal developer_authenticated(member: Dictionary, access_token: String, refresh_token: String, anon_key: String)
 signal minigame_requested(game_id: String)
 signal developer_center_action_requested(action_id: String)
+signal settings_action_requested(action_id: String)
 
 const FC_AUTH_URL := "https://irwtnqekrwhgompulach.supabase.co/functions/v1/fc-member-auth"
 
@@ -540,6 +541,9 @@ func _open_destination_panel(destination_id: String) -> void:
 
 	if destination_id == "world":
 		_create_hub_panel_button("MASUK KE DUNIA", Vector3(0, 0.0, -0.24), "enter_world", Vector3(2.8, 0.68, 0.16), Color("#a77a36"))
+	if destination_id == "settings":
+		_create_hub_panel_button("SUARA & VOLUME", Vector3(0, 0.18, -0.24), "settings:audio", Vector3(2.8, 0.62, 0.16), Color("#a77a36"))
+		_create_hub_panel_button("TENTANG STUDIO", Vector3(0, -0.62, -0.24), "settings:credits", Vector3(2.8, 0.62, 0.16))
 	if destination_id == "games":
 		_create_hub_panel_button("HONEY HUNT", Vector3(-2.15, 0.15, -0.24), "game:honey_hunt", Vector3(2.0, 0.58, 0.16), Color("#a77a36"))
 		_create_hub_panel_button("GUESS WHO?", Vector3(0.0, 0.15, -0.24), "game:guess_who", Vector3(2.0, 0.58, 0.16))
@@ -703,6 +707,10 @@ func _handle_hub_panel_action(action_id: String) -> void:
 		else:
 			developer_center_action_requested.emit(developer_action)
 			_hint.text = "Developer Center: " + developer_action.replace("_", " ").to_upper() + " • menunggu integrasi operasi server."
+		return
+	if action_id.begins_with("settings:"):
+		settings_action_requested.emit(action_id.trim_prefix("settings:"))
+		_hint.text = "Pengaturan 3D dibuka: " + action_id.trim_prefix("settings:").to_upper()
 		return
 	if action_id == "enter_world":
 		if is_instance_valid(_destination_panel):
