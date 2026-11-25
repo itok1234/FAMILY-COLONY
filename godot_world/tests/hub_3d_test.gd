@@ -51,12 +51,14 @@ func _run() -> void:
 		_expect(room_root.get_node_or_null("JoinRoom_1") != null, "second room join button should render")
 		hub.call("change_room_snapshot_page", 1)
 		await process_frame
+		await process_frame
 		_expect(room_root.get_node_or_null("JoinRoom_0") != null, "room join button should render after paging")
 		_expect(room_root.get_node_or_null("JoinRoom_1") == null, "room paging should clear stale join buttons")
 		var page_two_button := room_root.get_node_or_null("JoinRoom_0") as Area3D
 		if page_two_button != null:
 			_expect(str(page_two_button.get_meta("hub_panel_action", "")).contains("room_c"), "page two button should reference the third room")
 		hub.call("change_room_snapshot_page", -1)
+		await process_frame
 		await process_frame
 		_expect(room_root.get_node_or_null("JoinRoom_1") != null, "returning to first page should render second room button")
 		_expect(room_root.get_node_or_null("JoinRoom_2") == null, "first page should not leave extra buttons")
