@@ -134,6 +134,19 @@ func _run_room_manager_tests() -> void:
 	manager._create_room_for_peer(1, "Cooldown Test", 2)
 	_expect(manager._rooms.is_empty(), "host-local room creation must respect the cooldown")
 
+	# Internal room creation rejects invalid names and clamps capacity even if bypassing public API.
+	manager._rooms.clear()
+	manager._peer_room.clear()
+	manager._last_room_create_at[1] = -10000.0
+	manager._create_room_for_peer(1, "Bad\\nName", 2)
+	_expect(manager._rooms.is_empty(), "internal room creation must reject control-character names")
+	manager._create_room_for_peer(1, "  Valid Internal  ", 100)
+	var internal_room_id := String(manager._peer_room.get(1, ""))
+	_expect(not internal_room_id.is_empty(), "internal creation should accept a trimmed valid name")
+	if manager._rooms.has(internal_room_id):
+		_expect(manager._rooms[internal_room_id]["name"] == "Valid Internal", "internal room name must be trimmed")
+		_expect(manager._rooms[internal_room_id]["capacity"] == 64, "internal creation must clamp capacity to 64")
+
 	# Successful host-local creation must register a room and membership once
 	# the cooldown has elapsed; the guard must not block legitimate creation.
 	manager._last_room_create_at[1] = -10000.0
