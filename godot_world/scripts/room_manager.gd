@@ -39,9 +39,11 @@ func _is_valid_room_id(room_id: String) -> bool:
 	var clean_id := room_id.strip_edges()
 	if clean_id.length() < 3 or clean_id.length() > 64:
 		return false
+	# IDs are opaque but deliberately restricted to a transport-safe alphabet.
 	for character in clean_id:
 		var codepoint := character.unicode_at(0)
-		if codepoint < 32 or codepoint == 127:
+		var allowed := (codepoint >= 48 and codepoint <= 57) or (codepoint >= 65 and codepoint <= 90) or (codepoint >= 97 and codepoint <= 122) or character == "_" or character == "-"
+		if not allowed:
 			return false
 	return true
 
