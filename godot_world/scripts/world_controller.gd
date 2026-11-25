@@ -115,7 +115,6 @@ func _build_session_gate() -> void:
 	_gate_status.position = Vector3(0, 0.12, -0.11)
 	_gate_status.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_gate_status.modulate = Color("#e5edf4")
-	_gate_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_gate_layer.add_child(_gate_status)
 	var return_area := Area3D.new()
 	return_area.name = "ReturnToAppSpatialAction"
