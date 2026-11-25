@@ -181,6 +181,8 @@ func _leave_room_for_peer(peer_id: int) -> void:
 	if _rooms.has(room_id):
 		var members: Array = _rooms[room_id]["members"]
 		members.erase(peer_id)
+		# Remove empty custom rooms and secondary lobby shards. Keep the
+		# canonical primary lobby available for invitations and first entry.
 		if members.is_empty() and room_id != "lobby":
 			_rooms.erase(room_id)
 
