@@ -11,6 +11,7 @@ const MAX_ACTIVE_ROOMS: int = 64
 var _rooms: Dictionary = {}
 var _peer_room: Dictionary = {}
 var _last_room_create_at: Dictionary = {}
+var _client_room_snapshot: Array = []
 var _network: Node
 
 
@@ -61,7 +62,9 @@ func leave_room() -> void:
 
 
 func get_room_snapshot() -> Array:
-	return _public_room_snapshot()
+	if multiplayer.is_server():
+		return _public_room_snapshot()
+	return _client_room_snapshot.duplicate(true)
 
 
 func _on_connection_state_changed(state: String, _detail: String) -> void:
@@ -71,6 +74,7 @@ func _on_connection_state_changed(state: String, _detail: String) -> void:
 		# Do not leave stale room cards or membership visible after disconnect.
 		_rooms.clear()
 		_peer_room.clear()
+		_client_room_snapshot.clear()
 		room_list_changed.emit([])
 		local_room_changed.emit("", [])
 
@@ -272,7 +276,8 @@ func _rpc_request_leave_room() -> void:
 
 @rpc("authority", "call_remote", "reliable")
 func _rpc_receive_room_snapshot(snapshot: Array) -> void:
-	room_list_changed.emit(snapshot)
+	_client_room_snapshot = snapshot.duplicate(true)
+	room_list_changed.emit(_client_room_snapshot.duplicate(true))
 
 
 @rpc("authority", "call_remote", "reliable")
