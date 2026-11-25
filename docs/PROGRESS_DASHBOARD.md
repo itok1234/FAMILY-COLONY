@@ -3,8 +3,8 @@
 > Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Latest source commit:** [`a9db50a`](https://github.com/itok1234/FAMILY-COLONY/commit/a9db50a19841193d8596088e417b62894519ff9d)  
-> **Dashboard refreshed:** 2026-11-25T05:32:51.507Z
+> **Latest source commit:** [`086de40`](https://github.com/itok1234/FAMILY-COLONY/commit/086de407a741f215ba2c7583c751ff2f7158664a)  
+> **Dashboard refreshed:** 2026-11-25T05:34:57.742Z
 
 ## FAST TRACK mode — ACTIVE
 
@@ -22,10 +22,10 @@
 
 | Check | Latest branch result | Commit tested |
 |---|---|---|
-| Validate FAMILY COLONY 3D World | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45552231099) | 7b818d7 |
-| Validate FAMILY COLONY Android Build | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45552231147) | 7b818d7 |
-| FAMILY COLONY Embedded Godot Android Smoke Test | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45552231171) | 7b818d7 |
-| Build FAMILY COLONY Signed Release APK | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45552231193) | 7b818d7 |
+| Validate FAMILY COLONY 3D World | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554547688) | 51ce490 |
+| Validate FAMILY COLONY Android Build | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554547763) | 51ce490 |
+| FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554547776) | 51ce490 |
+| Build FAMILY COLONY Signed Release APK | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45554317804) | a9db50a |
 
 ## Implementation status
 
@@ -34,7 +34,7 @@
 | Native 3D hub and world entry | IMPLEMENTED SLICE | Full app flow and feature parity |
 | Avatar profile and wardrobe | IMPLEMENTED SLICE | Cloud persistence and device UX |
 | Room-scoped avatar appearance sync | IMPLEMENTED SLICE — CI PASSED | Multi-device real-world test and persistence |
-| Room & Lobby (active group 1) | 65% provisional — lobby sharding, capacity/cooldown controls and client room-snapshot cache; chat control-character safety regression suite added to automated validation | Multi-device lifecycle, invitation/transition UI verification and cloud persistence |
+| Room & Lobby (active group 1) | 65% provisional — lobby sharding, capacity/cooldown controls and client room-snapshot cache; automated regression suite included in the Godot validation check above | Multi-device lifecycle, invitation/transition UI verification and cloud persistence |
 | Room management | LAN host-authoritative in-memory rooms; 64 custom-room cap; least-populated lobby shards; client snapshot cache | Cloud persistence and physical multi-device acceptance |
 | Member login and session | LEGACY WEBVIEW FLOW PRESERVED | Port login, refresh, logout and recovery to spatial 3D |
 | Developer Center | 3D ENTRY / NAVIGATION SLICE | Secure backend CRUD and operational tools |
