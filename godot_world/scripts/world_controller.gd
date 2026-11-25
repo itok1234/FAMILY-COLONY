@@ -163,6 +163,12 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 	var mobile_controls := get_node_or_null("Player/CameraPivot/Camera3D/MobileControls3D")
 	if mobile_controls != null:
 		mobile_controls.visible = false
+	var chat_manager := get_node_or_null("ChatManager")
+	if chat_manager != null:
+		chat_manager.set_process_unhandled_input(false)
+		var chat_root := player.get_node_or_null("CameraPivot/Camera3D/SpatialRoomChat")
+		if chat_root != null:
+			chat_root.visible = false
 	_main_hub = MAIN_HUB_SCENE.instantiate() as Node3D
 	if _main_hub != null:
 		_main_hub.name = "MainHub3D"
@@ -183,6 +189,12 @@ func _on_hub_destination_requested(destination_id: String) -> void:
 	var mobile_controls := get_node_or_null("Player/CameraPivot/Camera3D/MobileControls3D")
 	if mobile_controls != null:
 		mobile_controls.visible = OS.has_feature("android")
+	var chat_manager := get_node_or_null("ChatManager")
+	if chat_manager != null:
+		chat_manager.set_process_unhandled_input(true)
+		var chat_root := player.get_node_or_null("CameraPivot/Camera3D/SpatialRoomChat")
+		if chat_root != null:
+			chat_root.visible = true
 	_set_player_enabled(true)
 	var player_camera := player.get_node_or_null("CameraPivot/Camera3D") as Camera3D
 	if player_camera != null:
