@@ -134,3 +134,10 @@ Do not label the product fully 3D until:
 ## Credential boundary hardening (2026-11-25)
 - Removed the Developer refresh token from the Godot signal contract and from the 3D hub's parsed response values. Only the short-lived access token and public publishable key are handed to the world-session verifier; refresh credentials remain in the Android host authentication layer.
 - This reduces exposure of long-lived credentials inside the game scene graph and makes the native host the sole refresh-token owner. It does not replace server-side authorization or device security testing.
+
+
+## Member profile and settings 3D completion slice (2026-11-25)
+- Added a spatial 3D member profile card with a procedural avatar preview and verified account identity fields (display name, username, role and status). The card is explicitly read-only; account edits are not falsely presented as saved because no profile-write API has been integrated.
+- Added direct spatial 3D quality preset controls (Auto, Hemat, Seimbang, Tinggi) to the hub settings panel. Selection routes to QualityManager, updates runtime rendering and persists the preset locally.
+- Updated the spatial audio/credits panel to reparent to the currently active camera when opened. This lets it open from the hub camera rather than remaining attached to the inactive gameplay camera.
+- These changes complete a useful profile/settings presentation slice, not the full application migration. Cross-network chat, production avatar assets, cloud-authoritative multiplayer, Developer Center CRUD, full mini-game parity, and physical device tests remain outstanding.
