@@ -39,6 +39,9 @@ var _panel_title: Label3D
 var _panel_body: Label3D
 var _member_profile: Dictionary = {}
 var _room_snapshot_root: Node3D
+var _room_snapshot_data: Array = []
+var _room_snapshot_page: int = 0
+const ROOM_SNAPSHOT_PAGE_SIZE: int = 2
 var _room_status_label: Label3D
 var _room_connection_detail := "Belum terhubung ke jaringan LAN."
 var _room_lan_state := "offline"
@@ -632,7 +635,9 @@ func _open_destination_panel(destination_id: String) -> void:
 		_room_snapshot_root.name = "RoomList3D"
 		_room_snapshot_root.position = Vector3(1.45, -1.28, -0.25)
 		_destination_panel.add_child(_room_snapshot_root)
-		_create_hub_panel_button("KEMBALI KE HUB", Vector3(0, -2.22, -0.24), "back", Vector3(2.6, 0.52, 0.16), Color("#315b70"))
+		_create_hub_panel_button("SEBELUM", Vector3(0.72, -2.18, -0.24), "room:page:prev", Vector3(1.12, 0.34, 0.16), Color("#315b70"))
+		_create_hub_panel_button("LANJUT", Vector3(2.18, -2.18, -0.24), "room:page:next", Vector3(1.12, 0.34, 0.16), Color("#397b70"))
+		_create_hub_panel_button("KEMBALI KE HUB", Vector3(0, -2.62, -0.24), "back", Vector3(2.6, 0.36, 0.16), Color("#315b70"))
 		set_room_snapshot([])
 	if destination_id == "games":
 		_create_hub_panel_button("HONEY HUNT", Vector3(-2.15, 0.15, -0.24), "game:honey_hunt", Vector3(2.0, 0.58, 0.16), Color("#a77a36"))
@@ -1005,21 +1010,40 @@ func set_current_room(room_id: String, _members: Array[int]) -> void:
 
 
 func set_room_snapshot(rooms: Array) -> void:
+	_room_snapshot_data = rooms.duplicate(true)
+	var page_count := maxi(1, ceili(float(_room_snapshot_data.size()) / float(ROOM_SNAPSHOT_PAGE_SIZE)))
+	_room_snapshot_page = clampi(_room_snapshot_page, 0, page_count - 1)
+	_render_room_snapshot_page()
+
+
+func change_room_snapshot_page(direction: int) -> void:
+	var page_count := maxi(1, ceili(float(_room_snapshot_data.size()) / float(ROOM_SNAPSHOT_PAGE_SIZE)))
+	var next_page := clampi(_room_snapshot_page + signi(direction), 0, page_count - 1)
+	if next_page == _room_snapshot_page:
+		return
+	_room_snapshot_page = next_page
+	_render_room_snapshot_page()
+
+
+func _render_room_snapshot_page() -> void:
 	if not is_instance_valid(_room_snapshot_root):
 		return
 	for child in _room_snapshot_root.get_children():
 		child.queue_free()
+	var start_index := _room_snapshot_page * ROOM_SNAPSHOT_PAGE_SIZE
+	var end_index := mini(start_index + ROOM_SNAPSHOT_PAGE_SIZE, _room_snapshot_data.size())
 	var shown := 0
-	for room_variant in rooms:
-		if shown >= 3 or not (room_variant is Dictionary):
-			break
+	for index in range(start_index, end_index):
+		var room_variant = _room_snapshot_data[index]
+		if not (room_variant is Dictionary):
+			continue
 		var room: Dictionary = room_variant
 		var room_id := str(room.get("id", ""))
 		var room_name := str(room.get("name", "Room"))
 		var member_count := int(room.get("member_count", 0))
 		var capacity := int(room.get("capacity", 0))
 		var row := Node3D.new()
-		row.position.y = -float(shown) * 0.48
+		row.position.y = -float(shown) * 0.56
 		var label := Label3D.new()
 		label.text = "%s  %d/%d" % [room_name.left(13), member_count, capacity]
 		label.font_size = 13
@@ -1031,6 +1055,15 @@ func set_room_snapshot(rooms: Array) -> void:
 		_room_snapshot_root.add_child(row)
 		_create_room_join_button(room_id, shown)
 		shown += 1
+	var page_count := maxi(1, ceili(float(_room_snapshot_data.size()) / float(ROOM_SNAPSHOT_PAGE_SIZE)))
+	var page_label := Label3D.new()
+	page_label.text = "Halaman %d/%d" % [_room_snapshot_page + 1, page_count]
+	page_label.font_size = 12
+	page_label.pixel_size = 0.0028
+	page_label.position = Vector3(-1.35, -0.72, 0)
+	page_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	page_label.modulate = Color("#c9d9e5")
+	_room_snapshot_root.add_child(page_label)
 	if shown == 0:
 		var empty_label := Label3D.new()
 		empty_label.text = "Belum ada room terdaftar."
