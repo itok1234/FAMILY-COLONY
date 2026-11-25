@@ -24,7 +24,10 @@ func _input(event: InputEvent) -> void:
 		_apply_look(event.position - _last_position)
 		_last_position = event.position
 	elif event is InputEventScreenTouch:
-		if event.pressed and _active_touch == -1 and event.position.x >= get_viewport().get_visible_rect().size.x * touch_right_zone:
+		var viewport_size := get_viewport().get_visible_rect().size
+		# Reserve the bottom-right area for the sprint button; do not start orbit there.
+		var sprint_zone := event.position.x >= viewport_size.x * 0.68 and event.position.y >= viewport_size.y * 0.48
+		if event.pressed and _active_touch == -1 and not sprint_zone and event.position.x >= viewport_size.x * touch_right_zone:
 			_active_touch = event.index
 			_last_position = event.position
 		elif not event.pressed and event.index == _active_touch:
