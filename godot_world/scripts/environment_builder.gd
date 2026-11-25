@@ -225,7 +225,12 @@ func _build_buildings() -> void:
 		buildings_root.add_child(group)
 		var wall_material: Material = walls[i % walls.size()]
 		_box(group, Vector3(width, height, depth), Vector3(0, height * 0.5, 0), wall_material, "BuildingShell")
-		_add_static_collision_box(group, Vector3(width, height, depth), Vector3(0, height * 0.5, 0), "BuildingShell")
+		# Avoid a full-shell collision: reserve a doorway-sized opening at the front.
+		# The simplified exterior remains a facade blockout; collision walls are segmented.
+		_add_static_collision_box(group, Vector3(width, height, depth * 0.22), Vector3(0, height * 0.5, -depth * 0.39), "BuildingRearCollision")
+		_add_static_collision_box(group, Vector3(width * 0.18, height, depth * 0.76), Vector3(-width * 0.41, height * 0.5, depth * 0.12), "BuildingLeftCollision")
+		_add_static_collision_box(group, Vector3(width * 0.18, height, depth * 0.76), Vector3(width * 0.41, height * 0.5, depth * 0.12), "BuildingRightCollision")
+		_add_static_collision_box(group, Vector3(width * 0.64, height, depth * 0.18), Vector3(0, height * 0.5, depth * 0.41), "BuildingFrontCollision")
 		# Layered roof silhouette and eaves break up the primitive rectangular outline.
 		_box(group, Vector3(width + 1.15, 0.32, depth + 1.15), Vector3(0, height + 0.12, 0), roof, "RoofEaves")
 		var roof_mesh := CylinderMesh.new()
