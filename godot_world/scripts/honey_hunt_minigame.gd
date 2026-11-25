@@ -361,9 +361,9 @@ const GUESS_WHO_ROSTER := [
 	{"name":"Awan Ceria","category":"Member Fiktif","clues":["Suka suasana tenang dan santai.","Nama panggilannya terinspirasi dari langit.","Sering mengirim emoji awan."],"options":["Awan Ceria","Raja Madu","Bintang Hive","Milo Honey"]}
 ]
 const MURDER_CASES := [
-	{"title":"MISTERI MENARA MADU","clue":"Penjaga melihat sosok membawa kunci istana. Jejak lilin ditemukan di dekat ruang harta.","answer":"The Alchemist","options":["The Alchemist","The Shadow","The Royal Guard"]},
-	{"title":"RAHASIA TAMAN KACA","clue":"Korban terakhir terlihat menerima pesan rahasia. Saksi mendengar langkah cepat menuju lorong utara.","answer":"The Shadow","options":["The Royal Guard","The Shadow","The Alchemist"]},
-	{"title":"MALAM DI AULA KERAJAAN","clue":"Pintu aula terkunci dari dalam. Hanya pemegang lencana kerajaan yang dapat membuka segelnya.","answer":"The Royal Guard","options":["The Shadow","The Alchemist","The Royal Guard"]}
+	{"title":"MISTERI MENARA MADU","clue":"Residu ramuan dan botol kaca pecah ditemukan di ruang harta. Catatan penjaga menyebut hanya ahli ramuan yang mengenali residu itu.","answer":"The Alchemist","options":["The Alchemist","The Shadow","The Royal Guard"]},
+	{"title":"RAHASIA TAMAN KACA","clue":"Pesan tanpa tanda tangan ditemukan di taman. Saksi melihat sosok bersembunyi di bayangan dan tidak membawa lencana penjaga maupun perlengkapan ramuan.","answer":"The Shadow","options":["The Royal Guard","The Shadow","The Alchemist"]},
+	{"title":"MALAM DI AULA KERAJAAN","clue":"Segel pintu aula hanya bisa dibuka dengan lencana resmi. Lencana itu tercatat dipinjam oleh penjaga kerajaan yang bertugas malam itu.","answer":"The Royal Guard","options":["The Shadow","The Alchemist","The Royal Guard"]}
 ]
 
 
@@ -953,7 +953,8 @@ func _murder_action(action: String) -> void:
 		_royal_game_status.text += "\n✓ KASUS TERPECAHKAN! +100"
 	else:
 		_royal_game_state.wrong += 1
-		_royal_game_status.text += "\n✕ BUKTI TIDAK COCOK. Pelaku: " + str(c.answer)
+		_royal_game_state.score = maxi(0, int(_royal_game_state.score) - 25)
+		_royal_game_status.text += "\n✕ BUKTI TIDAK COCOK (-25). Pelaku: " + str(c.answer)
 	_royal_game_state.index += 1
 	if _royal_game_state.index >= _royal_game_state.cases.size():
 		_finish_royal_game("HASIL PENYELIDIKAN\nSkor: %d\nKasus terpecahkan: %d/3\nKesalahan: %d" % [_royal_game_state.score, _royal_game_state.correct, _royal_game_state.wrong])
