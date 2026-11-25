@@ -153,3 +153,11 @@ Do not label the product fully 3D until:
 - Added a dedicated 3D hub action to open the existing spatial room-chat panel.
 - Chat panel is reparented to the active hub camera while open, then restored to the player camera when the player returns to the 3D world.
 - Chat remains room-scoped and uses the existing LAN ENet transport. It is not represented as cloud/internet chat; cross-network transport and verified member display identity remain separate pending work.
+
+
+## Spatial room controls and LAN room routing (2026-11-25)
+- Added spatial 3D room controls to the social hub: start a LAN host, create a room, join the lobby, leave the current room, and view/join up to three rooms from the host's published room snapshot.
+- Wired the 3D controls to the existing RoomManager and MultiplayerManager. Room creation/join/leave requests use the host-authoritative LAN room registry and its RPC validation; chat remains scoped to the current room.
+- The hub displays LAN connection state, room action results and the current room identifier in Label3D.
+- Important limitation: this is still LAN ENet only. There is no public internet room discovery, NAT traversal, cloud authoritative server, cross-network chat or invite delivery. A client must first connect to a host's reachable LAN address through the transport API; the new panel does not yet provide host-address entry or internet matchmaking.
+- The current implementation has not yet passed the workflows triggered by these commits or physical-device multiplayer testing. The full 3D acceptance gate remains open.
