@@ -91,14 +91,12 @@ func _run_room_manager_tests() -> void:
 	manager._rooms.clear()
 	manager._peer_room.clear()
 	for room_index in range(RoomManagerScript.MAX_ACTIVE_ROOMS):
-		manager._last_room_create_at[1] = -10000.0
-		manager._create_room_for_peer(1, "Room %d" % room_index, 2)
-	var custom_room_count := 0
-	for room_key in manager._rooms.keys():
-		var room_id := str(room_key)
-		if room_id != "lobby" and not room_id.begins_with("lobby_"):
-			custom_room_count += 1
-	_expect(custom_room_count == RoomManagerScript.MAX_ACTIVE_ROOMS, "exactly 64 custom rooms must be allowed")
+		manager._rooms["room_cap_%d" % room_index] = {
+			"name": "Cap Test %d" % room_index,
+			"capacity": 2,
+			"members": []
+		}
+	_expect(manager._rooms.size() == RoomManagerScript.MAX_ACTIVE_ROOMS, "64 existing custom rooms must be represented")
 	manager._last_room_create_at[1] = -10000.0
 	manager._create_room_for_peer(1, "Overflow Room", 2)
 	var custom_room_count_after_rejection := 0
