@@ -236,6 +236,7 @@ func _build_buildings() -> void:
 		_box(group, Vector3(front_segment_width, height, depth * 0.18), Vector3(front_segment_center, height * 0.5, depth * 0.41), wall_material, "BuildingFrontRightWall")
 		var lintel_height := maxf(height - 2.7, 0.1)
 		_box(group, Vector3(doorway_width, lintel_height, depth * 0.18), Vector3(0, height - lintel_height * 0.5, depth * 0.41), wall_material, "BuildingFrontLintelWall")
+		_add_static_collision_box(group, Vector3(doorway_width, lintel_height, depth * 0.18), Vector3(0, height - lintel_height * 0.5, depth * 0.41), "BuildingFrontLintelCollision")
 		# Avoid a full-shell collision: reserve a doorway-sized opening at the front.
 		# The simplified exterior remains a facade blockout; collision walls are segmented.
 		_add_static_collision_box(group, Vector3(width, height, depth * 0.22), Vector3(0, height * 0.5, -depth * 0.39), "BuildingRearCollision")
