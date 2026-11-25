@@ -187,6 +187,7 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 		_main_hub.destination_requested.connect(_on_hub_destination_requested)
 		_main_hub.minigame_requested.connect(_on_hub_minigame_requested)
 		_main_hub.developer_authenticated.connect(_on_developer_authenticated)
+		_main_hub.developer_center_action_requested.connect(_on_developer_center_action_requested)
 		_main_hub.settings_action_requested.connect(_on_hub_settings_action_requested)
 		add_child(_main_hub)
 	if is_instance_valid(_gate_layer):
@@ -231,6 +232,22 @@ func _on_developer_authenticated(member: Dictionary, access_token: String, anon_
 		_developer_verification_pending = false
 		if is_instance_valid(_main_hub):
 			_main_hub.call("set_developer_status", "Verifikasi akses dunia gagal dimulai. Coba lagi.")
+
+
+func _on_developer_center_action_requested(action_id: String) -> void:
+	if not is_instance_valid(_main_hub):
+		return
+	# Keep the spatial module route explicit while backend operations are pending.
+	var module_titles := {
+		"members": "MANAJEMEN ANGGOTA",
+		"world_settings": "PENGATURAN DUNIA",
+		"minigames": "MANAJEMEN MINI GAME",
+		"server_monitor": "MONITOR SERVER",
+		"reports": "LAPORAN & AKTIVITAS",
+		"app_config": "KONFIGURASI APLIKASI"
+	}
+	var title := str(module_titles.get(action_id, "MODUL DEVELOPER"))
+	_main_hub.call("set_developer_status", title + " • panel 3D terhubung; operasi data menunggu integrasi endpoint server.")
 
 
 func _on_hub_settings_action_requested(action_id: String) -> void:
