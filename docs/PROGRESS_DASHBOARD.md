@@ -22,10 +22,10 @@
 
 | Check | Latest branch result | Commit tested |
 |---|---|---|
-| Validate FAMILY COLONY 3D World | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550823769) | 1189726 |
-| Validate FAMILY COLONY Android Build | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550683840) | af950cf |
-| FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550823761) | 1189726 |
-| Build FAMILY COLONY Signed Release APK | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550683760) | af950cf |
+| Validate FAMILY COLONY 3D World | [FAILURE — test harness parse issue diagnosed and corrected in 5ac11f1; re-run pending](https://github.com/itok1234/FAMILY-COLONY/actions) | 7fc6c88 (failed parse; correction queued) |
+| Validate FAMILY COLONY Android Build | [SUCCESS — debug APK build, package/signature and embedded pack checks](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550850000) | 7fc6c88 |
+| FAMILY COLONY Embedded Godot Android Smoke Test | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550849949) | 7fc6c88 |
+| Build FAMILY COLONY Signed Release APK | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45550849904) | 7fc6c88 |
 
 ## Implementation status
 
@@ -43,7 +43,7 @@
 | Full 3D acceptance | NOT COMPLETE | Remove member-facing 2D/WebView only after feature parity |
 | Release readiness | CI CHECKS TRACKED ABOVE | Physical-device regression, security and release sign-off |
 
-## FAST TRACK execution
+## Recent corrective work (2026-11-25)\n\n- Room/lobby test harness failed parsing because `multiplayer` was referenced from `SceneTree` scope. Corrected by assigning `OfflineMultiplayerPeer` to the instantiated RoomManager node (commit `5ac11f1`). This is a test setup fix, not a gameplay change; CI rerun is pending.\n- Android debug APK build, embedded world emulator smoke test, and signed release APK build all passed for `7fc6c88`.\n\n## FAST TRACK execution
 
 - **Active workstream:** Room & Lobby foundation, then integrate the shortest end-to-end playable path.
 - **Room & Lobby estimate:** 65% provisional / 35% remaining; do not raise without acceptance evidence.
