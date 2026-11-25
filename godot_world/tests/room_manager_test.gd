@@ -116,6 +116,17 @@ func _run_room_manager_tests() -> void:
 	manager._create_room_for_peer(1, "Cooldown Test", 2)
 	_expect(manager._rooms.is_empty(), "host-local room creation must respect the cooldown")
 
+	# Successful host-local creation must register a room and membership once
+	# the cooldown has elapsed; the guard must not block legitimate creation.
+	manager._last_room_create_at[1] = -10000.0
+	manager._create_room_for_peer(1, "Host Created Room", 3)
+	var host_created_room_id := String(manager._peer_room.get(1, ""))
+	_expect(not host_created_room_id.is_empty(), "host-local creation should succeed when cooldown expires")
+	_expect(manager._rooms.has(host_created_room_id), "successful creation must register the room")
+	if manager._rooms.has(host_created_room_id):
+		_expect(manager._rooms[host_created_room_id]["members"].count(1) == 1, "host must join its newly created room exactly once")
+		_expect(manager._rooms[host_created_room_id]["capacity"] == 3, "room creation must retain selected capacity")
+
 	if failures == 0:
 		print("ROOM_MANAGER_TEST: PASS — lobby sharding, capacity, unique membership, cleanup, rejoin and client snapshot cache")
 	else:
