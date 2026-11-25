@@ -66,10 +66,10 @@ func get_recent_messages() -> Array[Dictionary]:
 
 
 func _is_safe_chat_text(text_value: String) -> bool:
-	# Scan UTF-8 bytes so embedded NUL/control bytes are not skipped by String iteration.
-	var utf8_bytes := text_value.to_utf8_buffer()
-	for byte_value in utf8_bytes:
-		if byte_value < 32 or byte_value == 127:
+	# Scan Unicode code points directly; UTF-8 buffer conversion can truncate at NUL.
+	for index in range(text_value.length()):
+		var code_point := text_value.unicode_at(index)
+		if code_point < 32 or code_point == 127:
 			return false
 	return true
 
