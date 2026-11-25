@@ -16,8 +16,10 @@ var _room_manager: Node
 var _last_social_action_at: Dictionary = {}
 var _remote_players: Dictionary = {}
 var _last_accepted_motion: Dictionary = {}
+var _last_motion_packet_at: Dictionary = {}
 var _sync_accumulator: float = 0.0
 const SYNC_INTERVAL: float = 0.05
+const MIN_REMOTE_MOTION_INTERVAL: float = 0.025
 const MAX_REMOTE_SPEED: float = 8.0
 const MOVEMENT_DISTANCE_TOLERANCE: float = 1.0
 const REMOTE_AVATAR_SCRIPT: Script = preload("res://scripts/network_avatar.gd")
@@ -93,6 +95,8 @@ func join_game(address: String, port: int = -1) -> Error:
 func leave_game() -> void:
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	_clear_remote_players()
+	_last_accepted_motion.clear()
+	_last_motion_packet_at.clear()
 	peer_ids.clear()
 	_emit_roster()
 	_update_status("offline", "Koneksi diputus")
@@ -131,6 +135,7 @@ func _on_peer_connected(id: int) -> void:
 func _on_peer_disconnected(id: int) -> void:
 	peer_ids.erase(id)
 	_last_accepted_motion.erase(id)
+	_last_motion_packet_at.erase(id)
 	_remove_remote_player(id)
 	if multiplayer.is_server():
 		_rpc_remove_remote.rpc(id)
@@ -281,6 +286,14 @@ func _rpc_submit_state(position_value: Vector3, rotation_value: float, motion_va
 	var sender_id := multiplayer.get_remote_sender_id()
 	if sender_id <= 1 or not peer_ids.has(sender_id):
 		return
+	# Bound incoming movement RPC frequency before doing validation/relay work.
+	# The local publisher sends at 20 Hz; 40 Hz leaves room for jitter while
+	# preventing a connected client from flooding the host with movement packets.
+	var now := Time.get_ticks_msec() / 1000.0
+	var last_packet := float(_last_motion_packet_at.get(sender_id, -10000.0))
+	if now - last_packet < MIN_REMOTE_MOTION_INTERVAL:
+		return
+	_last_motion_packet_at[sender_id] = now
 	# Reject malformed movement packets before they reach other clients. LAN
 	# transport is still not a trusted production authority, but this prevents
 	# invalid numeric values and extreme coordinates from corrupting avatars.
@@ -292,7 +305,6 @@ func _rpc_submit_state(position_value: Vector3, rotation_value: float, motion_va
 		return
 	# Enforce a plausible movement envelope on the host. The tolerance absorbs
 	# ordinary packet jitter; it is not a substitute for cloud-authoritative physics.
-	var now := Time.get_ticks_msec() / 1000.0
 	if _last_accepted_motion.has(sender_id):
 		var previous: Dictionary = _last_accepted_motion[sender_id]
 		var elapsed := clampf(now - float(previous.get("time", now)), 0.0, 1.0)
