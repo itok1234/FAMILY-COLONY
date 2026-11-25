@@ -857,6 +857,8 @@ func _royal_bomb_action(action: String) -> void:
 		return
 	if int(_royal_game_state.round) > 12 or int(_royal_game_state.bombs) <= 0:
 		return
+	if not ["draw", "skip", "defuse"].has(action):
+		return
 	if action == "defuse":
 		if int(_royal_game_state.defuse) > 0 and not bool(_royal_game_state.armed_defuse):
 			_royal_game_state.defuse -= 1
