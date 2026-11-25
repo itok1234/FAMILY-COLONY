@@ -29,17 +29,31 @@ func _process(_delta: float) -> void:
 
 
 func open_settings_panel() -> void:
+	_attach_panel_to_active_camera()
 	if is_instance_valid(_panel):
 		_panel.visible = true
+		if is_instance_valid(_credits_label):
+			_credits_label.visible = false
 		_update_audio_labels()
 
 
 func open_credits_panel() -> void:
+	_attach_panel_to_active_camera()
 	if is_instance_valid(_panel):
 		_panel.visible = true
 		if is_instance_valid(_credits_label):
 			_credits_label.visible = true
 		_update_audio_labels()
+
+
+func _attach_panel_to_active_camera() -> void:
+	var active_camera := get_viewport().get_camera_3d()
+	if active_camera == null or not is_instance_valid(_panel):
+		return
+	if _panel.get_parent() != active_camera:
+		_panel.reparent(active_camera)
+	_camera = active_camera
+	_panel.position = Vector3(0.0, 0.0, -3.6)
 
 
 func close_settings_panel() -> void:
