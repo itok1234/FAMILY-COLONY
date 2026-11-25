@@ -113,7 +113,7 @@ func _join_or_create_lobby(peer_id: int) -> void:
 			shard_number += 1
 		selected_lobby = "lobby_%d" % shard_number
 		_rooms[selected_lobby] = {
-			"name": "Lobby" if shard_number == 1 else "Lobby %d" % (shard_number + 1),
+			"name": "Lobby %d" % (shard_number + 1),
 			"capacity": default_room_capacity,
 			"members": []
 		}
@@ -130,7 +130,12 @@ func _create_room_for_peer(peer_id: int, room_name: String, capacity: int) -> vo
 	if now - last_create < 5.0:
 		_send_result(peer_id, false, "Tunggu 5 detik sebelum membuat room lagi.")
 		return
-	if _rooms.size() - (1 if _rooms.has("lobby") else 0) >= MAX_ACTIVE_ROOMS:
+	var active_custom_rooms := 0
+	for existing_key in _rooms.keys():
+		var existing_id := str(existing_key)
+		if existing_id != "lobby" and not existing_id.begins_with("lobby_"):
+			active_custom_rooms += 1
+	if active_custom_rooms >= MAX_ACTIVE_ROOMS:
 		_send_result(peer_id, false, "Kapasitas jumlah room sedang penuh. Coba lagi nanti.")
 		return
 	_last_room_create_at[peer_id] = now
