@@ -3,8 +3,8 @@
 > Generated automatically by GitHub Actions. Updated on tracked code pushes and manual dispatch.
 >
 > **Branch:** `feature/direct-3d-entry`  
-> **Latest source commit:** [`f0dd2b4`](https://github.com/itok1234/FAMILY-COLONY/commit/f0dd2b4749af83b58ad924ff9db8fcabf7ada160)  
-> **Dashboard refreshed:** 2026-11-25T02:52:50.813Z
+> **Latest source commit:** [`abfcd1d`](https://github.com/itok1234/FAMILY-COLONY/commit/abfcd1db967d44d6a712861179dd5adbe8d0e595)  
+> **Dashboard refreshed:** 2026-11-25T02:53:08.925Z
 
 ## Overall progress baseline
 
@@ -15,10 +15,10 @@
 
 | Check | Latest branch result | Commit tested |
 |---|---|---|
-| Validate FAMILY COLONY 3D World | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45535744096) | 691bbe5 |
+| Validate FAMILY COLONY 3D World | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45536047358) | f0dd2b4 |
 | Validate FAMILY COLONY Android Build | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45536047393) | f0dd2b4 |
-| FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45535744029) | 691bbe5 |
-| Build FAMILY COLONY Signed Release APK | [SUCCESS](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45535744039) | 691bbe5 |
+| FAMILY COLONY Embedded Godot Android Smoke Test | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45536047409) | f0dd2b4 |
+| Build FAMILY COLONY Signed Release APK | [RUNNING](https://github.com/itok1234/FAMILY-COLONY/actions/runs/45536047505) | f0dd2b4 |
 
 ## Implementation status
 
@@ -27,7 +27,7 @@
 | Native 3D hub and world entry | IMPLEMENTED SLICE | Full app flow and feature parity |
 | Avatar profile and wardrobe | IMPLEMENTED SLICE | Cloud persistence and device UX |
 | Room-scoped avatar appearance sync | IMPLEMENTED SLICE — CI PASSED | Multi-device real-world test and persistence |
-| Room management | HOST + REMOTE ROOM-CREATION COOLDOWN | Multi-device room lifecycle and cloud persistence |
+| Room management | HOST + REMOTE COOLDOWN + 64-ACTIVE-ROOM CAP | Multi-device room lifecycle and cloud persistence |
 | Member login and session | LEGACY WEBVIEW FLOW PRESERVED | Port login, refresh, logout and recovery to spatial 3D |
 | Developer Center | 3D ENTRY / NAVIGATION SLICE | Secure backend CRUD and operational tools |
 | Five mini-games | HONEY HUNT 3D; FOUR INITIAL LOCAL GAME LOOPS | Complete gameplay, polish, persistence and multiplayer |
