@@ -5,6 +5,9 @@ extends Node3D
 
 signal destination_requested(destination_id: String)
 signal developer_login_requested()
+signal developer_authenticated(member: Dictionary, access_token: String, refresh_token: String, anon_key: String)
+
+const FC_AUTH_URL := "https://irwtnqekrwhgompulach.supabase.co/functions/v1/fc-member-auth"
 
 const HUB_ITEMS := [
 	{"id":"profile","title":"PROFIL ANGGOTA","subtitle":"Identitas • Avatar • Koleksi","position":Vector3(-6.0,1.35,-2.0),"color":Color("#4b7891")},
@@ -21,6 +24,11 @@ var _touch_start := Vector2.ZERO
 var _bee_tap_count := 0
 var _bee_last_tap_ms := 0
 var _developer_panel: Node3D
+var _developer_pin := ""
+var _developer_pin_status: Label3D
+var _developer_pin_display: Label3D
+var _developer_auth_request: HTTPRequest
+var _developer_login_busy := false
 
 
 func _ready() -> void:
@@ -30,6 +38,10 @@ func _ready() -> void:
 	_build_developer_bee()
 	_build_kiosks()
 	_build_hud()
+	_developer_auth_request = HTTPRequest.new()
+	_developer_auth_request.timeout = 18.0
+	_developer_auth_request.request_completed.connect(_on_developer_pin_response)
+	add_child(_developer_auth_request)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
@@ -198,15 +210,17 @@ func _register_bee_tap() -> void:
 func _show_developer_hologram() -> void:
 	if is_instance_valid(_developer_panel):
 		_developer_panel.queue_free()
+	_developer_pin = ""
+	_developer_login_busy = false
 	_developer_panel = Node3D.new()
 	_developer_panel.name = "DeveloperLoginHologram"
-	_developer_panel.position = Vector3(0, 2.0, 3.0)
+	_developer_panel.position = Vector3(0, 2.9, 3.0)
 	var panel_mesh := MeshInstance3D.new()
 	var plane := BoxMesh.new()
-	plane.size = Vector3(4.8, 2.4, 0.12)
+	plane.size = Vector3(4.8, 5.2, 0.12)
 	panel_mesh.mesh = plane
 	var glass := StandardMaterial3D.new()
-	glass.albedo_color = Color(0.035, 0.12, 0.19, 0.92)
+	glass.albedo_color = Color(0.035, 0.12, 0.19, 0.94)
 	glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	glass.metallic = 0.35
 	glass.roughness = 0.22
@@ -217,21 +231,136 @@ func _show_developer_hologram() -> void:
 	_developer_panel.add_child(panel_mesh)
 	var heading := Label3D.new()
 	heading.text = "DEVELOPER ACCESS"
-	heading.font_size = 48
+	heading.font_size = 44
 	heading.pixel_size = 0.004
-	heading.position = Vector3(0, 0.48, -0.09)
+	heading.position = Vector3(0, 2.12, -0.09)
 	heading.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	heading.modulate = Color("#f5d994")
 	_developer_panel.add_child(heading)
-	var message := Label3D.new()
-	message.text = "LOGIN DEVELOPER\nLanjutkan ke verifikasi akun"
-	message.font_size = 26
-	message.pixel_size = 0.004
-	message.position = Vector3(0, -0.38, -0.09)
-	message.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	message.modulate = Color("#e5f4ff")
-	_developer_panel.add_child(message)
+	_developer_pin_display = Label3D.new()
+	_developer_pin_display.text = "•  •  •  •  •  •"
+	_developer_pin_display.font_size = 34
+	_developer_pin_display.pixel_size = 0.004
+	_developer_pin_display.position = Vector3(0, 1.48, -0.09)
+	_developer_pin_display.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_developer_pin_display.modulate = Color("#e5f4ff")
+	_developer_panel.add_child(_developer_pin_display)
+	_developer_pin_status = Label3D.new()
+	_developer_pin_status.text = "Masukkan PIN Developer 6 digit"
+	_developer_pin_status.font_size = 18
+	_developer_pin_status.pixel_size = 0.004
+	_developer_pin_status.position = Vector3(0, 1.08, -0.09)
+	_developer_pin_status.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_developer_pin_status.modulate = Color("#b9d7e8")
+	_developer_panel.add_child(_developer_pin_status)
+	var keys := [
+		["1", -1.15, 0.36], ["2", 0.0, 0.36], ["3", 1.15, 0.36],
+		["4", -1.15, -0.30], ["5", 0.0, -0.30], ["6", 1.15, -0.30],
+		["7", -1.15, -0.96], ["8", 0.0, -0.96], ["9", 1.15, -0.96],
+		["HAPUS", -1.15, -1.62], ["0", 0.0, -1.62], ["MASUK", 1.15, -1.62]
+	]
+	for key_data in keys:
+		_create_developer_key(str(key_data[0]), Vector3(float(key_data[1]), float(key_data[2]), -0.22))
 	add_child(_developer_panel)
+
+
+func _create_developer_key(key_value: String, local_position: Vector3) -> void:
+	var key_area := Area3D.new()
+	key_area.name = "DeveloperKey_" + key_value
+	key_area.position = local_position
+	key_area.input_ray_pickable = true
+	key_area.collision_layer = 4
+	key_area.collision_mask = 0
+	key_area.set_meta("developer_key", key_value)
+	var hit := CollisionShape3D.new()
+	var hit_shape := BoxShape3D.new()
+	hit_shape.size = Vector3(0.92, 0.5, 0.32)
+	hit.shape = hit_shape
+	key_area.add_child(hit)
+	var key_mesh := MeshInstance3D.new()
+	var key_box := BoxMesh.new()
+	key_box.size = Vector3(0.88, 0.46, 0.16)
+	key_mesh.mesh = key_box
+	key_mesh.material_override = _material(Color("#315b70") if key_value != "MASUK" else Color("#a77a36"), 0.3, 0.24)
+	key_area.add_child(key_mesh)
+	var label := Label3D.new()
+	label.text = key_value
+	label.font_size = 25 if key_value.length() <= 2 else 15
+	label.pixel_size = 0.004
+	label.position.z = -0.1
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.modulate = Color("#ffffff")
+	key_area.add_child(label)
+	_developer_panel.add_child(key_area)
+
+
+func _update_developer_pin_display() -> void:
+	if not is_instance_valid(_developer_pin_display):
+		return
+	var masked := ""
+	for i in range(6):
+		masked += "●  " if i < _developer_pin.length() else "○  "
+	_developer_pin_display.text = masked.strip_edges()
+
+
+func _handle_developer_key(key_value: String) -> void:
+	if _developer_login_busy:
+		return
+	if key_value == "HAPUS":
+		_developer_pin = _developer_pin.left(maxi(0, _developer_pin.length() - 1))
+		_update_developer_pin_display()
+		return
+	if key_value == "MASUK":
+		_submit_developer_pin()
+		return
+	if key_value.is_valid_int() and _developer_pin.length() < 6:
+		_developer_pin += key_value
+		_update_developer_pin_display()
+		if _developer_pin.length() == 6 and is_instance_valid(_developer_pin_status):
+			_developer_pin_status.text = "PIN lengkap • tekan MASUK untuk verifikasi"
+
+
+func _submit_developer_pin() -> void:
+	if _developer_pin.length() != 6:
+		_developer_pin_status.text = "PIN harus tepat 6 angka."
+		return
+	if _developer_auth_request == null or _developer_auth_request.get_http_client_status() != HTTPClient.STATUS_DISCONNECTED:
+		_developer_pin_status.text = "Permintaan sebelumnya masih diproses."
+		return
+	var payload := JSON.stringify({"action": "developer_pin_login", "pin": _developer_pin})
+	var headers := PackedStringArray(["Content-Type: application/json"])
+	var error := _developer_auth_request.request(FC_AUTH_URL, headers, HTTPClient.METHOD_POST, payload)
+	if error != OK:
+		_developer_pin_status.text = "Tidak dapat menghubungi server. Coba lagi."
+		return
+	_developer_login_busy = true
+	_developer_pin_status.text = "Memverifikasi PIN melalui server aman..."
+
+
+func _on_developer_pin_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	_developer_login_busy = false
+	var parsed = JSON.parse_string(body.get_string_from_utf8())
+	if result != HTTPRequest.RESULT_SUCCESS or response_code < 200 or response_code >= 300 or not (parsed is Dictionary):
+		_developer_pin_status.text = "Koneksi gagal (" + str(response_code) + "). Periksa internet."
+		return
+	if parsed.get("ok") != true or not parsed.has("access_token") or not (parsed.get("member") is Dictionary):
+		_developer_pin_status.text = "Akses ditolak. PIN salah atau akun belum tersedia."
+		_developer_pin = ""
+		_update_developer_pin_display()
+		return
+	var member: Dictionary = parsed.get("member", {})
+	if str(member.get("role", "")).to_lower() != "developer" or str(member.get("username", "")).to_lower() != "edrick":
+		_developer_pin_status.text = "Server tidak mengembalikan identitas Developer yang valid."
+		_developer_pin = ""
+		_update_developer_pin_display()
+		return
+	var access_token := str(parsed.get("access_token", ""))
+	var refresh_token := str(parsed.get("refresh_token", ""))
+	var anon_key := str(parsed.get("anon_key", ""))
+	_developer_pin = ""
+	_developer_pin_status.text = "Verifikasi berhasil • sesi Developer aktif"
+	developer_authenticated.emit(member, access_token, refresh_token, anon_key)
+	_hint.text = "Developer terverifikasi oleh server. Sesi siap diteruskan ke pusat aplikasi."
 
 func _build_kiosks() -> void:
 	for item in HUB_ITEMS:
@@ -355,6 +484,9 @@ func _pick_destination(screen_position: Vector2) -> void:
 	var collider: Object = hit.get("collider")
 	if collider is Area3D and collider.has_meta("developer_bee"):
 		_register_bee_tap()
+		return
+	if collider is Area3D and collider.has_meta("developer_key"):
+		_handle_developer_key(str(collider.get_meta("developer_key")))
 		return
 	if collider is Area3D and collider.has_meta("destination_id"):
 		var destination := str(collider.get_meta("destination_id"))
