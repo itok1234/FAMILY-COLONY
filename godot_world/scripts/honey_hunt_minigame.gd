@@ -64,6 +64,8 @@ func _process(delta: float) -> void:
 			_update_guess_who_clock()
 			if _royal_game_state.seconds <= 0.0:
 				_royal_game_state.wrong += 1
+				_royal_game_state.score = maxi(0, int(_royal_game_state.score) - 5)
+				_royal_game_status.text += "\nWaktu habis (-5 poin)."
 				_guess_who_next()
 		return
 	if not _active or not is_instance_valid(_player):
@@ -817,6 +819,8 @@ func _guess_who_action(action: String) -> void:
 		return
 	if action == "skip":
 		_royal_game_state.wrong += 1
+		_royal_game_state.score = maxi(0, int(_royal_game_state.score) - 5)
+		_royal_game_status.text += "\nSoal dilewati (-5 poin)."
 		_guess_who_next()
 		return
 	if action.begins_with("guess:"):
@@ -830,7 +834,8 @@ func _guess_who_action(action: String) -> void:
 			_royal_game_status.text += "\n✓ JAWABAN TEPAT: " + str(q.name)
 		else:
 			_royal_game_state.wrong += 1
-			_royal_game_status.text += "\n✕ Jawaban benar: " + str(q.name)
+			_royal_game_state.score = maxi(0, int(_royal_game_state.score) - 10)
+			_royal_game_status.text += "\n✕ Jawaban salah (-10). Jawaban benar: " + str(q.name)
 		_guess_who_next()
 
 
