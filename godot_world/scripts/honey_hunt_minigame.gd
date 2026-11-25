@@ -469,6 +469,29 @@ func _clear_royal_game_panel() -> void:
 	backing.mesh = box
 	backing.material_override = _material(Color("#10243a"), 0.25, 0.34)
 	_royal_game_panel.add_child(backing)
+
+	# Premium royal frame: layered brass rails and a soft cyan inner accent.
+	for edge in [-1.0, 1.0]:
+		var rail := MeshInstance3D.new()
+		var rail_mesh := BoxMesh.new()
+		rail_mesh.size = Vector3(6.42, 0.075, 0.12) if edge > 0.0 else Vector3(0.075, 5.32, 0.12)
+		rail.mesh = rail_mesh
+		rail.position = Vector3(0, edge * 2.62, -0.14) if edge > 0.0 else Vector3(edge * 3.16, 0, -0.14)
+		rail.material_override = _material(Color("#d7b36c"), 0.28, 0.58)
+		_royal_game_panel.add_child(rail)
+
+	var accent := MeshInstance3D.new()
+	var accent_mesh := BoxMesh.new()
+	accent_mesh.size = Vector3(3.0, 0.035, 0.08)
+	accent.mesh = accent_mesh
+	accent.position = Vector3(0, 1.88, -0.15)
+	var accent_material := _material(Color("#6cb5bd"), 0.25, 0.35)
+	accent_material.emission_enabled = true
+	accent_material.emission = Color("#6cb5bd")
+	accent_material.emission_energy_multiplier = 0.45
+	accent.material_override = accent_material
+	_royal_game_panel.add_child(accent)
+
 	var title := Label3D.new()
 	title.text = _royal_game_title()
 	title.font_size = 38
@@ -510,11 +533,19 @@ func _add_royal_button(label_text: String, pos: Vector3, action: String, size: V
 	hit_shape.size = Vector3(size.x, size.y, 0.42)
 	hit.shape = hit_shape
 	area.add_child(hit)
+	var rim := MeshInstance3D.new()
+	var rim_box := BoxMesh.new()
+	rim_box.size = Vector3(size.x + 0.075, size.y + 0.075, size.z * 0.72)
+	rim.mesh = rim_box
+	rim.material_override = _material(Color("#b9904e"), 0.3, 0.52)
+	area.add_child(rim)
+
 	var mesh := MeshInstance3D.new()
 	var visual := BoxMesh.new()
-	visual.size = size
+	visual.size = Vector3(size.x - 0.035, size.y - 0.035, size.z)
 	mesh.mesh = visual
 	mesh.material_override = _material(tint, 0.28, 0.2)
+	mesh.position.z = -0.035
 	area.add_child(mesh)
 	var label := Label3D.new()
 	label.text = label_text
