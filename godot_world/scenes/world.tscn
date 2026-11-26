@@ -104,7 +104,7 @@ script = ExtResource("7")
 
 [node name="ProductionCharacterMount" type="Node3D" parent="Player"]
 
-[node name="AvatarV3Controller" type="Node3D" parent="Player"]
+[node name="AvatarV3Controller" type="Node" parent="Player"]
 script = ExtResource("17")
 avatar_path = NodePath("../AvatarVisual")
 
