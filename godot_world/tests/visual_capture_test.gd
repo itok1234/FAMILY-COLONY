@@ -20,6 +20,20 @@ func _capture() -> void:
 		push_error("VISUAL_CAPTURE_FAIL: viewport image empty")
 		quit(1)
 		return
+	# Basic pixel-level sanity checks: reject blank/near-uniform frames.
+	var samples := 0
+	var varied := false
+	var first := image.get_pixel(0, 0)
+	for y in range(0, image.get_height(), max(1, image.get_height() / 16)):
+		for x in range(0, image.get_width(), max(1, image.get_width() / 16)):
+			var px := image.get_pixel(x, y)
+			samples += 1
+			if abs(px.r - first.r) + abs(px.g - first.g) + abs(px.b - first.b) > 0.12:
+				varied = true
+	if samples < 20 or not varied:
+		push_error("VISUAL_CAPTURE_FAIL: image appears blank or uniform")
+		quit(1)
+		return
 	var out_dir := "user://visual_qa"
 	var absolute_dir := ProjectSettings.globalize_path(out_dir)
 	DirAccess.make_dir_recursive_absolute(absolute_dir)
