@@ -1,0 +1,102 @@
+[
+  {
+    "category": "character",
+    "path": "godot_world/intake-output/OfficeWorker.glb",
+    "bytes": 410388,
+    "sha256": "8f0d9ad921da8de859fdc2bc25a28fbd7691c109cd52f526e05789ddf937943c",
+    "license": "CC0-1.0",
+    "source_page": "https://gobkit.com/freebies/human015",
+    "attribution": "Gobkit CC0",
+    "status": "candidate_pending_visual_review"
+  },
+  {
+    "category": "character",
+    "path": "godot_world/intake-output/Student.glb",
+    "bytes": 424752,
+    "sha256": "dc2402cd3a66efbbdf0190aaccfbc6759486290854858c8d1ee83f4680d4c5a1",
+    "license": "CC0-1.0",
+    "source_page": "https://gobkit.com/freebies/human015",
+    "attribution": "Gobkit CC0",
+    "status": "candidate_pending_visual_review"
+  },
+  {
+    "category": "character",
+    "path": "godot_world/intake-output/HeadChef.glb",
+    "bytes": 537980,
+    "sha256": "f8613d34aa04cc0c7555ce7cb8eb9ea257ee58983e6c61b0f66c17deadbc0931",
+    "license": "CC0-1.0",
+    "source_page": "https://gobkit.com/freebies/human015",
+    "attribution": "Gobkit CC0",
+    "status": "candidate_pending_visual_review"
+  },
+  {
+    "category": "character",
+    "path": "godot_world/intake-output/RoboCatHelper.glb",
+    "bytes": 695528,
+    "sha256": "f683ad0c75b8e860daeb4da1305c8c82888b9efb048e85022a6dd3f8f1be3f3",
+    "license": "CC0-1.0",
+    "source_page": "https://gobkit.com/freebies/human018",
+    "attribution": "Gobkit CC0",
+    "status": "candidate_pending_visual_review"
+  },
+  {
+    "category": "character",
+    "path": "godot_world/intake-output/FairyGodmother.glb",
+    "bytes": 480044,
+    "sha256": "57dd602e8e9ee8e6599470d0d02f643624fcf5ab19b141e1fb5bc9603be47928",
+    "license": "CC0-1.0",
+    "source_page": "https://gobkit.com/freebies/human013",
+    "attribution": "Gobkit CC0",
+    "status": "candidate_pending_visual_review"
+  },
+  {
+    "category": "environment",
+    "path": "godot_world/intake-output/Bee.glb",
+    "bytes": 156888,
+    "sha256": "15dcefc04a7730a613d7a6065af19320891be5930596e9c39d04992765b3cf40",
+    "license": "CC0-1.0",
+    "source_page": "https://gobkit.com/freebies/animalB",
+    "attribution": "Gobkit CC0",
+    "status": "candidate_pending_visual_review"
+  },
+  {
+    "category": "environment",
+    "path": "godot_world/intake-output/Fox.glb",
+    "bytes": 95328,
+    "sha256": "6b21cee3fbfc1c84510b020d9bc75e69a4f6401e7715109f25fdcce4fe10f6bf",
+    "license": "CC0-1.0",
+    "source_page": "https://gobkit.com/freebies/animal006",
+    "attribution": "Gobkit CC0",
+    "status": "candidate_pending_visual_review"
+  },
+  {
+    "category": "environment",
+    "path": "godot_world/intake-output/Chick.glb",
+    "bytes": 90108,
+    "sha256": "c74b1e07f052eb4a75b959abe5691cdf937971c18bfc58fab36536a4abf7c090",
+    "license": "CC0-1.0",
+    "source_page": "https://gobkit.com/freebies/animal007",
+    "attribution": "Gobkit CC0",
+    "status": "candidate_pending_visual_review"
+  },
+  {
+    "category": "environment",
+    "path": "godot_world/intake-output/Koala.glb",
+    "bytes": 104716,
+    "sha256": "41e008751c798c662560fc0da4711c1beb8a69d9ac515a72cb812020448f7f6",
+    "license": "CC0-1.0",
+    "source_page": "https://gobkit.com/freebies/animal007",
+    "attribution": "Gobkit CC0",
+    "status": "candidate_pending_visual_review"
+  },
+  {
+    "category": "environment",
+    "path": "godot_world/intake-output/Hedgehog.glb",
+    "bytes": 102784,
+    "sha256": "85ee10753e0b23b23a5a0b4cab8e764865f664a4e0845fdc1c7f41912158fcb9",
+    "license": "CC0-1.0",
+    "source_page": "https://gobkit.com/freebies/animal006",
+    "attribution": "Gobkit CC0",
+    "status": "candidate_pending_visual_review"
+  }
+]
