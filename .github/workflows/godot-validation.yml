@@ -192,10 +192,3 @@ jobs:
             exit 1
           fi
 
-      - name: Upload rendered scene evidence (pending visual review)
-        uses: actions/upload-artifact@v4
-        with:
-          name: FAMILY-COLONY-3D-WORLD-RENDER-QA
-          path: qa-output/world_runtime_capture.png
-          if-no-files-found: error
-          retention-days: 14
