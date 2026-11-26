@@ -1,21 +1,4 @@
-{
-  "schema_version": 1,
-  "status": "curated_download_candidates_not_yet_imported",
-  "license": "CC0 1.0",
-  "source_page": "https://gobkit.com/api/free",
-  "selection_notes": "Selected social/family-life characters and bee/nature props; every model is a candidate only until downloaded, imported and visual-reviewed. URLs copied verbatim from the official manifest.",
-  "character": [
-    {"filename":"OfficeWorker.glb","url":"https://gobkit.com/freebies/human015/OfficeWorker.glb","license":"CC0-1.0","source_page":"https://gobkit.com/freebies/human015","attribution":"Gobkit CC0; no attribution required","review":"candidate"},
-    {"filename":"Student.glb","url":"https://gobkit.com/freebies/human015/Student.glb","license":"CC0-1.0","source_page":"https://gobkit.com/freebies/human015","attribution":"Gobkit CC0; no attribution required","review":"candidate"},
-    {"filename":"HeadChef.glb","url":"https://gobkit.com/freebies/human015/HeadChef.glb","license":"CC0-1.0","source_page":"https://gobkit.com/freebies/human015","attribution":"Gobkit CC0; no attribution required","review":"candidate"},
-    {"filename":"RoboCatHelper.glb","url":"https://gobkit.com/freebies/human018/RoboCatHelper.glb","license":"CC0-1.0","source_page":"https://gobkit.com/freebies/human018","attribution":"Gobkit CC0; no attribution required","review":"candidate"},
-    {"filename":"FairyGodmother.glb","url":"https://gobkit.com/freebies/human013/FairyGodmother.glb","license":"CC0-1.0","source_page":"https://gobkit.com/freebies/human013","attribution":"Gobkit CC0; no attribution required","review":"candidate"}
-  ],
-  "environment": [
-    {"filename":"Bee.glb","url":"https://gobkit.com/freebies/animalB/Bee.glb","license":"CC0-1.0","source_page":"https://gobkit.com/freebies/animalB","attribution":"Gobkit CC0; no attribution required","review":"candidate"},
-    {"filename":"Fox.glb","url":"https://gobkit.com/freebies/animal006/Fox.glb","license":"CC0-1.0","source_page":"https://gobkit.com/freebies/animal006","attribution":"Gobkit CC0; no attribution required","review":"candidate"},
-    {"filename":"Chick.glb","url":"https://gobkit.com/freebies/animal007/Chick.glb","license":"CC0-1.0","source_page":"https://gobkit.com/freebies/animal007","attribution":"Gobkit CC0; no attribution required","review":"candidate"},
-    {"filename":"Koala.glb","url":"https://gobkit.com/freebies/animal007/Koala.glb","license":"CC0-1.0","source_page":"https://gobkit.com/freebies/animal007","attribution":"Gobkit CC0; no attribution required","review":"candidate"},
-    {"filename":"Hedgehog.glb","url":"https://gobkit.com/freebies/animal006/Hedgehog.glb","license":"CC0-1.0","source_page":"https://gobkit.com/freebies/animal006","attribution":"Gobkit CC0; no attribution required","review":"candidate"}
-  ]
-}
+[
+ {"category":"character","filename":"replace_with_rigged_character.glb","url":"https://replace-with-verified-direct-download","license":"verify_and_record_exact_license","source_page":"https://replace-with-source-page","attribution":"record_required_credit"},
+ {"category":"environment","filename":"replace_with_environment.glb","url":"https://replace-with-verified-direct-download","license":"verify_and_record_exact_license","source_page":"https://replace-with-source-page","attribution":"record_required_credit"}
+]
