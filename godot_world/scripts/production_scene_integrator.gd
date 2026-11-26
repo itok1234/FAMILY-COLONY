@@ -29,3 +29,7 @@ func _mount_selected_or_first(category: String, key: String, mount_path: NodePat
 		return
 	mount.add_child(model)
 	model.name = "ApprovedProduction_" + (key if key.strip_edges() != "" else category)
+	if category == "character":
+		var fallback_avatar := get_node_or_null("../Player/AvatarVisual")
+		if fallback_avatar is Node3D:
+			fallback_avatar.visible = false
