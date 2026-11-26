@@ -29,7 +29,7 @@ jobs:
       - name: Headless import attempt
         run: |
           /tmp/godot/Godot_v4.4.1-stable_linux.x86_64 --headless --path godot_world --editor --import
-      - name: Preserve downloaded candidate receipt
+      - name: Inspect candidate GLB structure\n        run: python3 godot_world/tools/inspect_downloaded_glbs.py\n      - name: Preserve downloaded candidate receipt
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -62,4 +62,12 @@ jobs:
           path: |
             godot_world/assets/characters/*.glb
             godot_world/assets/environment/*.glb
+          if-no-files-found: warn
+
+      - name: Upload structural report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: asset-structural-report
+          path: godot_world/assets/asset_structural_report.json
           if-no-files-found: warn
