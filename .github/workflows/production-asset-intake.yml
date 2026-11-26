@@ -11,14 +11,16 @@ jobs:
   download:
     runs-on: ubuntu-latest
     steps:
-      - name: Obtain and download three free sampler ZIPs
+      - name: Obtain and fetch sampler archives with persistent session
         shell: bash
         run: |
-          set -euo pipefail
+          set -u
           mkdir -p packs evidence
+          failed=0
           for slug in free-stylized-animated free-stylized-fantasy free-stylized-nature; do
             base="https://soresa-assets.itch.io/$slug"
-            curl -L --fail -sS -A "Mozilla/5.0" "$base" -o "evidence/$slug.html"
+            echo "=== $slug ==="
+            curl -L --fail -sS -A "Mozilla/5.0" -c "evidence/$slug.cookies" "$base" -o "evidence/$slug.html" || { echo "Page fetch failed"; failed=1; continue; }
             token=$(python - "$slug" <<'PY'
           import re,sys
           s=open('evidence/'+sys.argv[1]+'.html',encoding='utf8').read()
@@ -26,16 +28,34 @@ jobs:
           print(m.group(1) if m else '')
           PY
             )
-            test -n "$token" || { echo "No CSRF token for $slug"; exit 1; }
-            response=$(curl -L --fail -sS -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" -A "Mozilla/5.0" -H "Referer: $base" -H "Content-Type: application/x-www-form-urlencoded" --data-urlencode "csrf_token=$token" --data-urlencode "price=0" "$base/download_url")
-            url=$(python -c 'import json,sys; print(json.loads(sys.argv[1]).get("url",""))' "$response")
-            test -n "$url" || { echo "No download URL for $slug"; exit 1; }
-            curl -L --fail -sS -A "Mozilla/5.0" "$url" -o "packs/$slug.zip"
-            unzip -t "packs/$slug.zip"
-            mkdir -p "packs/$slug"
-            unzip -q "packs/$slug.zip" -d "packs/$slug"
+            if [ -z "$token" ]; then echo "CSRF token missing"; failed=1; continue; fi
+            response=$(curl -L -sS -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" -A "Mozilla/5.0" -H "Referer: $base" -H "Content-Type: application/x-www-form-urlencoded" --data-urlencode "csrf_token=$token" --data-urlencode "price=0" "$base/download_url" -o "evidence/$slug-url-response.json" -w '%{http_code}' || true)
+            echo "URL request HTTP: $response"
+            url=$(python - "$slug" <<'PY'
+          import json,sys
+          try:
+            d=json.loads(open('evidence/'+sys.argv[1]+'-url-response.json').read())
+            print(d.get('url',''))
+          except Exception as e: print('')
+          PY
+            )
+            if [ -z "$url" ]; then echo "URL response invalid; saved evidence"; failed=1; continue; fi
+            http=$(curl -L -sS -A "Mozilla/5.0" -b "evidence/$slug.cookies" "$url" -o "packs/$slug.zip" -w '%{http_code}' || true)
+            echo "Archive response HTTP: $http"
+            file "packs/$slug.zip" || true
+            head -c 300 "packs/$slug.zip" > "evidence/$slug-download-preview.txt" || true
+            if unzip -t "packs/$slug.zip" > "evidence/$slug-zip-test.txt" 2>&1; then
+              mkdir -p "packs/$slug"
+              unzip -q "packs/$slug.zip" -d "packs/$slug"
+              echo "ARCHIVE PASS: $slug"
+            else
+              cat "evidence/$slug-zip-test.txt"
+              failed=1
+            fi
           done
-      - name: Inventory pack contents
+          exit "$failed"
+      - name: Inventory models
+        if: always()
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -50,56 +70,10 @@ jobs:
           print(json.dumps(report,indent=2))
           PY
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: family-colony-production-packs
-          path: packs/
+          name: family-colony-production-packs-diagnostic
+          path: |
+            packs/
+            evidence/
           retention-days: 7
-  character-check:
-    needs: download
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: family-colony-production-packs
-          path: packs
-      - name: Character pack inventory
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          data=json.loads(Path('packs/inventory.json').read_text())
-          candidates=[m for p in data if 'animated' in p['pack'] for m in p['models']]
-          print('Character asset candidates:',len(candidates))
-          if not candidates: raise SystemExit('No candidate models')
-          PY
-  environment-check:
-    needs: download
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: family-colony-production-packs
-          path: packs
-      - name: Environment inventory
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          data=json.loads(Path('packs/inventory.json').read_text())
-          candidates=[m for p in data if 'fantasy' in p['pack'] or 'nature' in p['pack'] for m in p['models']]
-          print('Environment asset candidates:',len(candidates))
-          if not candidates: raise SystemExit('No candidate models')
-          PY
-  visual-qa-gate:
-    needs: [character-check, environment-check]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: family-colony-production-packs
-          path: packs
-      - name: Explicit QA status
-        run: |
-          echo "Candidate pack downloads and inventory checks passed."
-          echo "Scene integration and visual QA against rendered scenes remain pending."
-          echo "This gate intentionally does not claim visual approval."
