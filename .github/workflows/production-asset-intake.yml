@@ -1,0 +1,31 @@
+name: FAMILY COLONY Production Asset Intake
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/direct-3d-entry
+    paths:
+      - 'godot_world/assets/asset_sources.json'
+      - 'godot_world/tools/fetch_production_assets.py'
+      - '.github/workflows/production-asset-intake.yml'
+permissions:
+  contents: read
+jobs:
+  intake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download declared GLB candidates
+        run: python godot_world/tools/fetch_production_assets.py
+      - name: Stage and structural-check candidates
+        run: python godot_world/tools/stage_candidate_models.py
+      - name: Package candidate intake (not visual approval)
+        run: |
+          cd godot_world
+          zip -r ../production-asset-candidates.zip assets/characters assets/environment assets/asset_download_receipt.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-asset-candidates-unapproved
+          path: production-asset-candidates.zip
+          if-no-files-found: error
+          retention-days: 14
