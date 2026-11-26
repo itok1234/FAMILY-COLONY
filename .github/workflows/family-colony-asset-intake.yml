@@ -1,0 +1,53 @@
+name: Family Colony 3D Asset Intake
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'godot_world/assets/asset_sources.json'
+      - 'godot_world/tools/fetch_production_assets.py'
+      - 'godot_world/tools/asset_intake_audit.py'
+      - '.github/workflows/family-colony-asset-intake.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  intake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download listed GLB sources
+        run: python3 godot_world/tools/fetch_production_assets.py
+      - name: Install Godot 4.4.1 headless
+        run: |
+          sudo snap install godot --classic
+          godot --version
+      - name: Headless import attempt
+        run: |
+          godot --headless --path godot_world --editor --import
+      - name: Preserve downloaded candidate receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: asset-intake-receipt
+          path: godot_world/assets/asset_download_receipt.json
+          if-no-files-found: warn
+      - name: Candidate intake report (not visual approval)
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          p=pathlib.Path('godot_world/assets/asset_download_receipt.json')
+          data=json.loads(p.read_text()) if p.exists() else []
+          report={'downloaded_count':len(data),'assets':data,'status':'pending_visual_review_and_manifest_acceptance'}
+          pathlib.Path('godot_world/assets/asset_intake_ci_report.json').write_text(json.dumps(report,indent=2))
+          print(json.dumps(report,indent=2))
+          PY
+      - name: Upload intake report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: asset-intake-report
+          path: godot_world/assets/asset_intake_ci_report.json
+          if-no-files-found: warn
