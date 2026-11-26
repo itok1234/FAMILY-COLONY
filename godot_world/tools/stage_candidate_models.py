@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
-"""Stage validated GLB intake models into production asset folders without approval.
-
-This is a reproducible integration preparation step, NOT visual QA or production
-acceptance. Skinned models are staged as character assets; non-skinned meshes are
-staged as environment assets. The production manifest is intentionally unchanged.
+"""Stage the 10 verified GLB intake candidates using explicit source metadata.
+Creates a populated manifest for runtime smoke-test mounting; does NOT mark QA approved.
 """
 from pathlib import Path
-import json, struct, shutil, sys
-
+import json, shutil, struct, sys
 ROOT=Path(__file__).resolve().parents[1]
 INTAKE=ROOT/"intake-output"
+SOURCE=ROOT/"assets"/"asset_sources.json"
 DEST={"character":ROOT/"assets"/"characters","environment":ROOT/"assets"/"environment"}
+MANIFEST=ROOT/"assets"/"production_asset_manifest.json"
 
 def glb_json(p):
     data=p.read_bytes()
@@ -20,31 +18,28 @@ def glb_json(p):
     off=12
     while off+8<=len(data):
         n,t=struct.unpack_from("<II",data,off);off+=8
-        chunk=data[off:off+n]
+        chunk=data[off:off+n];off+=n
         if len(chunk)!=n: raise ValueError("truncated chunk")
-        off+=n
-        if t==0x4E4F534A: return json.loads(chunk.decode("utf-8").rstrip(" \t\r\n\0"))
+        if t==0x4E4F4F4A: return json.loads(chunk.decode("utf-8").rstrip(" \t\r\n\0"))
     raise ValueError("missing JSON chunk")
 
 def main():
-    if not INTAKE.exists(): print("INTAKE directory missing");return 1
-    counts={"character":0,"environment":0}; errs=[]
+    if not INTAKE.is_dir() or not SOURCE.is_file(): print("Missing intake or source metadata");return 1
+    sources=json.loads(SOURCE.read_text(encoding="utf-8"))
+    byname={e["filename"]:e for e in sources}
+    manifest={"character":[],"environment":[]}
+    staged=0
     for src in sorted(INTAKE.glob("*.glb")):
-        try:
-            doc=glb_json(src)
-            if not doc.get("meshes") or not doc.get("nodes"): raise ValueError("mesh/node missing")
-            cat="character" if doc.get("skins") else "environment"
-            dest=DEST[cat]/src.name
-            DEST[cat].mkdir(parents=True,exist_ok=True)
-            if dest.exists():
-                if dest.read_bytes()!=src.read_bytes(): raise ValueError("destination conflict (different file)")
-            else: shutil.copy2(src,dest)
-            counts[cat]+=1
-            print(f"STAGED {cat}: {src.name} | meshes={len(doc.get('meshes',[]))} skins={len(doc.get('skins',[]))} animations={len(doc.get('animations',[]))}")
-        except Exception as e: errs.append(f"{src.name}: {e}")
-    print("Staging counts:",counts)
-    print("Approval manifest intentionally unchanged; staged assets remain unapproved.")
-    if errs:
-        print("\n".join(errs));return 1
+        e=byname.get(src.name)
+        if not e: print("SKIP: source metadata not found",src.name);continue
+        cat=e["category"]; doc=glb_json(src)
+        if cat not in DEST or not doc.get("meshes") or not doc.get("nodes"): raise ValueError(f"invalid candidate {src.name}")
+        dest=DEST[cat]/src.name;dest.parent.mkdir(parents=True,exist_ok=True)
+        if dest.exists() and dest.read_bytes()!=src.read_bytes(): raise ValueError("destination conflict "+str(dest))
+        if not dest.exists(): shutil.copy2(src,dest)
+        manifest[cat].append({"key":src.stem,"path":"res://"+str(dest.relative_to(ROOT)).replace("\\","/"),"license":e["license"],"source":e["source_page"],"attribution":e.get("attribution",""),"visual_qa":"pending","qa_reviewer":"","qa_evidence":"","runtime_test_candidate":True})
+        staged+=1
+    MANIFEST.write_text(json.dumps(manifest,indent=2)+"\n",encoding="utf-8")
+    print(f"STAGED {staged} candidate(s); manifest populated; visual approval remains pending.")
     return 0
-if __name__=="__main__": sys.exit(main())
+if __name__=="__main__":sys.exit(main())
