@@ -37,9 +37,10 @@ jobs:
           CAPTURE="$(find ~/.local/share/godot/app_userdata -path '*/visual_qa/world_capture.png' -type f | head -n 1)"
           if [ -z "$CAPTURE" ]; then echo "Screenshot file not found"; exit 1; fi
           cp "$CAPTURE" visual-qa-output/world_capture.png
+          cp capture.log visual-qa-output/capture.log
       - name: Upload rendered evidence
         uses: actions/upload-artifact@v4
         with:
           name: family-colony-rendered-visual-qa
-          path: visual-qa-output/world_capture.png
+          path: visual-qa-output/
           if-no-files-found: error
