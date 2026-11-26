@@ -1,0 +1,43 @@
+name: FAMILY COLONY Rendered Visual QA Capture
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/direct-3d-entry]
+    paths:
+      - "godot_world/scenes/**"
+      - "godot_world/scripts/**"
+      - "godot_world/tests/visual_capture_test.gd"
+      - ".github/workflows/family-colony-visual-qa.yml"
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+          cache: true
+      - name: Install display and software renderer
+        run: sudo apt-get update && sudo apt-get install -y xvfb mesa-utils
+      - name: Import project
+        run: godot --headless --editor --path godot_world --quit
+      - name: Render world and capture screenshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p visual-qa-output
+          xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 godot --path godot_world --script res://tests/visual_capture_test.gd 2>&1 | tee capture.log
+          grep -F "VISUAL_CAPTURE: PASS" capture.log
+          find godot_world/.godot -maxdepth 3 -type f >/dev/null || true
+          cp "$(find ~/.local/share/godot/app_userdata -path '*/visual_qa/world_capture.png' -type f | head -n 1)" visual-qa-output/world_capture.png
+      - name: Upload rendered evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: family-colony-rendered-visual-qa
+          path: visual-qa-output/world_capture.png
+          if-no-files-found: error
