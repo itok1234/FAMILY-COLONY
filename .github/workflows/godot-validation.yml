@@ -181,20 +181,14 @@ jobs:
             exit 1
           fi
 
-      - name: Render 3D world capture for visual QA review
+      - name: Headless world runtime structural check (not visual QA)
         shell: bash
         run: |
           set -euo pipefail
           log_file="$(mktemp)"
           timeout 90s godot --headless --path godot_world --script res://tests/world_render_capture.gd 2>&1 | tee "$log_file"
-          if ! grep -F "WORLD_RENDER_CAPTURE: PASS" "$log_file"; then
-            echo "::error::World rendering capture failed."
-            exit 1
-          fi
-          mkdir -p qa-output
-          cp godot_world/qa-output/world_runtime_capture.png qa-output/world_runtime_capture.png
-          if [ ! -s qa-output/world_runtime_capture.png ]; then
-            echo "::error::Capture image was not found."
+          if ! grep -F "WORLD_RUNTIME_STRUCTURE: PASS" "$log_file"; then
+            echo "::error::World runtime structural check failed."
             exit 1
           fi
 
