@@ -28,6 +28,25 @@ jobs:
       - name: Structural inspection (not visual acceptance)
         run: python3 godot_world/tools/inspect_downloaded_glbs.py
 
+      - name: Install Godot for real GLB import validation
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+          cache: true
+
+      - name: Import candidate GLBs in Godot headless
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          godot --headless --editor --path godot_world --quit 2>&1 | tee "$log_file"
+          if grep -E "SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script|ERROR: Cannot load" "$log_file"; then
+            echo "::error::Godot reported import or resource errors."
+            exit 1
+          fi
+          echo "::notice::Successful headless import proves resource parsing only, not visual QA or device performance."
+
       - name: Package candidate assets and receipt for review
         run: |
           set -euo pipefail
