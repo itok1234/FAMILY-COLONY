@@ -1,0 +1,48 @@
+name: FAMILY COLONY 3D Asset Intake (Unapproved Candidates)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/direct-3d-entry
+    paths:
+      - "godot_world/assets/asset_sources.json"
+      - "godot_world/tools/fetch_production_assets.py"
+      - ".github/workflows/family-colony-3d-asset-intake.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  intake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout locked 3D work branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/direct-3d-entry
+
+      - name: Download source-listed GLB candidates
+        run: python3 godot_world/tools/fetch_production_assets.py
+        working-directory: godot_world
+
+      - name: Structural inspection (not visual acceptance)
+        run: python3 godot_world/tools/inspect_downloaded_glbs.py
+        working-directory: godot_world
+
+      - name: Package candidate assets and receipt for review
+        run: |
+          set -euo pipefail
+          mkdir -p intake-output
+          cp assets/asset_download_receipt.json intake-output/
+          find assets/characters assets/environment -type f -name '*.glb' -exec cp {} intake-output/ \;
+          zip -r FAMILY-COLONY-3D-INTAKE-CANDIDATES.zip intake-output
+        working-directory: godot_world
+
+      - name: Upload candidate package (pending visual QA)
+        uses: actions/upload-artifact@v4
+        with:
+          name: FAMILY-COLONY-3D-INTAKE-CANDIDATES
+          path: godot_world/FAMILY-COLONY-3D-INTAKE-CANDIDATES.zip
+          if-no-files-found: error
+          retention-days: 14
