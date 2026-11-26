@@ -24,20 +24,17 @@ jobs:
 
       - name: Download source-listed GLB candidates
         run: python3 godot_world/tools/fetch_production_assets.py
-        working-directory: godot_world
 
       - name: Structural inspection (not visual acceptance)
         run: python3 godot_world/tools/inspect_downloaded_glbs.py
-        working-directory: godot_world
 
       - name: Package candidate assets and receipt for review
         run: |
           set -euo pipefail
-          mkdir -p intake-output
-          cp assets/asset_download_receipt.json intake-output/
-          find assets/characters assets/environment -type f -name '*.glb' -exec cp {} intake-output/ \;
-          zip -r FAMILY-COLONY-3D-INTAKE-CANDIDATES.zip intake-output
-        working-directory: godot_world
+          mkdir -p godot_world/intake-output
+          cp godot_world/assets/asset_download_receipt.json godot_world/intake-output/
+          find godot_world/assets/characters godot_world/assets/environment -type f -name '*.glb' -exec cp {} godot_world/intake-output/ \;
+          zip -r godot_world/FAMILY-COLONY-3D-INTAKE-CANDIDATES.zip godot_world/intake-output
 
       - name: Upload candidate package (pending visual QA)
         uses: actions/upload-artifact@v4
