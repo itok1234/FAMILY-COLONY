@@ -28,3 +28,4 @@ func _mount(key: String, category: String, mount_path: NodePath) -> void:
 		return
 	mount.add_child(model)
 	model.name = "ApprovedProduction_" + key
+\nfunc _mount_first(category: String, mount_path: NodePath) -> void:\n\tvar mount := get_node_or_null(mount_path)\n\tif mount == null:\n\t\tpush_warning("Production asset mount point missing: %s" % mount_path)\n\t\treturn\n\tvar model: Node3D = _loader.load_first_approved(category)\n\tif model == null:\n\t\treturn\n\tmount.add_child(model)\n\tmodel.name = "ApprovedProduction_" + category\n
