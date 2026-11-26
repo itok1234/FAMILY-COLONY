@@ -4,6 +4,7 @@
 Requires an asset_sources.json with entries containing category, filename,
 url, license, source_page and attribution. Downloads are untrusted and are NOT
 automatically accepted or marked visually approved. Run from repository root.
+This intake is intentionally triggered for repeatable asset and import evidence.
 """
 from pathlib import Path
 import hashlib, json, urllib.request, sys
