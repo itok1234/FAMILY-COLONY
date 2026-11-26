@@ -11,7 +11,7 @@ jobs:
   download:
     runs-on: ubuntu-latest
     steps:
-      - name: Resolve itch upload ID and fetch signed CDN URL
+      - name: Download through itch two-step file flow
         shell: bash
         run: |
           set -u
@@ -28,17 +28,11 @@ jobs:
           print(m.group(1) if m else '')
           PY
             )
-            upload=$(python - "$slug" <<'PY'
-          import re,sys
-          s=open('evidence/'+sys.argv[1]+'.html',encoding='utf8').read()
-          m=re.search(r'data-upload_id="(\d+)"[^>]*class="button download_btn"|class="button download_btn"[^>]*data-upload_id="(\d+)"',s)
-          print((m.group(1) or m.group(2)) if m else '')
-          PY
-            )
-            if [ -z "$token" ] || [ -z "$upload" ]; then echo "CSRF or upload ID missing"; failed=1; continue; fi
-            dlpage=$(curl -L --fail -sS -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" -A "Mozilla/5.0" -H "Referer: $base" --data-urlencode "csrf_token=$token" --data-urlencode "price=0" "$base/download_url" -o "evidence/$slug-download-page.html" -w '%{url_effective}' || true)
-            echo "Download page obtained"
-            # Download button on itch's download page uses POST /file/<upload_id>.
+            if [ -z "$token" ]; then echo "Page CSRF missing"; failed=1; continue; fi
+            response=$(curl -L --fail -sS -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" -A "Mozilla/5.0" -H "Referer: $base" -H "Content-Type: application/x-www-form-urlencoded" --data-urlencode "csrf_token=$token" --data-urlencode "price=0" "$base/download_url")
+            dlurl=$(python -c 'import json,sys; print(json.loads(sys.argv[1]).get("url",""))' "$response")
+            if [ -z "$dlurl" ]; then echo "Download page URL missing"; failed=1; continue; fi
+            curl -L --fail -sS -A "Mozilla/5.0" -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" "$dlurl" -o "evidence/$slug-download-page.html" || { failed=1; continue; }
             dtoken=$(python - "$slug" <<'PY'
           import re,sys
           s=open('evidence/'+sys.argv[1]+'-download-page.html',encoding='utf8').read()
@@ -46,32 +40,23 @@ jobs:
           print(m.group(1) if m else '')
           PY
             )
-            if [ -z "$dtoken" ]; then echo "Download-page CSRF missing"; failed=1; continue; fi
-            fileurl="$base/file/$upload"
-            code=$(curl -L -sS -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" -A "Mozilla/5.0" -H "Referer: $dlpage" -H "Content-Type: application/x-www-form-urlencoded" --data-urlencode "csrf_token=$dtoken" "$fileurl" -o "evidence/$slug-file-response.html" -w '%{http_code}' || true)
-            echo "File endpoint HTTP: $code"
-            # If POST response is HTML, parse any redirect URL or retry redirect-aware curl as saved response.
-            finalurl=$(python - "$slug" <<'PY'
+            upload=$(python - "$slug" <<'PY'
           import re,sys
-          s=open('evidence/'+sys.argv[1]+'-file-response.html',encoding='utf8').read()
-          for pat in [r'(https?://[^"\s<>]+)',r'location.href\s*=\s*["\']([^"\']+)']:
-            m=re.search(pat,s)
-            if m:
-              print(m.group(1));break
+          s=open('evidence/'+sys.argv[1]+'-download-page.html',encoding='utf8').read()
+          m=re.search(r'data-upload_id="(\d+)"',s)
+          print(m.group(1) if m else '')
           PY
             )
-            if [ -n "$finalurl" ] && [[ "$finalurl" == http* ]]; then
-              curl -L --fail -sS -A "Mozilla/5.0" -b "evidence/$slug.cookies" "$finalurl" -o "packs/$slug.zip" || true
-            else
-              echo "No redirect URL found in endpoint response" > "evidence/$slug-diagnosis.txt"
-            fi
-            file "packs/$slug.zip" 2>/dev/null || true
+            if [ -z "$dtoken" ] || [ -z "$upload" ]; then echo "Download page token or upload ID missing"; failed=1; continue; fi
+            fileurl="https://itch.io/file/$upload"
+            curl -L --fail -sS -A "Mozilla/5.0" -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" -H "Referer: $dlurl" -H "Content-Type: application/x-www-form-urlencoded" --data-urlencode "csrf_token=$dtoken" "$fileurl" -o "packs/$slug.zip" || { failed=1; continue; }
+            file "packs/$slug.zip"
             if unzip -t "packs/$slug.zip" > "evidence/$slug-zip-test.txt" 2>&1; then
               mkdir -p "packs/$slug"
               unzip -q "packs/$slug.zip" -d "packs/$slug"
               echo "ARCHIVE PASS: $slug"
             else
-              cat "evidence/$slug-zip-test.txt" 2>/dev/null || true
+              cat "evidence/$slug-zip-test.txt"
               failed=1
             fi
           done
@@ -95,5 +80,7 @@ jobs:
         if: always()
         with:
           name: family-colony-production-packs-diagnostic
-          path: packs/
+          path: |
+            packs/
+            evidence/
           retention-days: 7
