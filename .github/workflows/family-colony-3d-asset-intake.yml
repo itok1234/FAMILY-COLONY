@@ -47,6 +47,18 @@ jobs:
           fi
           echo "::notice::Successful headless import proves resource parsing only, not visual QA or device performance."
 
+      - name: Runtime scene smoke check (headless; not visual/device QA)
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          timeout 90 godot --headless --path godot_world --scene res://scenes/world.tscn --quit 2>&1 | tee "$log_file"
+          if grep -E "SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script|ERROR: Cannot load|Node not found" "$log_file"; then
+            echo "::error::Runtime scene reported script/resource/node errors."
+            exit 1
+          fi
+          echo "::notice::Headless scene startup smoke check only; does not confirm rendered visuals or device performance."
+
       - name: Package candidate assets and receipt for review
         run: |
           set -euo pipefail
