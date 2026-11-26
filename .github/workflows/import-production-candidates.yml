@@ -1,0 +1,58 @@
+name: FAMILY COLONY Import Production Candidates
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Successful asset intake run ID
+        required: true
+        default: '45822938469'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/direct-3d-entry
+      - uses: actions/download-artifact@v4
+        with:
+          name: family-colony-production-glb-candidates
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: intake-download
+      - name: Stage assets and create pending manifest
+        run: |
+          python3 - <<'PY'
+          import json, shutil
+          from pathlib import Path
+          root=Path('godot_world')
+          src=Path('intake-download')
+          audit=json.loads((src/'evidence/asset_manifest_audit.json').read_text())
+          manifest={'character':[],'environment':[]}
+          receipt=[]
+          for row in audit:
+              category=row['category']
+              fname=row['name']+'.glb'
+              path=src/'packs'/category/fname
+              if not path.exists(): raise SystemExit('Missing '+str(path))
+              target=root/'assets'/('characters' if category=='characters' else 'environment')/fname
+              target.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(path,target)
+              cat='character' if category=='characters' else 'environment'
+              manifest[cat].append({'key':row['name'],'path':'res://assets/'+('characters' if cat=='character' else 'environment')+'/'+fname,'license':row['license'],'source':row['url'],'attribution':'Gobkit CC0','visual_qa':'pending','qa_reviewer':'','qa_evidence':'','runtime_test_candidate':True})
+              receipt.append({'category':cat,'path':'assets/'+('characters' if cat=='character' else 'environment')+'/'+fname})
+          (root/'assets/production_asset_manifest.json').write_text(json.dumps(manifest,indent=2)+'\\n')
+          (root/'assets/asset_download_receipt.json').write_text(json.dumps(receipt,indent=2)+'\\n')
+          print('Staged',len(receipt),'GLBs; visual QA still pending')
+          PY
+      - name: Structural GLB inspection
+        run: python3 godot_world/tools/inspect_downloaded_glbs.py
+      - name: Commit imported candidate assets
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add godot_world/assets/characters godot_world/assets/environment godot_world/assets/production_asset_manifest.json godot_world/assets/asset_download_receipt.json godot_world/assets/asset_structural_report.json
+          git commit -m 'Import verified production 3D candidates for integration QA'
+          git push origin feature/direct-3d-entry
