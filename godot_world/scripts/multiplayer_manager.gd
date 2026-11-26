@@ -373,7 +373,9 @@ func _update_status(state: String, detail: String) -> void:
 	connection_state = state
 	connection_detail = detail
 	if is_instance_valid(_status_label):
-		_status_label.text = "FAMILY COLONY  •  %s  •  %d peer\n%s" % [state.to_upper(), peer_ids.size(), detail]
+		# Avoid covering the camera/world with an offline/error banner during single-player exploration.
+		_status_label.visible = state not in ["offline", "error"]
+		_status_label.text = "LAN  •  %s  •  %d peer\n%s" % [state.to_upper(), peer_ids.size(), detail]
 	connection_state_changed.emit(connection_state, connection_detail)
 
 
@@ -389,8 +391,8 @@ func _create_status_hud() -> void:
 	_status_label = Label3D.new()
 	_status_label.name = "NetworkStatus3D"
 	_status_label.text = "FAMILY COLONY  •  OFFLINE"
-	_status_label.font_size = 18
-	_status_label.pixel_size = 0.0025
+	_status_label.font_size = 12
+	_status_label.pixel_size = 0.0018
 	_status_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_status_label.modulate = Color(0.92, 0.96, 1.0, 0.95)
 	_status_label.outline_size = 5
