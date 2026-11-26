@@ -192,7 +192,7 @@ jobs:
             exit 1
           fi
           mkdir -p qa-output
-          cp godot_world/.godot/world_runtime_capture.png qa-output/world_runtime_capture.png 2>/dev/null || cp ~/.local/share/godot/app_userdata/"FAMILY COLONY 3D World"/world_runtime_capture.png qa-output/world_runtime_capture.png
+          cp godot_world/qa-output/world_runtime_capture.png qa-output/world_runtime_capture.png
           if [ ! -s qa-output/world_runtime_capture.png ]; then
             echo "::error::Capture image was not found."
             exit 1
