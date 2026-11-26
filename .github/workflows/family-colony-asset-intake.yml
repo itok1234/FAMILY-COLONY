@@ -7,6 +7,7 @@ on:
       - 'godot_world/assets/asset_sources.json'
       - 'godot_world/tools/fetch_production_assets.py'
       - 'godot_world/tools/asset_intake_audit.py'
+      - 'godot_world/tools/inspect_downloaded_glbs.py'
       - '.github/workflows/family-colony-asset-intake.yml'
 
 permissions:
@@ -29,7 +30,9 @@ jobs:
       - name: Headless import attempt
         run: |
           /tmp/godot/Godot_v4.4.1-stable_linux.x86_64 --headless --path godot_world --editor --import
-      - name: Inspect candidate GLB structure\n        run: python3 godot_world/tools/inspect_downloaded_glbs.py\n      - name: Preserve downloaded candidate receipt
+      - name: Inspect candidate GLB structure
+        run: python3 godot_world/tools/inspect_downloaded_glbs.py
+      - name: Preserve downloaded candidate receipt
         if: always()
         uses: actions/upload-artifact@v4
         with:
