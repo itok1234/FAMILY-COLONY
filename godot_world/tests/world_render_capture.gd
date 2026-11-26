@@ -9,7 +9,7 @@ func _capture() -> void:
 		push_error("World scene missing")
 		quit(1)
 		return
-	var world := scene.instantiate()
+	var world: Node = scene.instantiate()
 	root.add_child(world)
 	await process_frame
 	await process_frame
