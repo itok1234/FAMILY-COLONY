@@ -1,0 +1,202 @@
+[
+  {
+    "category": "character",
+    "path": "assets/characters/minion-a01.glb"
+  },
+  {
+    "category": "character",
+    "path": "assets/characters/minion-a02.glb"
+  },
+  {
+    "category": "character",
+    "path": "assets/characters/minion-b01.glb"
+  },
+  {
+    "category": "character",
+    "path": "assets/characters/minion-b02.glb"
+  },
+  {
+    "category": "character",
+    "path": "assets/characters/minion-c01.glb"
+  },
+  {
+    "category": "character",
+    "path": "assets/characters/minion-c02.glb"
+  },
+  {
+    "category": "character",
+    "path": "assets/characters/minion-d01.glb"
+  },
+  {
+    "category": "character",
+    "path": "assets/characters/minion-d02.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Bush001.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Bush002.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Cliff001.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Cliff002.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Cliff003.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Cloud001.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Cloud002.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Cloud003.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Grass001.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Grass002.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Grass003.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Hill001.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Hill002.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Hill003.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/HillSand001.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/HillSand002.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/HillSand003.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Mountain001.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Mountain002.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Mountain003.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/MountainFar001.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/MountainFar002.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/MountainFar003.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Reed001.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Reed002.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Rock001.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Rock002.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Rock003.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Stalactite001.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Stalactite002.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/Stalactite003.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/TreeHigh001.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/TreeHigh002.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/TreeHigh003.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/TreeLow001.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/TreeLow002.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/TreeLow003.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/TreeLow004.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/TreeMed001.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/TreeMed002.glb"
+  },
+  {
+    "category": "environment",
+    "path": "assets/environment/TreeMed003.glb"
+  },
+  {
+    "category": "character",
+    "path": "assets/characters/bee.glb"
+  }
+]
