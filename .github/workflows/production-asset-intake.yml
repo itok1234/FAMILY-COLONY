@@ -11,7 +11,7 @@ jobs:
   download:
     runs-on: ubuntu-latest
     steps:
-      - name: Obtain and fetch sampler archives with persistent session
+      - name: Resolve itch upload ID and fetch signed CDN URL
         shell: bash
         run: |
           set -u
@@ -20,7 +20,7 @@ jobs:
           for slug in free-stylized-animated free-stylized-fantasy free-stylized-nature; do
             base="https://soresa-assets.itch.io/$slug"
             echo "=== $slug ==="
-            curl -L --fail -sS -A "Mozilla/5.0" -c "evidence/$slug.cookies" "$base" -o "evidence/$slug.html" || { echo "Page fetch failed"; failed=1; continue; }
+            curl -L --fail -sS -A "Mozilla/5.0" -c "evidence/$slug.cookies" "$base" -o "evidence/$slug.html" || { failed=1; continue; }
             token=$(python - "$slug" <<'PY'
           import re,sys
           s=open('evidence/'+sys.argv[1]+'.html',encoding='utf8').read()
@@ -28,28 +28,50 @@ jobs:
           print(m.group(1) if m else '')
           PY
             )
-            if [ -z "$token" ]; then echo "CSRF token missing"; failed=1; continue; fi
-            response=$(curl -L -sS -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" -A "Mozilla/5.0" -H "Referer: $base" -H "Content-Type: application/x-www-form-urlencoded" --data-urlencode "csrf_token=$token" --data-urlencode "price=0" "$base/download_url" -o "evidence/$slug-url-response.json" -w '%{http_code}' || true)
-            echo "URL request HTTP: $response"
-            url=$(python - "$slug" <<'PY'
-          import json,sys
-          try:
-            d=json.loads(open('evidence/'+sys.argv[1]+'-url-response.json').read())
-            print(d.get('url',''))
-          except Exception as e: print('')
+            upload=$(python - "$slug" <<'PY'
+          import re,sys
+          s=open('evidence/'+sys.argv[1]+'.html',encoding='utf8').read()
+          m=re.search(r'data-upload_id="(\d+)"[^>]*class="button download_btn"|class="button download_btn"[^>]*data-upload_id="(\d+)"',s)
+          print((m.group(1) or m.group(2)) if m else '')
           PY
             )
-            if [ -z "$url" ]; then echo "URL response invalid; saved evidence"; failed=1; continue; fi
-            http=$(curl -L -sS -A "Mozilla/5.0" -b "evidence/$slug.cookies" "$url" -o "packs/$slug.zip" -w '%{http_code}' || true)
-            echo "Archive response HTTP: $http"
-            file "packs/$slug.zip" || true
-            head -c 300 "packs/$slug.zip" > "evidence/$slug-download-preview.txt" || true
+            if [ -z "$token" ] || [ -z "$upload" ]; then echo "CSRF or upload ID missing"; failed=1; continue; fi
+            dlpage=$(curl -L --fail -sS -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" -A "Mozilla/5.0" -H "Referer: $base" --data-urlencode "csrf_token=$token" --data-urlencode "price=0" "$base/download_url" -o "evidence/$slug-download-page.html" -w '%{url_effective}' || true)
+            echo "Download page obtained"
+            # Download button on itch's download page uses POST /file/<upload_id>.
+            dtoken=$(python - "$slug" <<'PY'
+          import re,sys
+          s=open('evidence/'+sys.argv[1]+'-download-page.html',encoding='utf8').read()
+          m=re.search(r'name="csrf_token" value="([^"]+)"',s)
+          print(m.group(1) if m else '')
+          PY
+            )
+            if [ -z "$dtoken" ]; then echo "Download-page CSRF missing"; failed=1; continue; fi
+            fileurl="$base/file/$upload"
+            code=$(curl -L -sS -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" -A "Mozilla/5.0" -H "Referer: $dlpage" -H "Content-Type: application/x-www-form-urlencoded" --data-urlencode "csrf_token=$dtoken" "$fileurl" -o "evidence/$slug-file-response.html" -w '%{http_code}' || true)
+            echo "File endpoint HTTP: $code"
+            # If POST response is HTML, parse any redirect URL or retry redirect-aware curl as saved response.
+            finalurl=$(python - "$slug" <<'PY'
+          import re,sys
+          s=open('evidence/'+sys.argv[1]+'-file-response.html',encoding='utf8').read()
+          for pat in [r'(https?://[^"\s<>]+)',r'location.href\s*=\s*["\']([^"\']+)']:
+            m=re.search(pat,s)
+            if m:
+              print(m.group(1));break
+          PY
+            )
+            if [ -n "$finalurl" ] && [[ "$finalurl" == http* ]]; then
+              curl -L --fail -sS -A "Mozilla/5.0" -b "evidence/$slug.cookies" "$finalurl" -o "packs/$slug.zip" || true
+            else
+              echo "No redirect URL found in endpoint response" > "evidence/$slug-diagnosis.txt"
+            fi
+            file "packs/$slug.zip" 2>/dev/null || true
             if unzip -t "packs/$slug.zip" > "evidence/$slug-zip-test.txt" 2>&1; then
               mkdir -p "packs/$slug"
               unzip -q "packs/$slug.zip" -d "packs/$slug"
               echo "ARCHIVE PASS: $slug"
             else
-              cat "evidence/$slug-zip-test.txt"
+              cat "evidence/$slug-zip-test.txt" 2>/dev/null || true
               failed=1
             fi
           done
@@ -73,7 +95,5 @@ jobs:
         if: always()
         with:
           name: family-colony-production-packs-diagnostic
-          path: |
-            packs/
-            evidence/
+          path: packs/
           retention-days: 7
