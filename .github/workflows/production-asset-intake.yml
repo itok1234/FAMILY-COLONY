@@ -2,30 +2,104 @@ name: FAMILY COLONY Production Asset Intake
 on:
   workflow_dispatch:
   push:
-    branches:
-      - feature/direct-3d-entry
+    branches: [feature/direct-3d-entry]
     paths:
-      - 'godot_world/assets/asset_sources.json'
-      - 'godot_world/tools/fetch_production_assets.py'
-      - '.github/workflows/production-asset-intake.yml'
+      - ".github/workflows/production-asset-intake.yml"
 permissions:
   contents: read
 jobs:
-  intake:
+  download:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Download declared GLB candidates
-        run: python godot_world/tools/fetch_production_assets.py
-      - name: Stage and structural-check candidates
-        run: python godot_world/tools/stage_candidate_models.py
-      - name: Package candidate intake (not visual approval)
+      - name: Obtain and download three free sampler ZIPs
+        shell: bash
         run: |
-          cd godot_world
-          zip -r ../production-asset-candidates.zip assets/characters assets/environment assets/asset_download_receipt.json
+          set -euo pipefail
+          mkdir -p packs evidence
+          for slug in free-stylized-animated free-stylized-fantasy free-stylized-nature; do
+            base="https://soresa-assets.itch.io/$slug"
+            curl -L --fail -sS -A "Mozilla/5.0" "$base" -o "evidence/$slug.html"
+            token=$(python - "$slug" <<'PY'
+          import re,sys
+          s=open('evidence/'+sys.argv[1]+'.html',encoding='utf8').read()
+          m=re.search(r'name="csrf_token" value="([^"]+)"',s)
+          print(m.group(1) if m else '')
+          PY
+            )
+            test -n "$token" || { echo "No CSRF token for $slug"; exit 1; }
+            response=$(curl -L --fail -sS -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" -A "Mozilla/5.0" -H "Referer: $base" -H "Content-Type: application/x-www-form-urlencoded" --data-urlencode "csrf_token=$token" --data-urlencode "price=0" "$base/download_url")
+            url=$(python -c 'import json,sys; print(json.loads(sys.argv[1]).get("url",""))' "$response")
+            test -n "$url" || { echo "No download URL for $slug"; exit 1; }
+            curl -L --fail -sS -A "Mozilla/5.0" "$url" -o "packs/$slug.zip"
+            unzip -t "packs/$slug.zip"
+            mkdir -p "packs/$slug"
+            unzip -q "packs/$slug.zip" -d "packs/$slug"
+          done
+      - name: Inventory pack contents
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          root=Path('packs'); report=[]
+          for folder in root.iterdir():
+            if folder.is_dir() and folder.name.startswith('free-stylized'):
+              files=[str(p.relative_to(root)) for p in folder.rglob('*') if p.is_file()]
+              models=[p for p in files if p.lower().endswith(('.glb','.gltf','.fbx','.obj','.blend','.dae'))]
+              report.append({'pack':folder.name,'files':len(files),'models':models})
+          Path('packs/inventory.json').write_text(json.dumps(report,indent=2))
+          print(json.dumps(report,indent=2))
+          PY
       - uses: actions/upload-artifact@v4
         with:
-          name: production-asset-candidates-unapproved
-          path: production-asset-candidates.zip
-          if-no-files-found: error
-          retention-days: 14
+          name: family-colony-production-packs
+          path: packs/
+          retention-days: 7
+  character-check:
+    needs: download
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: family-colony-production-packs
+          path: packs
+      - name: Character pack inventory
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('packs/inventory.json').read_text())
+          candidates=[m for p in data if 'animated' in p['pack'] for m in p['models']]
+          print('Character asset candidates:',len(candidates))
+          if not candidates: raise SystemExit('No candidate models')
+          PY
+  environment-check:
+    needs: download
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: family-colony-production-packs
+          path: packs
+      - name: Environment inventory
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('packs/inventory.json').read_text())
+          candidates=[m for p in data if 'fantasy' in p['pack'] or 'nature' in p['pack'] for m in p['models']]
+          print('Environment asset candidates:',len(candidates))
+          if not candidates: raise SystemExit('No candidate models')
+          PY
+  visual-qa-gate:
+    needs: [character-check, environment-check]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: family-colony-production-packs
+          path: packs
+      - name: Explicit QA status
+        run: |
+          echo "Candidate pack downloads and inventory checks passed."
+          echo "Scene integration and visual QA against rendered scenes remain pending."
+          echo "This gate intentionally does not claim visual approval."
