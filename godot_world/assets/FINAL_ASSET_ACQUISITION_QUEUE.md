@@ -1,24 +1,30 @@
 # Final Production Asset Acquisition Queue
 
-## Selected acquisition route (verified source pages; binaries not yet transferred)
+## Acquisition targets — selected
 
-### Environment — selected pack
-- Fantasy environment sampler: https://soresa-assets.itch.io/free-stylized-fantasy
-- Nature sampler: https://soresa-assets.itch.io/free-stylized-nature
-- Source listings describe GLB/FBX, LODs, colliders, Godot 4 support and commercial use permitted. The pages and download packages still require project-side verification.
+### Character
+- FREE Stylized Animated Sampler — 6 rigged characters and 28 animations, GLB + FBX, Godot 4-tested, commercial-use license.
+- Source/download page: https://soresa-assets.itch.io/free-stylized-animated
+- File listing: StylizedAnimated_FreeSampler_v1.2.zip (6.9 MB; listing verified 2026-11-26).
+- Select humanoid villager woman or knight for compatibility/style review; animal/monster assets are not the primary player avatar.
 
-### Character — selected candidate pending download verification
-- Rigged character pack candidate: https://soresa-assets.itch.io/free-stylized-animated
-- Confirm actual rig, animation clips, license, package files and art-style fit before selecting the production avatar. This candidate is not yet accepted.
+### Environment structures and props
+- FREE Stylized Low Poly Fantasy sampler — 16 models, GLB + FBX, LODs and colliders, commercial-use license.
+- Source/download page: https://soresa-assets.itch.io/free-stylized-fantasy
+- File listing: StylizedFantasy_FreeSampler_v1.0.zip (11 MB; listing verified 2026-11-26).
 
-## Required transfer/integration
-1. Download the two environment samplers and character candidate packages from their source pages.
-2. Transfer package binaries into this repository (environment under `godot_world/assets/environment/`; character under `godot_world/assets/characters/`).
-3. Verify archive contents, GLB integrity, license and provenance; do not fabricate manifest entries.
-4. Integrate into the existing production world scene; preserve existing systems and scene flow.
-5. Capture real in-engine character/environment/Android landscape visual evidence and review.
-6. Update production manifest only after the review. Run intake/CI once integration is complete.
+### Environment vegetation
+- FREE Stylized Low Poly Nature sampler — 16 models, GLB + FBX, LODs and colliders, commercial-use license.
+- Source/download page: https://soresa-assets.itch.io/free-stylized-nature
+- File listing: StylizedNaturePack_FreeSampler_v1.2.zip (5.4 MB; listing verified 2026-11-26).
 
-## Status
-Sources are verified at listing-page level, not acquired. No assets have been imported, integrated or visually approved yet. Release packaging stays blocked until evidence exists.
+## Acquisition and integration gate
+1. Obtain the three ZIP packages from their source pages (download controls are hosted by itch.io; binary download and transfer have not been performed from this workspace).
+2. Extract and inspect package contents, GLB integrity, license and provenance.
+3. Place assets in existing `godot_world/assets/characters/` and `godot_world/assets/environment/` folders; preserve existing project systems.
+4. Integrate the chosen player character and environment assets into the existing world scene.
+5. Capture and review real Godot character, environment and Android landscape runtime visual evidence.
+6. Populate the production manifest only after review. Run intake/CI after integration.
 
+## Current truthful status
+Source listings and package names verified; binaries not yet acquired or transferred, integration and QA not done. No production acceptance or APK-release claim is authorized yet.
