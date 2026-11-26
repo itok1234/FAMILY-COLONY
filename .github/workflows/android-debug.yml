@@ -51,6 +51,9 @@ jobs:
       - name: Download curated production GLB candidates
         run: python3 godot_world/tools/download_catalog_assets.py
 
+      - name: Inspect downloaded candidate GLB structures
+        run: python3 godot_world/tools/inspect_asset_candidates.py
+
       - name: Verify source inputs
         run: |
           test -f settings.gradle
