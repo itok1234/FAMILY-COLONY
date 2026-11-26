@@ -53,3 +53,13 @@ jobs:
           name: asset-intake-report
           path: godot_world/assets/asset_intake_ci_report.json
           if-no-files-found: warn
+
+      - name: Upload downloaded GLB candidate bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: family-colony-glb-candidates
+          path: |
+            godot_world/assets/characters/*.glb
+            godot_world/assets/environment/*.glb
+          if-no-files-found: warn
