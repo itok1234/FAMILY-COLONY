@@ -11,9 +11,9 @@ func _capture() -> void:
 		return
 	var world := packed.instantiate()
 	root.add_child(world)
-	await process_frame
-	await process_frame
-	await process_frame
+	for i in range(8):
+		await process_frame
+	await RenderingServer.frame_post_draw
 	var viewport := root.get_viewport()
 	var image := viewport.get_texture().get_image()
 	if image == null or image.is_empty():
