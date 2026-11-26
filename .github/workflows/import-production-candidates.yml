@@ -46,8 +46,8 @@ jobs:
               cat='character' if category=='characters' else 'environment'
               manifest[cat].append({'key':row['name'],'path':'res://assets/'+('characters' if cat=='character' else 'environment')+'/'+fname,'license':row['license'],'source':row['url'],'attribution':'Gobkit CC0','visual_qa':'pending','qa_reviewer':'','qa_evidence':'','runtime_test_candidate':True})
               receipt.append({'category':cat,'path':'assets/'+('characters' if cat=='character' else 'environment')+'/'+fname})
-          (root/'assets/production_asset_manifest.json').write_text(json.dumps(manifest,indent=2)+'\\n')
-          (root/'assets/asset_download_receipt.json').write_text(json.dumps(receipt,indent=2)+'\\n')
+          (root/'assets/production_asset_manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          (root/'assets/asset_download_receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
           print('Staged',len(receipt),'GLBs; visual QA still pending')
           PY
       - name: Structural GLB inspection
