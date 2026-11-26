@@ -90,14 +90,21 @@ material_override = SubResource("GrassMaterial")
 position = Vector3(0, -0.5, 0)
 shape = SubResource("GroundShape")
 
-[node name="ProductionEnvironmentMount" type="Node3D" parent="."]\n\n[node name="ProductionAssetIntegrator" type="Node3D" parent="."]\nscript = ExtResource("18")\n\n[node name="Player" type="CharacterBody3D" parent="."]
+[node name="ProductionEnvironmentMount" type="Node3D" parent="."]
+
+[node name="ProductionAssetIntegrator" type="Node3D" parent="."]
+script = ExtResource("18")
+
+[node name="Player" type="CharacterBody3D" parent="."]
 position = Vector3(0, 1.1, 0)
 script = ExtResource("2")
 
 [node name="AvatarVisual" type="Node3D" parent="Player"]
 script = ExtResource("7")
 
-[node name="ProductionCharacterMount" type="Node3D" parent="Player"]\n\n[node name="AvatarV3Controller" type="Node" parent="Player"]
+[node name="ProductionCharacterMount" type="Node3D" parent="Player"]
+
+[node name="AvatarV3Controller" type="Node3D" parent="Player"]
 script = ExtResource("17")
 avatar_path = NodePath("../AvatarVisual")
 
