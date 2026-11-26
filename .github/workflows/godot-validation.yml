@@ -155,6 +155,21 @@ jobs:
             exit 1
           fi
 
+      - name: Run production asset mount acceptance gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          timeout 90s godot --headless --path godot_world --script res://tests/production_mount_test.gd 2>&1 | tee "$log_file"
+          if ! grep -F "PRODUCTION_MOUNT_TEST: PASS" "$log_file"; then
+            echo "::error::Production mount schema/fail-closed test did not pass."
+            exit 1
+          fi
+          if grep -E "SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script" "$log_file"; then
+            echo "::error::Godot reported script/resource errors during production asset test."
+            exit 1
+          fi
+
       - name: Run world startup smoke test
         shell: bash
         run: |
