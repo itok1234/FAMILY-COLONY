@@ -9,7 +9,7 @@ out=[]
 for record in items:
  p=root.parent/record['path'] if False else (root/record['path'].replace('assets/','',1))
  # receipt paths relative to Godot project root (godot_world/)
- p=root/record['path'].replace('assets/','assets/',1)
+ p=root/record['path']
  data=p.read_bytes()
  if len(data)<20: raise SystemExit(f'TRUNCATED: {p}')
  magic,version,total=struct.unpack_from('<4sII',data)
