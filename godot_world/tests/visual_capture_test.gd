@@ -30,6 +30,14 @@ func _capture() -> void:
 	root.add_child(world)
 	for i in range(8):
 		await process_frame
+	# Clean environment capture: hide camera-mounted UI/control panels so QA
+	# evaluates the 3D world geometry rather than fixed spatial HUD elements.
+	var player_camera := world.get_node_or_null("Player/CameraPivot/Camera3D")
+	if player_camera != null:
+		for ui_name in ["SpatialInteractionConsole", "SpatialRoomChat", "SpatialGraphicsQualityPanel", "SpatialNetworkStatus", "MobileControls3D"]:
+			var ui_node := player_camera.get_node_or_null(ui_name)
+			if ui_node != null:
+				ui_node.visible = false
 	await RenderingServer.frame_post_draw
 	# Emit scene-node diagnostics to trace obstructing UI/panel meshes.
 	_dump_visual_nodes(world, world)
