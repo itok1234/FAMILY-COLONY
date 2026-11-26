@@ -23,6 +23,13 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Block APK packaging until production assets are accepted
+        shell: bash
+        run: |
+          set -euo pipefail
+          python godot_world/tools/asset_intake_audit.py
+          echo "::notice::Production assets are manifest-approved. Visual and license QA still must be completed before distribution."
+
       - name: Validate private release signing secrets
         shell: bash
         env:
