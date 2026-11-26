@@ -148,9 +148,16 @@ jobs:
             APK_BYTES="$(stat -c%s "$APK")"
             APK_MIB="$((APK_BYTES / 1024 / 1024))"
             echo "$ABI signed APK: ${APK_BYTES} bytes (${APK_MIB} MiB)"
-            if [ "$APK_BYTES" -gt $((150 * 1024 * 1024)) ]; then
-              echo "::warning::$ABI APK exceeds the 150 MiB optimization target."
+            MIN_BYTES=$((100 * 1024 * 1024))
+            MAX_BYTES=$((250 * 1024 * 1024))
+            if [ "$APK_BYTES" -lt "$MIN_BYTES" ]; then
+              echo "::error::$ABI APK is below 100 MiB. Core 3D content must be bundled in the installation package, not deferred to a large post-install download."
+              exit 1
             fi
+            if [ "$APK_BYTES" -gt "$MAX_BYTES" ]; then
+              echo "::warning::$ABI APK exceeds 250 MiB; optimize redundant data while keeping core content embedded."
+            fi
+            echo "PASS: $ABI APK size floor met.";
           done
 
       - name: Upload signed Release APK variants
