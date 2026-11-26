@@ -17,6 +17,7 @@
 [ext_resource type="Script" path="res://scripts/honey_hunt_minigame.gd" id="15"]
 [ext_resource type="Script" path="res://scripts/audio_studio_settings.gd" id="16"]
 [ext_resource type="Script" path="res://scripts/avatar_v3_controller.gd" id="17"]
+[ext_resource type="Script" path="res://scripts/production_scene_integrator.gd" id="18"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
 sky_top_color = Color(0.12, 0.27, 0.48, 1)
@@ -89,14 +90,14 @@ material_override = SubResource("GrassMaterial")
 position = Vector3(0, -0.5, 0)
 shape = SubResource("GroundShape")
 
-[node name="Player" type="CharacterBody3D" parent="."]
+[node name="ProductionEnvironmentMount" type="Node3D" parent="."]\n\n[node name="ProductionAssetIntegrator" type="Node3D" parent="."]\nscript = ExtResource("18")\n\n[node name="Player" type="CharacterBody3D" parent="."]
 position = Vector3(0, 1.1, 0)
 script = ExtResource("2")
 
 [node name="AvatarVisual" type="Node3D" parent="Player"]
 script = ExtResource("7")
 
-[node name="AvatarV3Controller" type="Node" parent="Player"]
+[node name="ProductionCharacterMount" type="Node3D" parent="Player"]\n\n[node name="AvatarV3Controller" type="Node" parent="Player"]
 script = ExtResource("17")
 avatar_path = NodePath("../AvatarVisual")
 
