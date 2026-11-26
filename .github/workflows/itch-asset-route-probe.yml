@@ -2,6 +2,11 @@ name: FAMILY COLONY Itch Asset Download Route Probe
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/direct-3d-entry
+    paths:
+      - ".github/workflows/itch-asset-route-probe.yml"
 
 permissions:
   contents: read
