@@ -1,0 +1,40 @@
+name: FAMILY COLONY Itch Asset Download Route Probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe selected free asset pages from runner network
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p probe
+          urls=(
+            "https://soresa-assets.itch.io/free-stylized-animated"
+            "https://soresa-assets.itch.io/free-stylized-fantasy"
+            "https://soresa-assets.itch.io/free-stylized-nature"
+          )
+          for i in "${!urls[@]}"; do
+            url="${urls[$i]}"
+            file="probe/page-$((i+1)).html"
+            echo "PROBE $url"
+            curl --location --fail --silent --show-error --retry 2 --max-time 60 \
+              -A "Mozilla/5.0 (compatible; FamilyColonyAssetProbe/1.0)" "$url" -o "$file"
+            echo "bytes=$(wc -c < "$file")"
+            grep -Eo 'https?[^"<> ]+|data-download_url[^,}]*|download[^"<> ]*' "$file" | head -c 6000 || true
+            echo
+          done
+          echo "Pages downloaded on runner; this probe does not download asset ZIPs or accept assets."
+      - name: Upload page evidence for inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: itch-asset-page-probe
+          path: probe/
+          if-no-files-found: error
+          retention-days: 3
