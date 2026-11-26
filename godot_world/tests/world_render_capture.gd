@@ -19,7 +19,11 @@ func _capture() -> void:
 		push_error("Rendered viewport image unavailable")
 		quit(1)
 		return
-	var output := "user://world_runtime_capture.png"
+	var directory := "res://qa-output"
+	if DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory)) != OK:
+		push_error("Failed to create QA output directory")
+		quit(1)
+	var output := "res://qa-output/world_runtime_capture.png"
 	if image.save_png(output) != OK:
 		push_error("Failed to save viewport capture")
 		quit(1)
