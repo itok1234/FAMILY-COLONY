@@ -1,0 +1,47 @@
+name: FAMILY COLONY Free Asset Download Test
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/direct-3d-entry]
+    paths:
+      - ".github/workflows/free-asset-download-test.yml"
+permissions:
+  contents: read
+jobs:
+  download-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test itch name-your-price zero download
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          packs=(free-stylized-animated free-stylized-fantasy free-stylized-nature)
+          for slug in "${packs[@]}"; do
+            base="https://soresa-assets.itch.io/$slug"
+            curl -L --fail -sS -A "Mozilla/5.0" "$base" -o "evidence/$slug.html"
+            token=$(python - "$slug" <<'PY'
+          import re,sys
+          s=open('evidence/'+sys.argv[1]+'.html',encoding='utf8').read()
+          m=re.search(r'name="csrf_token" value="([^"]+)"',s)
+          print(m.group(1) if m else '')
+          PY
+            )
+            if [ -z "$token" ]; then echo "CSRF token missing for $slug"; continue; fi
+            endpoint="$base/download_url"
+            echo "Attempting zero-price download URL for $slug"
+            curl -L -sS -A "Mozilla/5.0" -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" \
+              -H "Referer: $base" -H "Content-Type: application/x-www-form-urlencoded" \
+              --data-urlencode "csrf_token=$token" --data-urlencode "price=0" "$endpoint" \
+              -o "evidence/$slug-download-response.html" || true
+            file "evidence/$slug-download-response.html" || true
+            grep -Eo 'https?[^"<> ]+\.(zip|rar|7z|glb|fbx)[^"<> ]*|download[^"<> ]+' \
+              "evidence/$slug-download-response.html" | head -30 || true
+          done
+          echo "Download response test only; ZIPs are not yet accepted or integrated."
+      - name: Upload response evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-asset-download-test
+          path: evidence/
+          retention-days: 3
