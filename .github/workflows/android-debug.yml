@@ -48,6 +48,9 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Download curated production GLB candidates
+        run: python3 godot_world/tools/download_catalog_assets.py
+
       - name: Verify source inputs
         run: |
           test -f settings.gradle
