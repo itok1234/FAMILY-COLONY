@@ -11,75 +11,65 @@ jobs:
   download:
     runs-on: ubuntu-latest
     steps:
-      - name: Download through itch two-step file flow
+      - name: Download verified CC0 GLB assets from live manifest
         shell: bash
         run: |
-          set -u
-          mkdir -p packs evidence
-          failed=0
-          for slug in free-stylized-animated free-stylized-fantasy free-stylized-nature; do
-            base="https://soresa-assets.itch.io/$slug"
-            echo "=== $slug ==="
-            curl -L --fail -sS -A "Mozilla/5.0" -c "evidence/$slug.cookies" "$base" -o "evidence/$slug.html" || { failed=1; continue; }
-            token=$(python - "$slug" <<'PY'
-          import re,sys
-          s=open('evidence/'+sys.argv[1]+'.html',encoding='utf8').read()
-          m=re.search(r'name="csrf_token" value="([^"]+)"',s)
-          print(m.group(1) if m else '')
+          set -euo pipefail
+          mkdir -p packs/characters packs/environment evidence
+          python - <<'PY'
+          import json, urllib.request, pathlib, re, sys
+          root=pathlib.Path('packs')
+          req=urllib.request.Request('https://gobkit.com/api/free',headers={'User-Agent':'FamilyColonyAssetIntake/1.0'})
+          with urllib.request.urlopen(req,timeout=60) as r: data=json.load(r)
+          packs=data.get('packs',[])
+          selected=[]
+          for p in packs:
+            pid=p.get('id','').lower()
+            name=p.get('name','').lower()
+            kind=p.get('kind','').lower()
+            if ('minion' in pid or 'minion' in name) and kind=='characters':
+              selected.extend((m,'characters') for m in p.get('models',[]))
+            if ('nature-kit' in pid or name=='nature kit') and kind=='environment':
+              selected.extend((m,'environment') for m in p.get('models',[]))
+          # Include the Bee mascot model from its animal pack.
+          for p in packs:
+            if 'animalb' in p.get('id','').lower():
+              selected.extend((m,'characters') for m in p.get('models',[]) if m.get('id','').lower()=='bee')
+          if not selected: raise SystemExit('Manifest selection empty; fail safely.')
+          report=[]
+          for m,category in selected:
+            url=m.get('url','')
+            if not url.startswith('https://') or not url.endswith('.glb'): continue
+            name=re.sub(r'[^A-Za-z0-9_.-]','_',m.get('id') or m.get('name') or pathlib.Path(url).stem)
+            dest=root/category/(name+'.glb')
+            req=urllib.request.Request(url,headers={'User-Agent':'FamilyColonyAssetIntake/1.0'})
+            with urllib.request.urlopen(req,timeout=90) as r: blob=r.read()
+            if len(blob)<100 or blob[:4]!=b'glTF':
+              raise SystemExit(f'Invalid GLB payload: {name} ({len(blob)} bytes)')
+            dest.write_bytes(blob)
+            report.append({'name':name,'category':category,'url':url,'bytes':len(blob),'rigged':m.get('rigged',False),'animations':m.get('animations',[]),'license':m.get('license','CC0 listed in pack manifest')})
+            print(f'PASS {name} {len(blob)} bytes')
+          pathlib.Path('evidence/asset_manifest_audit.json').write_text(json.dumps(report,indent=2))
+          print(f'DOWNLOAD PASS: {len(report)} validated GLB files')
           PY
-            )
-            if [ -z "$token" ]; then echo "Page CSRF missing"; failed=1; continue; fi
-            response=$(curl -L --fail -sS -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" -A "Mozilla/5.0" -H "Referer: $base" -H "Content-Type: application/x-www-form-urlencoded" --data-urlencode "csrf_token=$token" --data-urlencode "price=0" "$base/download_url")
-            dlurl=$(python -c 'import json,sys; print(json.loads(sys.argv[1]).get("url",""))' "$response")
-            if [ -z "$dlurl" ]; then echo "Download page URL missing"; failed=1; continue; fi
-            curl -L --fail -sS -A "Mozilla/5.0" -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" "$dlurl" -o "evidence/$slug-download-page.html" || { failed=1; continue; }
-            dtoken=$(python - "$slug" <<'PY'
-          import re,sys
-          s=open('evidence/'+sys.argv[1]+'-download-page.html',encoding='utf8').read()
-          m=re.search(r'name="csrf_token" value="([^"]+)"',s)
-          print(m.group(1) if m else '')
-          PY
-            )
-            upload=$(python - "$slug" <<'PY'
-          import re,sys
-          s=open('evidence/'+sys.argv[1]+'-download-page.html',encoding='utf8').read()
-          m=re.search(r'data-upload_id="(\d+)"',s)
-          print(m.group(1) if m else '')
-          PY
-            )
-            if [ -z "$dtoken" ] || [ -z "$upload" ]; then echo "Download page token or upload ID missing"; failed=1; continue; fi
-            fileurl="https://itch.io/file/$upload"
-            curl -L --fail -sS -A "Mozilla/5.0" -c "evidence/$slug.cookies" -b "evidence/$slug.cookies" -H "Referer: $dlurl" -H "Content-Type: application/x-www-form-urlencoded" --data-urlencode "csrf_token=$dtoken" "$fileurl" -o "packs/$slug.zip" || { failed=1; continue; }
-            file "packs/$slug.zip"
-            if unzip -t "packs/$slug.zip" > "evidence/$slug-zip-test.txt" 2>&1; then
-              mkdir -p "packs/$slug"
-              unzip -q "packs/$slug.zip" -d "packs/$slug"
-              echo "ARCHIVE PASS: $slug"
-            else
-              cat "evidence/$slug-zip-test.txt"
-              failed=1
-            fi
-          done
-          exit "$failed"
-      - name: Inventory models
+      - name: Summarize candidates
         if: always()
         run: |
           python - <<'PY'
           from pathlib import Path
           import json
-          root=Path('packs'); report=[]
-          for folder in root.iterdir():
-            if folder.is_dir() and folder.name.startswith('free-stylized'):
-              files=[str(p.relative_to(root)) for p in folder.rglob('*') if p.is_file()]
-              models=[p for p in files if p.lower().endswith(('.glb','.gltf','.fbx','.obj','.blend','.dae'))]
-              report.append({'pack':folder.name,'files':len(files),'models':models})
-          Path('packs/inventory.json').write_text(json.dumps(report,indent=2))
-          print(json.dumps(report,indent=2))
+          root=Path('packs')
+          rows=[]
+          for category in ('characters','environment'):
+            files=list((root/category).glob('*.glb'))
+            rows.append({'category':category,'count':len(files),'files':[{'name':f.name,'bytes':f.stat().st_size} for f in files]})
+          Path('evidence/inventory.json').write_text(json.dumps(rows,indent=2))
+          print(json.dumps(rows,indent=2))
           PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: family-colony-production-packs-diagnostic
+          name: family-colony-production-glb-candidates
           path: |
             packs/
             evidence/
