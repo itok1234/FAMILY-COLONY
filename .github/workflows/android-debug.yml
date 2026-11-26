@@ -142,6 +142,13 @@ jobs:
           APK_BYTES="$(stat -c%s "$APK")"
           APK_MIB="$((APK_BYTES / 1024 / 1024))"
           echo "Internal debug APK: ${APK_BYTES} bytes (${APK_MIB} MiB)"
-          if [ "$APK_BYTES" -gt $((250 * 1024 * 1024)) ]; then
-            echo "::warning::APK exceeds the 250 MiB optimization target; review ABI and asset packaging."
+          MIN_BYTES=$((100 * 1024 * 1024))
+          MAX_BYTES=$((250 * 1024 * 1024))
+          if [ "$APK_BYTES" -lt "$MIN_BYTES" ]; then
+            echo "::error::APK is below the 100 MiB embedded-content target. Do not release a lightweight shell that downloads core 3D content after install."
+            exit 1
           fi
+          if [ "$APK_BYTES" -gt "$MAX_BYTES" ]; then
+            echo "::warning::APK exceeds the 250 MiB optimization target; review compression, texture formats and duplicate assets, without moving core content to a post-install download."
+          fi
+          echo "PASS: APK exceeds 100 MiB and core-content packaging size gate."
