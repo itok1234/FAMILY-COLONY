@@ -237,6 +237,28 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 #workspace .module-card,#workspace .stat{background:linear-gradient(145deg,rgba(33,59,82,.86),rgba(10,23,39,.86));border-color:rgba(143,190,218,.20);box-shadow:0 16px 30px #0003,inset 0 1px rgba(255,255,255,.05)}
 @media(max-width:850px){#landing{padding:12px}#landing .hero{padding-top:12px}#landing .hero>div:first-child{padding:16px}}
 @media(max-width:560px){#landing{border-radius:20px;padding:10px}#landing .hero>div:first-child{border-radius:18px}#landing .login-panel{transform:none}#workspace{padding:8px}}
+
+
+/* ALTERNATIVE SPATIAL UI: CSS 3D depth layers, preserves all existing auth/navigation handlers */
+#landing,#workspace{perspective:1200px;transform-style:preserve-3d}
+#landing>.hero{transform-style:preserve-3d}
+#landing .hero>div:first-child{position:relative;transform:translateZ(24px);border:1px solid rgba(151,205,234,.16);border-radius:24px;padding:clamp(16px,3vw,28px);box-shadow:0 22px 42px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.09)}
+#landing .hero-art{transform-style:preserve-3d;perspective:1000px}
+#landing .hive{transform:translateZ(32px) rotateY(-9deg);transition:transform .6s cubic-bezier(.2,.7,.2,1);filter:drop-shadow(0 24px 32px rgba(0,0,0,.35))}
+#landing .hive:before{transform:translateZ(18px) rotateX(14deg)}#landing .hive:after{transform:translateZ(-18px) rotateX(-14deg)}
+#landing .login-panel{transform:translateZ(34px);border:1px solid rgba(205,228,246,.24);box-shadow:0 24px 55px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.12);background:linear-gradient(145deg,rgba(30,52,77,.97),rgba(8,19,34,.97))}
+#landing .login-panel input,#landing .login-panel select{box-shadow:inset 0 3px 12px rgba(0,0,0,.32),0 1px rgba(255,255,255,.04);border-color:rgba(126,174,206,.3)}
+#landing .login-panel .btn{box-shadow:0 6px 0 rgba(3,9,17,.38),0 12px 24px rgba(0,0,0,.22);transform:translateZ(5px)}
+#workspace .app-layout{transform-style:preserve-3d;perspective:1500px}
+#workspace .sidebar{transform:translateZ(18px);box-shadow:12px 20px 40px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.08);border-color:rgba(158,204,232,.23)}
+#workspace .content{transform:translateZ(8px)}
+#workspace .content .module-card,#workspace .content .stat,#workspace .content .panel{border-color:rgba(157,204,232,.22);box-shadow:0 14px 28px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.07);transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+#workspace .content .module-card:active{transform:translateY(2px) translateZ(4px);box-shadow:0 7px 14px rgba(0,0,0,.2)}
+#workspace .navbtn{box-shadow:inset 0 1px rgba(255,255,255,.025);transition:background .2s,transform .2s,border-color .2s}
+#workspace .navbtn.active{transform:translateX(3px);box-shadow:inset 3px 0 #e8bd62,0 8px 16px rgba(0,0,0,.16)}
+@media(max-width:850px){#landing .hero>div:first-child{transform:translateZ(12px)}#landing .hive{transform:translateZ(16px) scale(.96)}#landing .login-panel{transform:translateZ(12px)}#workspace .sidebar,#workspace .content{transform:none}}
+@media(prefers-reduced-motion:reduce){#landing .hive,#workspace .content .module-card,#workspace .navbtn{transition:none!important;transform:none!important}}
+
 </style>
 <script>window.FC_SUPABASE_URL="https://irwtnqekrwhgompulach.supabase.co";</script>
 </head>
