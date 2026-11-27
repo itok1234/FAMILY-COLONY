@@ -27,19 +27,14 @@ func _capture() -> void:
 		quit(1)
 		return
 	var world := packed.instantiate()
-	# Baseline visual QA: use the project fallback avatar and production scene assets.
-	# Candidate smoke mounting is excluded here to prevent suppressing fallback visuals.
 	var integrator := world.get_node_or_null("ProductionAssetIntegrator")
 	if integrator != null:
 		integrator.allow_candidate_smoke_test = false
 	root.add_child(world)
 	for i in range(8):
 		await process_frame
-	# Clean environment capture: hide camera-mounted UI/control panels so QA
-	# evaluates the 3D world geometry rather than fixed spatial HUD elements.
 	var player_camera := world.get_node_or_null("Player/CameraPivot/Camera3D")
 	if player_camera != null:
-		# QA framing: set a deterministic world-space view instead of relying on inherited pivot rotation.
 		var camera_pivot := world.get_node_or_null("Player/CameraPivot")
 		if camera_pivot != null:
 			camera_pivot.rotation = Vector3.ZERO
@@ -52,11 +47,9 @@ func _capture() -> void:
 			var ui_node := player_camera.get_node_or_null(ui_name)
 			if ui_node != null:
 				ui_node.visible = false
-	# Allow CI renderer several frames after camera activation.
 	for i in range(12):
 		await process_frame
 		await RenderingServer.frame_post_draw
-	# Emit scene-node diagnostics to trace obstructing UI/panel meshes.
 	_dump_visual_nodes(world, world)
 	var viewport := root.get_viewport()
 	var image := viewport.get_texture().get_image()
@@ -64,7 +57,6 @@ func _capture() -> void:
 		push_error("VISUAL_CAPTURE_FAIL: viewport image empty")
 		quit(1)
 		return
-	# Basic pixel-level sanity checks: reject blank/near-uniform frames.
 	var samples := 0
 	var min_luma := 1.0
 	var max_luma := 0.0
@@ -78,8 +70,6 @@ func _capture() -> void:
 			max_luma = max(max_luma, luma)
 			if luma > 0.08:
 				non_dark += 1
-	# Add quantized color diversity and RGB spread checks: luminance alone
-	# can falsely pass a flat brown/grey image.
 	var color_bins: Dictionary = {}
 	var sum_rgb := Vector3.ZERO
 	var sum_sq_rgb := Vector3.ZERO
@@ -89,14 +79,14 @@ func _capture() -> void:
 			var px := image.get_pixel(x, y)
 			var bin_key := "%d_%d_%d" % [int(px.r * 8.0), int(px.g * 8.0), int(px.b * 8.0)]
 			color_bins[bin_key] = true
-			var rgb := Vector3(px.r, px.g, px.b)
+			var rgb: Vector3 = Vector3(px.r, px.g, px.b)
 			sum_rgb += rgb
 			sum_sq_rgb += rgb * rgb
 			rgb_samples += 1
-	var mean_rgb := sum_rgb / max(1, rgb_samples)
-	var variance_rgb := (sum_sq_rgb / max(1, rgb_samples)) - (mean_rgb * mean_rgb)
-	var spread := variance_rgb.length()
-	var varied := max_luma - min_luma > 0.08 and non_dark > 8 and color_bins.size() >= 18 and spread > 0.025
+	var mean_rgb: Vector3 = sum_rgb / float(max(1, rgb_samples))
+	var variance_rgb: Vector3 = (sum_sq_rgb / float(max(1, rgb_samples))) - (mean_rgb * mean_rgb)
+	var spread: float = variance_rgb.length()
+	var varied: bool = max_luma - min_luma > 0.08 and non_dark > 8 and color_bins.size() >= 18 and spread > 0.025
 	print("VISUAL_CAPTURE_STATS: samples=", samples, " min_luma=", min_luma, " max_luma=", max_luma, " non_dark=", non_dark, " color_bins=", color_bins.size(), " rgb_spread=", spread)
 	if samples < 20 or not varied:
 		push_error("VISUAL_CAPTURE_FAIL: image appears blank, uniform, or insufficiently varied")
