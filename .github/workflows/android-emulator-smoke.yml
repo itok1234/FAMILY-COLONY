@@ -6,6 +6,7 @@ on:
     branches:
       - feature/direct-3d-entry
       - test/login-3d-full-module
+      - visual-alternative-3d
     paths:
       - "app/build.gradle"
       - "app/src/main/**"
