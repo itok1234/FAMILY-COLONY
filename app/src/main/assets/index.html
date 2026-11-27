@@ -172,6 +172,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:360px){.game-options{grid-template-columns:1fr}.game-meta{gap:6px}.game-meta span{font-size:.75rem}}
 @media(hover:hover) and (pointer:fine){.module-card:hover{transform:translateY(-3px);border-color:#e8bd6288;box-shadow:0 14px 32px #0005}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+/* Login background rendered with WebGL */
+#landing{position:relative;isolation:isolate}#fcLogin3D{position:absolute;z-index:-1;inset:0;width:100%;height:100%;min-height:100vh;pointer-events:none;opacity:.82}#landing .hero,#landing .login-grid{position:relative}#landing .hero{background:linear-gradient(90deg,#07101eeb,#07101e99 65%,transparent);border-radius:22px;padding:24px}#landing .login-grid .panel{background:linear-gradient(145deg,rgba(25,43,66,.97),rgba(11,23,39,.97))}
 </style>
 <script>window.FC_SUPABASE_URL="https://irwtnqekrwhgompulach.supabase.co";</script>
 </head>
@@ -187,7 +189,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   <div class="top-actions"><span id="topUser" class="tiny"></span><button id="devTestMemberBtn" class="btn small hidden" onclick="startDeveloperPreview(\'member\')">Uji Member</button><button id="devTestGuestBtn" class="btn small hidden" onclick="startDeveloperPreview(\'guest\')">Uji Tamu</button><button id="devTestReturnBtn" class="btn small hidden" onclick="returnDeveloperPreview()">Kembali Developer</button><button id="guestInviteBtn" class="btn small hidden" onclick="createGuestRecommendation()">Kode Rekomendasi Tamu</button><button id="homeBtn" class="btn ghost small hidden" onclick="goHome()">Beranda</button><button id="logoutBtn" class="btn small hidden" onclick="logout()">Keluar</button></div>
 </div></header>
 <main class="shell">
-<section id="landing">
+<section id="landing"><canvas id="fcLogin3D" aria-hidden="true"></canvas>
   <div class="hero"><div><div class="eyebrow">A DIGITAL KINGDOM • EST. BY COMMUNITY</div><h1>One Colony.<br><span>One Kingdom.</span></h1><p>Selamat datang di dunia Family Colony — Bee Kingdom. Ruang digital untuk mengenal anggota, membangun kebersamaan, menikmati hiburan, dan menjaga kehidupan koloni.</p><div class="toolbar"><span class="status ok">● ANDROID APP • SERVER AUTH</span><span class="status">♢ Premium Royal Experience</span></div></div><div class="hero-art"><div class="hive"><span>🐝</span></div></div></div>
   <div class="login-grid">
     <section class="panel login-panel"><div class="eyebrow">COLONY ACCESS</div><h2>Member Login</h2><p class="muted tiny">Masuk menggunakan username Family Colony dan password akunmu. Email pribadi tidak diperlukan.</p>
@@ -1791,4 +1793,4 @@ setInterval(fcPollAppStatus,45000);fcPollAppStatus();
 <script>
 (()=>{const intro=document.getElementById("cdlStudioIntro");if(!intro)return;const close=()=>intro.classList.add("cdl-hide");intro.addEventListener("click",close,{once:true});window.setTimeout(close,2600)})();
 </script>
-</body></html>
+<script src="login3d_background.js"></script></body></html>
