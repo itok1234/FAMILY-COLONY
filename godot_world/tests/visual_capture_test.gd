@@ -44,11 +44,14 @@ func _capture() -> void:
 		if camera_pivot != null:
 			camera_pivot.rotation.x = -0.42
 			player_camera.position = Vector3(0, 2.65, 7.2)
+		player_camera.make_current()
 		for ui_name in ["SpatialInteractionConsole", "SpatialRoomChat", "SpatialGraphicsQualityPanel", "SpatialNetworkStatus", "MobileControls3D"]:
 			var ui_node := player_camera.get_node_or_null(ui_name)
 			if ui_node != null:
 				ui_node.visible = false
-	await RenderingServer.frame_post_draw
+	# Allow CI renderer several frames after camera activation.
+	for i in range(4):
+		await RenderingServer.frame_post_draw
 	# Emit scene-node diagnostics to trace obstructing UI/panel meshes.
 	_dump_visual_nodes(world, world)
 	var viewport := root.get_viewport()
@@ -59,14 +62,20 @@ func _capture() -> void:
 		return
 	# Basic pixel-level sanity checks: reject blank/near-uniform frames.
 	var samples := 0
-	var varied := false
-	var first := image.get_pixel(0, 0)
-	for y in range(0, image.get_height(), max(1, image.get_height() / 16)):
-		for x in range(0, image.get_width(), max(1, image.get_width() / 16)):
+	var min_luma := 1.0
+	var max_luma := 0.0
+	var non_dark := 0
+	for y in range(0, image.get_height(), max(1, image.get_height() / 24)):
+		for x in range(0, image.get_width(), max(1, image.get_width() / 24)):
 			var px := image.get_pixel(x, y)
+			var luma := (px.r * 0.299) + (px.g * 0.587) + (px.b * 0.114)
 			samples += 1
-			if abs(px.r - first.r) + abs(px.g - first.g) + abs(px.b - first.b) > 0.12:
-				varied = true
+			min_luma = min(min_luma, luma)
+			max_luma = max(max_luma, luma)
+			if luma > 0.08:
+				non_dark += 1
+	var varied := max_luma - min_luma > 0.08 and non_dark > 8
+	print("VISUAL_CAPTURE_STATS: samples=", samples, " min_luma=", min_luma, " max_luma=", max_luma, " non_dark=", non_dark)
 	if samples < 20 or not varied:
 		push_error("VISUAL_CAPTURE_FAIL: image appears blank or uniform")
 		quit(1)
