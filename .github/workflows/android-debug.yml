@@ -7,6 +7,7 @@ on:
       - feature/guest-premium-access
       - feature/direct-3d-entry
       - fix/rc3-comprehensive-3d-repair
+      - test/login-3d-full-module
     paths:
       - 'app/**'
       - 'godot_world/**'
