@@ -45,13 +45,15 @@ func _capture() -> void:
 	qa_camera.near = 0.1
 	qa_camera.far = 500.0
 	world.add_child(qa_camera)
-	# Use a broad elevated view so nearby generated building facades cannot
-	# occlude the QA image; center on the plaza road and nearby community buildings.
-	var avatar_target := Vector3(0.0, 3.0, -24.0)
-	qa_camera.position = avatar_target + Vector3(0.0, 22.0, 34.0)
-	qa_camera.look_at(avatar_target, Vector3.UP)
+	# Reuse the in-world player camera transform instead of guessing a QA viewpoint.
+	# This keeps the capture aimed at the same world composition used during play.
+	if player_camera != null:
+		qa_camera.global_transform = player_camera.global_transform
+	else:
+		qa_camera.position = Vector3(0.0, 6.0, 8.0)
+		qa_camera.look_at(Vector3(0.0, 2.0, -8.0), Vector3.UP)
 	qa_camera.make_current()
-	print("VISUAL_QA_CAMERA: scene-bound camera position=", qa_camera.global_position, " target=(0,0,0)")
+	print("VISUAL_QA_CAMERA: copied player viewpoint position=", qa_camera.global_position)
 	for i in range(12):
 		await process_frame
 		await RenderingServer.frame_post_draw
