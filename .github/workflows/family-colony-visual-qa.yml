@@ -38,12 +38,20 @@ jobs:
           if [ -z "$CAPTURE" ]; then echo "Screenshot file not found"; exit 1; fi
           cp "$CAPTURE" visual-qa-output/world_capture.png
           cp capture.log visual-qa-output/capture.log
+      - name: Preserve screenshot and capture diagnostics even on failure
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p visual-qa-output
+          cp capture.log visual-qa-output/capture.log 2>/dev/null || true
+          CAPTURE="$(find ~/.local/share/godot/app_userdata -path '*/visual_qa/world_capture.png' -type f | head -n 1)"
+          if [ -n "$CAPTURE" ]; then cp "$CAPTURE" visual-qa-output/world_capture.png; fi
       - name: Upload capture diagnostics even on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: family-colony-capture-diagnostics
-          path: capture.log
+          path: visual-qa-output/
           if-no-files-found: warn
 
       - name: Upload rendered evidence
