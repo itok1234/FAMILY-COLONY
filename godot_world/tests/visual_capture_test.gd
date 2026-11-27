@@ -2,7 +2,6 @@ extends SceneTree
 ## Rendered screenshot capture for visual QA evidence (not automatic visual approval).
 func _initialize() -> void:
 	call_deferred("_capture")
-
 func _dump_visual_nodes(node: Node, scene_root: Node) -> void:
 	var rel := scene_root.get_path_to(node)
 	if node is MeshInstance3D:
@@ -19,7 +18,6 @@ func _dump_visual_nodes(node: Node, scene_root: Node) -> void:
 		print("VISUAL_LABEL: ", rel, " visible=", node.is_visible_in_tree(), " text=", (node as Label3D).text)
 	for child in node.get_children():
 		_dump_visual_nodes(child, scene_root)
-
 func _capture() -> void:
 	var packed := load("res://scenes/world.tscn") as PackedScene
 	if packed == null:
@@ -61,6 +59,10 @@ func _capture() -> void:
 	var min_luma := 1.0
 	var max_luma := 0.0
 	var non_dark := 0
+	var color_bins: Dictionary = {}
+	var sum_rgb := Vector3.ZERO
+	var sum_sq_rgb := Vector3.ZERO
+	var rgb_samples := 0
 	for y in range(0, image.get_height(), max(1, image.get_height() / 24)):
 		for x in range(0, image.get_width(), max(1, image.get_width() / 24)):
 			var px := image.get_pixel(x, y)
@@ -70,13 +72,6 @@ func _capture() -> void:
 			max_luma = max(max_luma, luma)
 			if luma > 0.08:
 				non_dark += 1
-	var color_bins: Dictionary = {}
-	var sum_rgb := Vector3.ZERO
-	var sum_sq_rgb := Vector3.ZERO
-	var rgb_samples := 0
-	for y in range(0, image.get_height(), max(1, image.get_height() / 24)):
-		for x in range(0, image.get_width(), max(1, image.get_width() / 24)):
-			var px := image.get_pixel(x, y)
 			var bin_key := "%d_%d_%d" % [int(px.r * 8.0), int(px.g * 8.0), int(px.b * 8.0)]
 			color_bins[bin_key] = true
 			var rgb: Vector3 = Vector3(px.r, px.g, px.b)
@@ -88,24 +83,6 @@ func _capture() -> void:
 	var spread: float = variance_rgb.length()
 	var varied: bool = max_luma - min_luma > 0.08 and non_dark > 8 and color_bins.size() >= 18 and spread > 0.025
 	print("VISUAL_CAPTURE_STATS: samples=", samples, " min_luma=", min_luma, " max_luma=", max_luma, " non_dark=", non_dark, " color_bins=", color_bins.size(), " rgb_spread=", spread)
-	if samples < 20 or not varied:
-		push_error("VISUAL_CAPTURE_FAIL: image appears blank, uniform, or insufficiently varied")
-		quit(1)
-		return
-	var out_dir := "user://visual_qa"
-	var absolute_dir := ProjectSettings.globalize_path(out_dir)
-	DirAccess.make_dir_recursive_absolute(absolute_dir)
-	var path := out_dir + "/world_capture.png"
-	var err := image.save_png(path)
-	if err != OK:
-		push_error("VISUAL_CAPTURE_FAIL: save PNG error " + str(err))
-		quit(1)
-		return
-	print("VISUAL_CAPTURE: PASS " + ProjectSettings.globalize_path(path))
-	world.queue_free()
-	quit(0)	var varied := max_luma - min_luma > 0.08 and non_dark > 8 and color_bins.size() >= 18 and spread > 0.025
-	print("VISUAL_CAPTURE_STATS: samples=", samples, " min_luma=", min_luma, " max_luma=", max_luma, " non_dark=", non_dark, " color_bins=", color_bins.size(), " rgb_spread=", spread)
-	# Preserve PNG evidence even when the QA gate rejects the frame.
 	var out_dir := "user://visual_qa"
 	var absolute_dir := ProjectSettings.globalize_path(out_dir)
 	DirAccess.make_dir_recursive_absolute(absolute_dir)
