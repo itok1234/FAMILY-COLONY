@@ -86,13 +86,13 @@ for label, folder in folders.items():
         if not isinstance(item, str) or not item.strip():
             errors.append(f"INVALID {label} record: missing path")
             continue
-        required = ("license", "source", "visual_qa", "qa_reviewer", "qa_evidence")
+        required = ("license", "source")
         for field in required:
             if not isinstance(record.get(field), str) or not record[field].strip():
-                errors.append(f"INCOMPLETE RECORD {item}: missing {field}")
-        if record.get("visual_qa") != "approved":
-            errors.append(f"VISUAL QA NOT APPROVED: {item}")
-        p = (root / item).resolve()
+                errors.append(f"INCOMPLETE PROVENANCE RECORD {item}: missing {field}")
+        # Structural candidate intake is distinct from visual QA; never fake approval.
+        filesystem_item = item[6:] if item.startswith('res://') else item
+        p = (root / filesystem_item).resolve()
         try:
             p.relative_to(root.resolve())
             p.relative_to(folder.resolve())
@@ -126,8 +126,8 @@ for key in approved:
 for warning in warnings:
     print("WARNING:", warning)
 if errors:
-    print("PRODUCTION ASSET GATE: BLOCKED")
+    print("PRODUCTION ASSET CANDIDATE AUDIT: FAILED")
     for error in errors:
         print(" -", error)
     sys.exit(1)
-print("PRODUCTION ASSET GATE: PASS (structural + provenance/QA manifest; visual/runtime review still required)")
+print("PRODUCTION ASSET CANDIDATE AUDIT: PASS (structure + provenance only; visual/runtime review still required)")
