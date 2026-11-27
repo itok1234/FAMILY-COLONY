@@ -641,8 +641,8 @@ function enterApp(){
  renderPage();
  requestPortrait();
  syncDeveloperTestControls();
- // Authenticated non-guest members are routed into the native Godot 3D hub after session setup.
- if(session && session.role!=="Guest" && session.accessToken) launchGodotWorld();
+ // Keep the authenticated member on the 2D/native WebView home.
+ // Godot 3D is entered only when the member explicitly opens the enabled 3D World module.
 }
 function requestPortrait(){
   // Android Activity is locked to portrait; this class keeps the in-app layout vertical.
