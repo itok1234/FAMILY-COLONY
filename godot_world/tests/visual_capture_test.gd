@@ -13,7 +13,7 @@ func _dump_visual_nodes(node: Node, scene_root: Node) -> void:
 		if material is StandardMaterial3D:
 			mesh_info += " color=" + str((material as StandardMaterial3D).albedo_color)
 			mesh_info += " transparency=" + str((material as StandardMaterial3D).transparency)
-		print("VISUAL_NODE: ", rel, " visible=", mesh_node.is_visible_in_tree(), " ", mesh_info)
+		print("VISUAL_NODE: ", rel, " visible=", mesh_node.is_visible_in_tree(), " global_position=", mesh_node.global_position, " bounds=", mesh_node.get_aabb(), " ", mesh_info)
 	elif node is Label3D:
 		print("VISUAL_LABEL: ", rel, " visible=", node.is_visible_in_tree(), " text=", (node as Label3D).text)
 	for child in node.get_children():
@@ -47,10 +47,10 @@ func _capture() -> void:
 	world.add_child(qa_camera)
 	# Dedicated visual-QA framing: player camera is a gameplay camera, not a
 	# composition camera. Aim at the plaza focal point to show actual scene geometry.
-	qa_camera.position = Vector3(0.0, 13.0, 24.0)
-	qa_camera.look_at(Vector3(0.0, 2.2, 0.0), Vector3.UP)
+	qa_camera.position = Vector3(0.0, 8.0, 16.0)
+	qa_camera.look_at(Vector3(0.0, 1.5, 0.0), Vector3.UP)
 	qa_camera.make_current()
-	print("VISUAL_QA_CAMERA: plaza-focused composition position=", qa_camera.global_position)
+	print("VISUAL_QA_CAMERA: close plaza focal framing position=", qa_camera.global_position, " target=Vector3(0,1.5,0)")
 	for i in range(12):
 		await process_frame
 		await RenderingServer.frame_post_draw
