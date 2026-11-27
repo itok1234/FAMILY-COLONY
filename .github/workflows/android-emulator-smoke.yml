@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - feature/direct-3d-entry
+      - test/login-3d-full-module
     paths:
       - "app/build.gradle"
       - "app/src/main/**"
