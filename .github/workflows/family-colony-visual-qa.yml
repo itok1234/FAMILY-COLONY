@@ -1,4 +1,5 @@
 name: FAMILY COLONY Rendered Visual QA Capture
+# Re-trigger capture on latest viewport test commit.
 on:
   workflow_dispatch:
   push:
