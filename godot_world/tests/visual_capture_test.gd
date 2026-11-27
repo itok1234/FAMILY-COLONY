@@ -78,10 +78,28 @@ func _capture() -> void:
 			max_luma = max(max_luma, luma)
 			if luma > 0.08:
 				non_dark += 1
-	var varied := max_luma - min_luma > 0.08 and non_dark > 8
-	print("VISUAL_CAPTURE_STATS: samples=", samples, " min_luma=", min_luma, " max_luma=", max_luma, " non_dark=", non_dark)
+	# Add quantized color diversity and RGB spread checks: luminance alone
+	# can falsely pass a flat brown/grey image.
+	var color_bins: Dictionary = {}
+	var sum_rgb := Vector3.ZERO
+	var sum_sq_rgb := Vector3.ZERO
+	var rgb_samples := 0
+	for y in range(0, image.get_height(), max(1, image.get_height() / 24)):
+		for x in range(0, image.get_width(), max(1, image.get_width() / 24)):
+			var px := image.get_pixel(x, y)
+			var bin_key := "%d_%d_%d" % [int(px.r * 8.0), int(px.g * 8.0), int(px.b * 8.0)]
+			color_bins[bin_key] = true
+			var rgb := Vector3(px.r, px.g, px.b)
+			sum_rgb += rgb
+			sum_sq_rgb += rgb * rgb
+			rgb_samples += 1
+	var mean_rgb := sum_rgb / max(1, rgb_samples)
+	var variance_rgb := (sum_sq_rgb / max(1, rgb_samples)) - (mean_rgb * mean_rgb)
+	var spread := variance_rgb.length()
+	var varied := max_luma - min_luma > 0.08 and non_dark > 8 and color_bins.size() >= 18 and spread > 0.025
+	print("VISUAL_CAPTURE_STATS: samples=", samples, " min_luma=", min_luma, " max_luma=", max_luma, " non_dark=", non_dark, " color_bins=", color_bins.size(), " rgb_spread=", spread)
 	if samples < 20 or not varied:
-		push_error("VISUAL_CAPTURE_FAIL: image appears blank or uniform")
+		push_error("VISUAL_CAPTURE_FAIL: image appears blank, uniform, or insufficiently varied")
 		quit(1)
 		return
 	var out_dir := "user://visual_qa"
