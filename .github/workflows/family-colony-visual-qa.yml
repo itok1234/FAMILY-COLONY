@@ -1,5 +1,5 @@
 name: FAMILY COLONY Rendered Visual QA Capture
-# Re-trigger capture on latest viewport test commit.
+# Render isolation diagnostic and world screenshot capture.
 on:
   workflow_dispatch:
   push:
@@ -8,6 +8,7 @@ on:
       - "godot_world/scenes/**"
       - "godot_world/scripts/**"
       - "godot_world/tests/visual_capture_test.gd"
+      - "godot_world/tests/renderer_isolation_test.gd"
       - ".github/workflows/family-colony-visual-qa.yml"
 permissions:
   contents: read
@@ -27,6 +28,12 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y xvfb mesa-utils
       - name: Import project
         run: godot --headless --editor --path godot_world --quit
+      - name: Isolate renderer with deterministic primitive scene
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 godot --path godot_world --script res://tests/renderer_isolation_test.gd 2>&1 | tee renderer-diagnostic.log
+          grep -F "RENDERER_DIAGNOSTIC_PASS" renderer-diagnostic.log
       - name: Render world and capture screenshot
         shell: bash
         run: |
@@ -34,30 +41,24 @@ jobs:
           mkdir -p visual-qa-output
           xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 godot --path godot_world --script res://tests/visual_capture_test.gd 2>&1 | tee capture.log
           grep -F "VISUAL_CAPTURE: PASS" capture.log
-          find godot_world/.godot -maxdepth 3 -type f >/dev/null || true
           CAPTURE="$(find ~/.local/share/godot/app_userdata -path '*/visual_qa/world_capture.png' -type f | head -n 1)"
           if [ -z "$CAPTURE" ]; then echo "Screenshot file not found"; exit 1; fi
           cp "$CAPTURE" visual-qa-output/world_capture.png
           cp capture.log visual-qa-output/capture.log
-      - name: Preserve screenshot and capture diagnostics even on failure
+          cp renderer-diagnostic.log visual-qa-output/renderer-diagnostic.log
+      - name: Preserve diagnostics even on failure
         if: always()
         shell: bash
         run: |
           mkdir -p visual-qa-output
           cp capture.log visual-qa-output/capture.log 2>/dev/null || true
+          cp renderer-diagnostic.log visual-qa-output/renderer-diagnostic.log 2>/dev/null || true
           CAPTURE="$(find ~/.local/share/godot/app_userdata -path '*/visual_qa/world_capture.png' -type f | head -n 1)"
           if [ -n "$CAPTURE" ]; then cp "$CAPTURE" visual-qa-output/world_capture.png; fi
-      - name: Upload capture diagnostics even on failure
+      - name: Upload diagnostics and capture artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: family-colony-capture-diagnostics
+          name: family-colony-renderer-and-visual-diagnostics
           path: visual-qa-output/
           if-no-files-found: warn
-
-      - name: Upload rendered evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: family-colony-rendered-visual-qa
-          path: visual-qa-output/
-          if-no-files-found: error
