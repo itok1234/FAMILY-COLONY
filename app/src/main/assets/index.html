@@ -269,6 +269,21 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:600px){#landing .login-panel{margin-inline:auto;width:min(100%,480px);box-shadow:0 16px 38px rgba(2,8,24,.28)}#landing .hero-art #fcLoginOrb{max-width:min(100%,340px)}}
 @media(prefers-reduced-motion:reduce){#landing .hero-art,#landing .hero-art #fcLoginOrb,#landing .login-panel{transform:none!important;animation:none!important;transition:none!important}}
 </style>
+<style id="fc-login-visual-v7">
+/* Pass 7: keyboard focus, form clarity, touch-safe feedback */
+#landing .login-panel .field{position:relative}
+#landing .login-panel .field label{display:block;margin-bottom:8px;letter-spacing:.025em}
+#landing .login-panel input, #landing .login-panel select{width:100%;min-height:46px}
+#landing .login-panel input:focus-visible{outline:2px solid rgba(123,220,247,.75);outline-offset:2px}
+#landing .login-panel button:focus-visible{outline:2px solid rgba(239,210,139,.85);outline-offset:3px}
+#landing .login-panel button{min-height:44px}
+#landing .login-panel .notice{border-radius:14px;line-height:1.55}
+#landing .login-grid{align-items:stretch}
+#landing .login-panel{height:100%;display:flex;flex-direction:column}
+#landing .login-panel .field,#landing .login-panel .notice{flex-shrink:0}
+@media(max-width:600px){#landing .login-grid{gap:14px}#landing .login-panel{height:auto;padding:clamp(16px,4vw,22px)}#landing .login-panel input{font-size:16px}}
+@media(prefers-reduced-motion:reduce){#landing .login-panel input,#landing .login-panel button{transition:none!important}}
+</style>
 </head>
 <body>
 <div id="cdlStudioIntro" role="dialog" aria-label="CDL Project Studio">
