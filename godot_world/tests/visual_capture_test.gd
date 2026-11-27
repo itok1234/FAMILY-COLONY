@@ -24,8 +24,6 @@ func _capture() -> void:
 		push_error("VISUAL_CAPTURE_FAIL: world scene missing")
 		quit(1)
 		return
-	# Render the test scene directly in SceneTree's root viewport. The isolated
-	# SubViewport path produced uniform clear-color captures even with a valid camera.
 	var world := packed.instantiate()
 	var integrator := world.get_node_or_null("ProductionAssetIntegrator")
 	if integrator != null:
@@ -33,35 +31,33 @@ func _capture() -> void:
 	root.add_child(world)
 	for i in range(8):
 		await process_frame
-	# Fallback capture camera: sibling of world scene, independent from player rigs/scripts.
-	# This changes only QA capture, not runtime camera behaviour.
 	var player_camera := world.get_node_or_null("Player/CameraPivot/Camera3D")
 	if player_camera != null:
 		for ui_name in ["SpatialInteractionConsole", "SpatialRoomChat", "SpatialGraphicsQualityPanel", "SpatialNetworkStatus", "MobileControls3D"]:
 			var ui_node := player_camera.get_node_or_null(ui_name)
 			if ui_node != null:
 				ui_node.visible = false
+	# QA camera is explicitly bound to the instantiated scene's World3D to
+	# avoid capturing the viewport's unrelated/default 3D world.
 	var qa_camera := Camera3D.new()
 	qa_camera.name = "VisualQACaptureCamera"
 	qa_camera.position = Vector3(0, 14.0, 22.0)
 	qa_camera.fov = 60.0
 	qa_camera.near = 0.1
 	qa_camera.far = 500.0
-	root.add_child(qa_camera)
+	qa_camera.world_3d = world.get_world_3d()
+	world.add_child(qa_camera)
 	qa_camera.look_at_from_position(qa_camera.position, Vector3(0, 0.0, 0.0), Vector3.UP)
 	qa_camera.make_current()
-	print("VISUAL_QA_CAMERA: independent root camera position=", qa_camera.global_position, " target=(0,0.8,0)")
+	print("VISUAL_QA_CAMERA: scene-bound camera position=", qa_camera.global_position, " target=(0,0,0)")
 	for i in range(12):
 		await process_frame
 		await RenderingServer.frame_post_draw
 	_dump_visual_nodes(world, world)
 	print("VISUAL_VIEWPORT_DIAG: viewport_size=", root.size, " camera=", root.get_camera_3d(), " world3d=", root.world_3d)
-	print("VISUAL_CAMERA_DIAG: QA camera viewport=", qa_camera.get_viewport(), " current=", qa_camera.current, " global=", qa_camera.global_transform)
+	print("VISUAL_CAMERA_DIAG: QA camera viewport=", qa_camera.get_viewport(), " current=", qa_camera.current, " world3d=", qa_camera.world_3d, " global=", qa_camera.global_transform)
 	if player_camera != null:
 		print("VISUAL_PLAYER_CAMERA_DIAG: viewport=", player_camera.get_viewport(), " current=", player_camera.current, " global=", player_camera.global_transform)
-	var root_image := root.get_texture().get_image()
-	if root_image != null and not root_image.is_empty():
-		print("VISUAL_ROOT_CAPTURE_DIAG: size=", root_image.get_size(), " sample=", root_image.get_pixel(root_image.get_width()/2, root_image.get_height()/2))
 	var image := root.get_texture().get_image()
 	if image == null or image.is_empty():
 		push_error("VISUAL_CAPTURE_FAIL: viewport image empty")
@@ -84,8 +80,7 @@ func _capture() -> void:
 			max_luma = max(max_luma, luma)
 			if luma > 0.08:
 				non_dark += 1
-			var bin_key := "%d_%d_%d" % [int(px.r * 8.0), int(px.g * 8.0), int(px.b * 8.0)]
-			color_bins[bin_key] = true
+			color_bins["%d_%d_%d" % [int(px.r * 8.0), int(px.g * 8.0), int(px.b * 8.0)]] = true
 			var rgb: Vector3 = Vector3(px.r, px.g, px.b)
 			sum_rgb += rgb
 			sum_sq_rgb += rgb * rgb
@@ -93,7 +88,7 @@ func _capture() -> void:
 	var mean_rgb: Vector3 = sum_rgb / float(max(1, rgb_samples))
 	var variance_rgb: Vector3 = (sum_sq_rgb / float(max(1, rgb_samples))) - (mean_rgb * mean_rgb)
 	var spread: float = variance_rgb.length()
-	var varied: bool = max_luma - min_luma > 0.08 and non_dark > 8 and color_bins.size() >= 18 and spread > 0.025
+	var varied := max_luma - min_luma > 0.08 and non_dark > 8 and color_bins.size() >= 18 and spread > 0.025
 	print("VISUAL_CAPTURE_STATS: samples=", samples, " min_luma=", min_luma, " max_luma=", max_luma, " non_dark=", non_dark, " color_bins=", color_bins.size(), " rgb_spread=", spread)
 	var out_dir := "user://visual_qa"
 	var absolute_dir := ProjectSettings.globalize_path(out_dir)
