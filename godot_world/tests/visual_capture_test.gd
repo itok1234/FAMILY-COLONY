@@ -43,12 +43,12 @@ func _capture() -> void:
 				ui_node.visible = false
 	var qa_camera := Camera3D.new()
 	qa_camera.name = "VisualQACaptureCamera"
-	qa_camera.position = Vector3(0, 28.0, 42.0)
-	qa_camera.fov = 75.0
+	qa_camera.position = Vector3(0, 14.0, 22.0)
+	qa_camera.fov = 60.0
 	qa_camera.near = 0.1
 	qa_camera.far = 500.0
 	root.add_child(qa_camera)
-	qa_camera.look_at(Vector3(0, 0.0, -8.0), Vector3.UP)
+	qa_camera.look_at(Vector3(0, 0.0, 0.0), Vector3.UP)
 	qa_camera.make_current()
 	print("VISUAL_QA_CAMERA: independent root camera position=", qa_camera.global_position, " target=(0,0.8,0)")
 	for i in range(12):
