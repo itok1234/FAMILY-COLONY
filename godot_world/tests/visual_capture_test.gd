@@ -45,15 +45,12 @@ func _capture() -> void:
 	qa_camera.near = 0.1
 	qa_camera.far = 500.0
 	world.add_child(qa_camera)
-	# Reuse the in-world player camera transform instead of guessing a QA viewpoint.
-	# This keeps the capture aimed at the same world composition used during play.
-	if player_camera != null:
-		qa_camera.global_transform = player_camera.global_transform
-	else:
-		qa_camera.position = Vector3(0.0, 6.0, 8.0)
-		qa_camera.look_at(Vector3(0.0, 2.0, -8.0), Vector3.UP)
+	# Dedicated visual-QA framing: player camera is a gameplay camera, not a
+	# composition camera. Aim at the plaza focal point to show actual scene geometry.
+	qa_camera.position = Vector3(0.0, 13.0, 24.0)
+	qa_camera.look_at(Vector3(0.0, 2.2, 0.0), Vector3.UP)
 	qa_camera.make_current()
-	print("VISUAL_QA_CAMERA: copied player viewpoint position=", qa_camera.global_position)
+	print("VISUAL_QA_CAMERA: plaza-focused composition position=", qa_camera.global_position)
 	for i in range(12):
 		await process_frame
 		await RenderingServer.frame_post_draw
