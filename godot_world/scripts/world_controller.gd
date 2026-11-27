@@ -29,6 +29,15 @@ func _ready() -> void:
 			mobile_controls_action.action_pressed.connect(_on_mobile_action_pressed.bind(interaction_controller))
 
 	_android_session_required = OS.has_feature("android")
+	if _android_session_required:
+		# Disable expensive world post-process and sun shadow maps on Android devices.
+		# The scene remains fully 3D; this is a mobile rendering-cost adjustment.
+		var world_environment := get_node_or_null("WorldEnvironment") as WorldEnvironment
+		if world_environment != null and world_environment.environment != null:
+			world_environment.environment.glow_enabled = false
+		var sun := get_node_or_null("Sun") as DirectionalLight3D
+		if sun != null:
+			sun.shadow_enabled = false
 	if not _android_session_required:
 		return
 
