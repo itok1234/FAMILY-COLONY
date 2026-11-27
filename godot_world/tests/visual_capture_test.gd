@@ -41,12 +41,17 @@ func _capture() -> void:
 	# avoid capturing the viewport's unrelated/default 3D world.
 	var qa_camera := Camera3D.new()
 	qa_camera.name = "VisualQACaptureCamera"
-	qa_camera.position = Vector3(0, 14.0, 22.0)
 	qa_camera.fov = 60.0
 	qa_camera.near = 0.1
 	qa_camera.far = 500.0
 	world.add_child(qa_camera)
-	qa_camera.look_at_from_position(qa_camera.position, Vector3(0, 0.0, 0.0), Vector3.UP)
+	# Frame the spawned avatar directly, avoiding the distant fixed-origin view.
+	var avatar_target := Vector3(0.0, 1.8, 0.0)
+	var player_root := world.get_node_or_null("Player")
+	if player_root != null:
+		avatar_target = player_root.global_position + Vector3(0.0, 1.8, 0.0)
+	qa_camera.position = avatar_target + Vector3(0.0, 7.0, 12.0)
+	qa_camera.look_at(avatar_target, Vector3.UP)
 	qa_camera.make_current()
 	print("VISUAL_QA_CAMERA: scene-bound camera position=", qa_camera.global_position, " target=(0,0,0)")
 	for i in range(12):
