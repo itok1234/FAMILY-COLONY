@@ -50,7 +50,8 @@ func _capture() -> void:
 			if ui_node != null:
 				ui_node.visible = false
 	# Allow CI renderer several frames after camera activation.
-	for i in range(4):
+	for i in range(12):
+		await process_frame
 		await RenderingServer.frame_post_draw
 	# Emit scene-node diagnostics to trace obstructing UI/panel meshes.
 	_dump_visual_nodes(world, world)
