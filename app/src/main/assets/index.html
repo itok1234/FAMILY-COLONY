@@ -242,6 +242,21 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:850px){#landing .hero-art{min-height:260px}#landing .hero-art .hive{width:min(260px,67vw)}#landing .hero>div:first-child{padding:22px}}
 @media(max-width:390px){#landing .hero-art{min-height:225px}#landing .hero>div:first-child{padding:17px}#landing .login-panel{padding:18px}}
 </style>
+<style id="fc-login-visual-v5">
+/* Pass 4: layered spatial stage and perceptual depth polish. Auth structure untouched. */
+#landing .hero-art{position:relative;isolation:isolate;perspective:1100px;transform-style:preserve-3d}
+#landing .hero-art #fcLoginOrb{position:relative;z-index:2;transform:translateZ(24px);filter:drop-shadow(0 24px 32px rgba(8,20,48,.32))}
+#landing .hero-art:before{content:"";position:absolute;inset:8% 10%;border-radius:50%;z-index:0;background:radial-gradient(ellipse at 35% 30%,rgba(137,231,255,.18),transparent 55%),radial-gradient(ellipse at 70% 80%,rgba(103,123,245,.13),transparent 62%);filter:blur(24px);animation:fcLoginAtmosphere 7s ease-in-out infinite alternate}
+#landing .hero-art:after{content:"";position:absolute;left:12%;right:12%;bottom:3%;height:16%;border-radius:50%;z-index:1;background:radial-gradient(ellipse,rgba(68,154,208,.20),transparent 68%);filter:blur(14px);transform:translateZ(-20px)}
+#landing .login-panel{position:relative;transform:translateZ(16px);backdrop-filter:blur(22px) saturate(1.22);-webkit-backdrop-filter:blur(22px) saturate(1.22);box-shadow:0 24px 65px rgba(3,12,30,.30),inset 0 1px 0 rgba(255,255,255,.14)}
+#landing .login-panel input{transition:border-color .2s,box-shadow .2s,background .2s}
+#landing .login-panel input:focus{box-shadow:0 0 0 3px rgba(108,207,239,.13),0 8px 24px rgba(9,32,58,.15);border-color:rgba(112,213,241,.65)}
+#landing .login-panel button{transition:transform .18s,filter .18s,box-shadow .18s}
+#landing .login-panel button:active{transform:translateY(1px) scale(.985);filter:brightness(1.06)}
+@keyframes fcLoginAtmosphere{from{opacity:.55;transform:scale(.94) translateZ(-12px)}to{opacity:1;transform:scale(1.06) translateZ(-12px)}}
+@media(max-width:600px){#landing .hero-art{perspective:800px}#landing .hero-art #fcLoginOrb{transform:translateZ(8px);filter:drop-shadow(0 14px 20px rgba(8,20,48,.26))}#landing .login-panel{transform:none;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}}
+@media(prefers-reduced-motion:reduce){#landing .hero-art:before{animation:none!important}#landing .login-panel,#landing .login-panel button,#landing .login-panel input{transition:none!important}}
+</style>
 </head>
 <body>
 <div id="cdlStudioIntro" role="dialog" aria-label="CDL Project Studio">
