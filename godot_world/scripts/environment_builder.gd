@@ -29,6 +29,7 @@ func _ready() -> void:
 	_build_reference_social_gardens()
 	_build_plaza_accent_lighting()
 	_build_reference_city_skyline()
+	_build_imported_environment_scatter()
 
 func apply_quality_density(trees: int, lamps: int, buildings: int) -> void:
 	tree_count = maxi(0, trees)
@@ -1112,3 +1113,38 @@ func _build_plaza_accent_lighting() -> void:
 		lamp.omni_attenuation = 1.35
 		lamp.shadow_enabled = false
 		root.add_child(lamp)
+
+
+func _build_imported_environment_scatter() -> void:
+	## Integrate staged CC0 environment GLBs into the visible landscape.
+	## If import is missing, keep procedural foliage and report a QA warning.
+	var imported_root := Node3D.new()
+	imported_root.name = "ImportedEnvironmentScatter"
+	add_child(imported_root)
+	var sources := [
+		"res://assets/environment/Bush001.glb",
+		"res://assets/environment/Grass001.glb"
+	]
+	var packed_scenes: Array[PackedScene] = []
+	for source in sources:
+		if ResourceLoader.exists(source):
+			var packed := load(source) as PackedScene
+			if packed != null:
+				packed_scenes.append(packed)
+	if packed_scenes.is_empty():
+		push_warning("Imported environment scatter unavailable; procedural landscape retained.")
+		return
+	for index in range(18):
+		var side := -1.0 if index % 2 == 0 else 1.0
+		var z := -26.0 - float(index) * 6.0
+		var x := side * _rng.randf_range(12.5, 18.0)
+		var asset := packed_scenes[index % packed_scenes.size()].instantiate()
+		if asset is Node3D:
+			asset.name = "ImportedScatter_%02d" % index
+			asset.position = Vector3(x, 0.0, z)
+			asset.rotation.y = _rng.randf_range(0.0, TAU)
+			var scale_value := _rng.randf_range(0.65, 1.15)
+			asset.scale = Vector3.ONE * scale_value
+			imported_root.add_child(asset)
+		else:
+			asset.free()
