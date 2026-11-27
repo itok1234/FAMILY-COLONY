@@ -27,11 +27,11 @@ func _capture() -> void:
 		quit(1)
 		return
 	var world := packed.instantiate()
-	# QA-only: mount pending CC0 candidate assets for a rendered integration check.
-	# This does not change production approval status or the production scene flag.
+	# Baseline visual QA: use the project fallback avatar and production scene assets.
+	# Candidate smoke mounting is excluded here to prevent suppressing fallback visuals.
 	var integrator := world.get_node_or_null("ProductionAssetIntegrator")
 	if integrator != null:
-		integrator.allow_candidate_smoke_test = true
+		integrator.allow_candidate_smoke_test = false
 	root.add_child(world)
 	for i in range(8):
 		await process_frame
@@ -47,6 +47,7 @@ func _capture() -> void:
 		player_camera.position = Vector3(0, 3.8, 8.5)
 		player_camera.look_at(Vector3(0, 0.8, -5.0), Vector3.UP)
 		player_camera.make_current()
+		print("VISUAL_CAMERA_GLOBAL: position=", player_camera.global_position, " target=(0,0.8,-5)")
 		for ui_name in ["SpatialInteractionConsole", "SpatialRoomChat", "SpatialGraphicsQualityPanel", "SpatialNetworkStatus", "MobileControls3D"]:
 			var ui_node := player_camera.get_node_or_null(ui_name)
 			if ui_node != null:
