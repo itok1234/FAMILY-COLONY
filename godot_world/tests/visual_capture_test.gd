@@ -45,7 +45,6 @@ func _capture() -> void:
 	qa_camera.fov = 60.0
 	qa_camera.near = 0.1
 	qa_camera.far = 500.0
-	qa_camera.world_3d = world.get_world_3d()
 	world.add_child(qa_camera)
 	qa_camera.look_at_from_position(qa_camera.position, Vector3(0, 0.0, 0.0), Vector3.UP)
 	qa_camera.make_current()
