@@ -51,7 +51,7 @@ func _capture() -> void:
 		await process_frame
 		await RenderingServer.frame_post_draw
 	_dump_visual_nodes(world, world)
-	print("VISUAL_VIEWPORT_DIAG: viewport_size=", capture_viewport.size, " camera=", capture_viewport.get_camera_3d(), " world3d=", capture_viewport.world_3d, " render_target=", capture_viewport.render_target_update_mode, " texture=", capture_viewport.get_texture())
+	print("VISUAL_VIEWPORT_DIAG: viewport_size=", root.size, " camera=", root.get_camera_3d(), " world3d=", root.world_3d)
 	if player_camera != null:
 		print("VISUAL_CAMERA_DIAG: camera_viewport=", player_camera.get_viewport(), " current=", player_camera.current, " global=", player_camera.global_transform)
 	var root_image := root.get_texture().get_image()
