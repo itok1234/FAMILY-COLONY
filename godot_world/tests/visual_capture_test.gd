@@ -27,6 +27,11 @@ func _capture() -> void:
 		quit(1)
 		return
 	var world := packed.instantiate()
+	# QA-only: mount pending CC0 candidate assets for a rendered integration check.
+	# This does not change production approval status or the production scene flag.
+	var integrator := world.get_node_or_null("ProductionAssetIntegrator")
+	if integrator != null:
+		integrator.allow_candidate_smoke_test = true
 	root.add_child(world)
 	for i in range(8):
 		await process_frame
