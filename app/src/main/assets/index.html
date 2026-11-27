@@ -1926,4 +1926,25 @@ setInterval(fcPollAppStatus,45000);fcPollAppStatus();
 @media(hover:hover) and (pointer:fine){#landing .hero-art{transform:rotateX(var(--fc-scene-tilt-x,0deg)) rotateY(var(--fc-scene-tilt-y,0deg));transition:transform .24s ease-out}}
 @media(hover:none){#landing .hero-art{transform:none!important}}
 </style>
+
+<style id="fc-login-pass9-mobile-depth">
+/* Pass 9: touch-sized composition + layered depth kept strictly inside Login */
+#landing .hero-art{contain:layout paint;isolation:isolate}
+#landing .hero-art:before,#landing .hero-art:after{z-index:0}
+#landing .hero-art #fcLoginOrb{z-index:1}
+#landing .hero-art .hive{z-index:2}
+#landing .hero-art .hive span{display:block;transform-style:preserve-3d}
+#landing .login-panel .field{position:relative;z-index:1}
+#landing .login-panel .field input{min-height:48px;font-size:16px;touch-action:manipulation}
+#landing .login-panel .btn{min-height:44px;touch-action:manipulation}
+@media(max-width:600px){
+ #landing .shell{width:min(100% - 22px,1200px)}
+ #landing .hero-art{min-height:clamp(210px,58vw,280px)}
+ #landing .hero>div:first-child{padding:20px;border-radius:22px}
+ #landing .hero-art:after{width:min(94%,330px)}
+ #landing .login-panel{border-radius:20px;padding:clamp(16px,5vw,22px)}
+ #landing .login-panel .field input{padding:14px 12px}
+}
+@media(prefers-reduced-motion:reduce){#landing .hero-art:before,#landing .hero-art:after{animation:none!important}}
+</style>
 </body></html>
