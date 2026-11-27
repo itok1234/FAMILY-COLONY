@@ -99,14 +99,17 @@ func _build_environment() -> void:
 	environment.ambient_light_color = Color("#c7d8e5")
 	environment.ambient_light_energy = 0.7
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	environment.glow_enabled = true
+	# Mobile performance safeguard: avoid expensive post-process glow on Android.
+	# Keep lighting/material quality; reduce post-processing cost for older devices.
+	environment.glow_enabled = not OS.has_feature("android")
 	world_env.environment = environment
 	add_child(world_env)
 
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-48, -32, 0)
 	sun.light_energy = 1.15
-	sun.shadow_enabled = true
+	# Dynamic shadow maps from this decorative hub sun are costly on mobile.
+	sun.shadow_enabled = not OS.has_feature("android")
 	add_child(sun)
 
 	var ground := MeshInstance3D.new()
