@@ -94,6 +94,7 @@ shape = SubResource("GroundShape")
 
 [node name="ProductionAssetIntegrator" type="Node3D" parent="."]
 script = ExtResource("18")
+allow_candidate_smoke_test = true
 
 [node name="Player" type="CharacterBody3D" parent="."]
 position = Vector3(0, 1.1, 0)
