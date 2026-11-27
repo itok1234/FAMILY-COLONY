@@ -184,8 +184,17 @@ func _on_session_verified(_member: Dictionary, permissions: Dictionary) -> void:
 			_main_hub.call("show_developer_center", _member)
 		return
 	var avatar := player.get_node_or_null("AvatarVisual")
+	if avatar is Node3D:
+		# Explicitly restore the avatar visual when a verified Android session starts.
+		# This guards against stale visibility state from scene transitions.
+		avatar.visible = true
+		avatar.set_process(true)
+		avatar.set_process_input(true)
+		avatar.set_process_unhandled_input(true)
 	if avatar != null and avatar.has_method("set_display_name"):
 		avatar.call("set_display_name", str(_member.get("name", "Colony Member")))
+
+	_set_gate_status("Sesi terverifikasi • Menyiapkan Beranda 3D...")
 	# After server verification, enter the native spatial 3D hub first.
 	# The existing WebView login/session remains the source of member identity.
 	_set_player_enabled(false)
