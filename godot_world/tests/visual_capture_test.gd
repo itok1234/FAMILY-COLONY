@@ -48,7 +48,7 @@ func _capture() -> void:
 	qa_camera.near = 0.1
 	qa_camera.far = 500.0
 	root.add_child(qa_camera)
-	qa_camera.look_at(Vector3(0, 0.0, 0.0), Vector3.UP)
+	qa_camera.look_at_from_position(qa_camera.position, Vector3(0, 0.0, 0.0), Vector3.UP)
 	qa_camera.make_current()
 	print("VISUAL_QA_CAMERA: independent root camera position=", qa_camera.global_position, " target=(0,0.8,0)")
 	for i in range(12):
