@@ -31,6 +31,13 @@ func _capture() -> void:
 	capture_viewport.size = Vector2i(1280, 720)
 	capture_viewport.disable_3d = false
 	capture_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	# Explicitly share the main viewport World3D so headless capture does not render an isolated empty world.
+	var main_world_3d := root.get_world_3d()
+	if main_world_3d != null:
+		capture_viewport.world_3d = main_world_3d
+		print("VISUAL_WORLD3D_BIND: shared main viewport World3D")
+	else:
+		print("VISUAL_WORLD3D_BIND: main viewport World3D unavailable")
 	root.add_child(capture_viewport)
 	var world := packed.instantiate()
 	var integrator := world.get_node_or_null("ProductionAssetIntegrator")
