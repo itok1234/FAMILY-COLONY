@@ -39,6 +39,11 @@ func _capture() -> void:
 	# evaluates the 3D world geometry rather than fixed spatial HUD elements.
 	var player_camera := world.get_node_or_null("Player/CameraPivot/Camera3D")
 	if player_camera != null:
+		# QA framing only: aim slightly downward to minimize empty sky and avoid the oversized dark upper region in the capture.
+		var camera_pivot := world.get_node_or_null("Player/CameraPivot")
+		if camera_pivot != null:
+			camera_pivot.rotation.x = -0.42
+			player_camera.position = Vector3(0, 2.65, 7.2)
 		for ui_name in ["SpatialInteractionConsole", "SpatialRoomChat", "SpatialGraphicsQualityPanel", "SpatialNetworkStatus", "MobileControls3D"]:
 			var ui_node := player_camera.get_node_or_null(ui_name)
 			if ui_node != null:
