@@ -257,6 +257,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:600px){#landing .hero-art{perspective:800px}#landing .hero-art #fcLoginOrb{transform:translateZ(8px);filter:drop-shadow(0 14px 20px rgba(8,20,48,.26))}#landing .login-panel{transform:none;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}}
 @media(prefers-reduced-motion:reduce){#landing .hero-art:before{animation:none!important}#landing .login-panel,#landing .login-panel button,#landing .login-panel input{transition:none!important}}
 </style>
+<style id="fc-login-visual-v6">
+/* Pass 6: scene composition refinement, contrast, and accessible motion handling */
+#landing .hero-art{overflow:visible}
+#landing .hero-art #fcLoginOrb{max-width:100%;height:auto}
+#landing .login-panel{border:1px solid rgba(164,221,245,.20);background:linear-gradient(145deg,rgba(26,48,76,.78),rgba(9,20,39,.82));}
+#landing .login-panel:before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(125deg,rgba(255,255,255,.075),transparent 38%,rgba(125,200,245,.035));}
+#landing .login-panel>*{position:relative}
+#landing .hero-art #fcLoginOrb{filter:drop-shadow(0 0 14px rgba(87,202,242,.12)) drop-shadow(0 20px 28px rgba(4,13,32,.36))}
+#landing .login-panel button:not(:disabled):hover{filter:brightness(1.08);box-shadow:0 8px 24px rgba(88,183,229,.18)}
+@media(max-width:600px){#landing .login-panel{margin-inline:auto;width:min(100%,480px);box-shadow:0 16px 38px rgba(2,8,24,.28)}#landing .hero-art #fcLoginOrb{max-width:min(100%,340px)}}
+@media(prefers-reduced-motion:reduce){#landing .hero-art,#landing .hero-art #fcLoginOrb,#landing .login-panel{transform:none!important;animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
 <div id="cdlStudioIntro" role="dialog" aria-label="CDL Project Studio">
