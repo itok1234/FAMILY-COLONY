@@ -1,5 +1,4 @@
-name: FAMILY COLONY Rendered Visual QA Capture
-# Render isolation diagnostic and world screenshot capture.
+name: FAMILY COLONY 3DSV Technical Gates
 on:
   workflow_dispatch:
   push:
@@ -7,58 +6,34 @@ on:
     paths:
       - "godot_world/scenes/**"
       - "godot_world/scripts/**"
-      - "godot_world/tests/visual_capture_test.gd"
-      - "godot_world/tests/renderer_isolation_test.gd"
+      - "godot_world/tests/3dsv_test.gd"
       - ".github/workflows/family-colony-visual-qa.yml"
 permissions:
   contents: read
 jobs:
-  capture:
+  technical-gates:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Install Godot
+      - name: Install Godot 4.4.1
         uses: chickensoft-games/setup-godot@v2
         with:
           version: 4.4.1
           use-dotnet: false
           cache: true
-      - name: Install display and software renderer
-        run: sudo apt-get update && sudo apt-get install -y xvfb mesa-utils
       - name: Import project
         run: godot --headless --editor --path godot_world --quit
-      - name: Isolate renderer with deterministic primitive scene
+      - name: Run five independent 3DSV technical gates
         shell: bash
         run: |
           set -euo pipefail
-          timeout --signal=TERM --kill-after=10s 90s xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 godot --path godot_world --script res://tests/renderer_isolation_test.gd 2>&1 | tee renderer-diagnostic.log
-          grep -F "RENDERER_DIAGNOSTIC_PASS" renderer-diagnostic.log
-      - name: Render world and capture screenshot
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p visual-qa-output
-          timeout --signal=TERM --kill-after=15s 180s xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 godot --path godot_world --script res://tests/visual_capture_test.gd 2>&1 | tee capture.log
-          grep -F "ISOLATION_DONE:" capture.log
-          CAPTURE_DIR="$(find ~/.local/share/godot/app_userdata -path '*/visual_qa/isolation' -type d | head -n 1)"
-          if [ -z "$CAPTURE_DIR" ]; then echo "Isolation screenshot directory not found"; exit 1; fi
-          cp "$CAPTURE_DIR"/*.png visual-qa-output/
-          cp capture.log visual-qa-output/capture.log
-          cp renderer-diagnostic.log visual-qa-output/renderer-diagnostic.log
-      - name: Preserve diagnostics even on failure
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p visual-qa-output
-          cp capture.log visual-qa-output/capture.log 2>/dev/null || true
-          cp renderer-diagnostic.log visual-qa-output/renderer-diagnostic.log 2>/dev/null || true
-          CAPTURE_DIR="$(find ~/.local/share/godot/app_userdata -path '*/visual_qa/isolation' -type d | head -n 1)"
-          if [ -n "$CAPTURE_DIR" ]; then cp "$CAPTURE_DIR"/*.png visual-qa-output/ 2>/dev/null || true; fi
-      - name: Upload diagnostics and capture artifacts
+          godot --headless --path godot_world --script res://tests/3dsv_test.gd 2>&1 | tee 3dsv.log
+          grep -F "3DSV_ALL_PASS" 3dsv.log
+      - name: Upload gate report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: family-colony-renderer-and-visual-diagnostics
-          path: visual-qa-output/
+          name: family-colony-3dsv-report
+          path: 3dsv.log
           if-no-files-found: warn
