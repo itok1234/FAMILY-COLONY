@@ -44,10 +44,10 @@ func _capture() -> void:
 		if camera_pivot != null:
 			camera_pivot.rotation = Vector3.ZERO
 			camera_pivot.position = Vector3(0, 1.25, 0)
-		player_camera.position = Vector3(0, 3.8, 8.5)
-		player_camera.look_at(Vector3(0, 0.8, -5.0), Vector3.UP)
+		player_camera.position = Vector3(0, 3.2, 7.0)
+		player_camera.look_at(Vector3(0, 1.1, 0.0), Vector3.UP)
 		player_camera.make_current()
-		print("VISUAL_CAMERA_GLOBAL: position=", player_camera.global_position, " target=(0,0.8,-5)")
+		print("VISUAL_CAMERA_GLOBAL: position=", player_camera.global_position, " target=(0,1.1,0) focal=avatar-baseline")
 		for ui_name in ["SpatialInteractionConsole", "SpatialRoomChat", "SpatialGraphicsQualityPanel", "SpatialNetworkStatus", "MobileControls3D"]:
 			var ui_node := player_camera.get_node_or_null(ui_name)
 			if ui_node != null:
