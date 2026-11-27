@@ -102,6 +102,10 @@ jobs:
           for script in "$RUNNER_TEMP"/fc-inline-*.js; do
             node --check "$script"
           done
+          # Validate the external procedural WebGL login layer and integration markers.
+          node --check app/src/main/assets/login3d_background.js
+          grep -F 'id="fcLogin3D"' app/src/main/assets/index.html
+          grep -F 'login3d_background.js' app/src/main/assets/index.html
 
       - name: Build Debug APK
         run: gradle --no-daemon assembleDebug --stacktrace
