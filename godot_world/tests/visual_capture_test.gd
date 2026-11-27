@@ -43,7 +43,7 @@ func _capture() -> void:
 		var camera_pivot := world.get_node_or_null("Player/CameraPivot")
 		if camera_pivot != null:
 			camera_pivot.rotation = Vector3.ZERO
-			camera_pivot.position = Vector3(0, 1.25, 0)
+			camera_pivot.position = Vector3(0, 0.0, 0)
 		player_camera.position = Vector3(0, 3.2, 7.0)
 		player_camera.look_at(Vector3(0, 1.1, 0.0), Vector3.UP)
 		player_camera.make_current()
