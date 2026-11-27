@@ -284,6 +284,21 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:600px){#landing .login-grid{gap:14px}#landing .login-panel{height:auto;padding:clamp(16px,4vw,22px)}#landing .login-panel input{font-size:16px}}
 @media(prefers-reduced-motion:reduce){#landing .login-panel input,#landing .login-panel button{transition:none!important}}
 </style>
+<style id="fc-login-visual-v8">
+/* Pass 8: final composition balance and visual hierarchy */
+#landing .hero>div:first-child{position:relative;z-index:2}
+#landing .hero-art .hive{position:relative;z-index:3;filter:drop-shadow(0 8px 22px rgba(246,202,107,.24));transform:translateZ(32px)}
+#landing .hero-art .hive span{display:inline-block;animation:fcBeeFloat 4.8s ease-in-out infinite}
+#landing .hero .eyebrow,#landing .login-grid .eyebrow{letter-spacing:.16em;font-weight:750;text-shadow:0 1px 10px rgba(100,190,230,.12)}
+#landing .hero h1{letter-spacing:-.035em;text-wrap:balance}
+#landing .hero p{max-width:58ch;line-height:1.75}
+#landing .login-grid{position:relative;z-index:2}
+#landing .login-panel h2{letter-spacing:-.02em}
+#landing .toolbar .status{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+@keyframes fcBeeFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-7px) rotate(2deg)}}
+@media(max-width:600px){#landing .hero h1{font-size:clamp(2rem,9vw,3.2rem);line-height:1.08}#landing .hero p{line-height:1.65}#landing .hero-art .hive span{animation-duration:6s}}
+@media(prefers-reduced-motion:reduce){#landing .hero-art .hive span{animation:none!important}}
+</style>
 </head>
 <body>
 <div id="cdlStudioIntro" role="dialog" aria-label="CDL Project Studio">
