@@ -46,9 +46,9 @@ func _capture() -> void:
 	qa_camera.far = 500.0
 	world.add_child(qa_camera)
 	# Use a broad elevated view so nearby generated building facades cannot
-	# occlude the QA image; center on the hub/player area.
-	var avatar_target := Vector3(0.0, 0.0, 0.0)
-	qa_camera.position = avatar_target + Vector3(0.0, 26.0, 32.0)
+	# occlude the QA image; center on the plaza road and nearby community buildings.
+	var avatar_target := Vector3(0.0, 3.0, -24.0)
+	qa_camera.position = avatar_target + Vector3(0.0, 22.0, 34.0)
 	qa_camera.look_at(avatar_target, Vector3.UP)
 	qa_camera.make_current()
 	print("VISUAL_QA_CAMERA: scene-bound camera position=", qa_camera.global_position, " target=(0,0,0)")
