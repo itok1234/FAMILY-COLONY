@@ -38,6 +38,14 @@ jobs:
           if [ -z "$CAPTURE" ]; then echo "Screenshot file not found"; exit 1; fi
           cp "$CAPTURE" visual-qa-output/world_capture.png
           cp capture.log visual-qa-output/capture.log
+      - name: Upload capture diagnostics even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: family-colony-capture-diagnostics
+          path: capture.log
+          if-no-files-found: warn
+
       - name: Upload rendered evidence
         uses: actions/upload-artifact@v4
         with:
