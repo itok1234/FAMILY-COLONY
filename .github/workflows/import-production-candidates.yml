@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       source_run_id:
-        description: Successful asset intake run ID
+        description: Successful retained asset intake run ID; download candidates and keep visual QA pending
         required: true
         default: '45822938469'
   push:
