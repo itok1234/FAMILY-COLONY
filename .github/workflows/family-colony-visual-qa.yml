@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p visual-qa-output
-          xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 godot --path godot_world --script res://tests/visual_capture_test.gd 2>&1 | tee capture.log
+          timeout --signal=TERM --kill-after=15s 180s xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 godot --path godot_world --script res://tests/visual_capture_test.gd 2>&1 | tee capture.log
           grep -F "VISUAL_CAPTURE: PASS" capture.log
           CAPTURE="$(find ~/.local/share/godot/app_userdata -path '*/visual_qa/world_capture.png' -type f | head -n 1)"
           if [ -z "$CAPTURE" ]; then echo "Screenshot file not found"; exit 1; fi
