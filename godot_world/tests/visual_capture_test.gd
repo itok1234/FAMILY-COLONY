@@ -33,27 +33,32 @@ func _capture() -> void:
 	root.add_child(world)
 	for i in range(8):
 		await process_frame
+	# Fallback capture camera: sibling of world scene, independent from player rigs/scripts.
+	# This changes only QA capture, not runtime camera behaviour.
 	var player_camera := world.get_node_or_null("Player/CameraPivot/Camera3D")
 	if player_camera != null:
-		var camera_pivot := world.get_node_or_null("Player/CameraPivot")
-		if camera_pivot != null:
-			camera_pivot.rotation = Vector3.ZERO
-			camera_pivot.position = Vector3(0, 0.0, 0)
-		player_camera.position = Vector3(0, 3.2, 7.0)
-		player_camera.look_at(Vector3(0, 1.1, 0.0), Vector3.UP)
-		player_camera.make_current()
-		print("VISUAL_CAMERA_GLOBAL: position=", player_camera.global_position, " target=(0,1.1,0) focal=avatar-baseline")
 		for ui_name in ["SpatialInteractionConsole", "SpatialRoomChat", "SpatialGraphicsQualityPanel", "SpatialNetworkStatus", "MobileControls3D"]:
 			var ui_node := player_camera.get_node_or_null(ui_name)
 			if ui_node != null:
 				ui_node.visible = false
+	var qa_camera := Camera3D.new()
+	qa_camera.name = "VisualQACaptureCamera"
+	qa_camera.position = Vector3(0, 9.0, 16.0)
+	qa_camera.fov = 65.0
+	qa_camera.near = 0.1
+	qa_camera.far = 500.0
+	root.add_child(qa_camera)
+	qa_camera.look_at(Vector3(0, 0.8, 0), Vector3.UP)
+	qa_camera.make_current()
+	print("VISUAL_QA_CAMERA: independent root camera position=", qa_camera.global_position, " target=(0,0.8,0)")
 	for i in range(12):
 		await process_frame
 		await RenderingServer.frame_post_draw
 	_dump_visual_nodes(world, world)
 	print("VISUAL_VIEWPORT_DIAG: viewport_size=", root.size, " camera=", root.get_camera_3d(), " world3d=", root.world_3d)
+	print("VISUAL_CAMERA_DIAG: QA camera viewport=", qa_camera.get_viewport(), " current=", qa_camera.current, " global=", qa_camera.global_transform)
 	if player_camera != null:
-		print("VISUAL_CAMERA_DIAG: camera_viewport=", player_camera.get_viewport(), " current=", player_camera.current, " global=", player_camera.global_transform)
+		print("VISUAL_PLAYER_CAMERA_DIAG: viewport=", player_camera.get_viewport(), " current=", player_camera.current, " global=", player_camera.global_transform)
 	var root_image := root.get_texture().get_image()
 	if root_image != null and not root_image.is_empty():
 		print("VISUAL_ROOT_CAPTURE_DIAG: size=", root_image.get_size(), " sample=", root_image.get_pixel(root_image.get_width()/2, root_image.get_height()/2))
