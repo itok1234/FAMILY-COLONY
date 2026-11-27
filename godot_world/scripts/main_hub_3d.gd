@@ -138,6 +138,79 @@ func _build_environment() -> void:
 		pillar.material_override = _material(Color("#8da2a0"), 0.65)
 		add_child(pillar)
 
+	# Home-hub benchmark: circular plaza, inset paths and stylized garden landmarks.
+	var plaza := MeshInstance3D.new()
+	var plaza_mesh := CylinderMesh.new()
+	plaza_mesh.top_radius = 10.2
+	plaza_mesh.bottom_radius = 10.5
+	plaza_mesh.height = 0.22
+	plaza.mesh = plaza_mesh
+	plaza.position.y = 0.02
+	plaza.material_override = _material(Color("#526a68"), 0.78, 0.12)
+	add_child(plaza)
+	for ring_radius in [5.2, 9.2]:
+		var path_ring := MeshInstance3D.new()
+		var path_mesh := TorusMesh.new()
+		path_mesh.inner_radius = ring_radius - 0.16
+		path_mesh.outer_radius = ring_radius + 0.16
+		path_ring.mesh = path_mesh
+		path_ring.rotation_degrees.x = 90.0
+		path_ring.position.y = 0.18
+		path_ring.material_override = _material(Color("#d5b879"), 0.52, 0.22)
+		add_child(path_ring)
+	for i in range(16):
+		var angle := TAU * float(i) / 16.0
+		var planter := MeshInstance3D.new()
+		var planter_mesh := CylinderMesh.new()
+		planter_mesh.top_radius = 0.68
+		planter_mesh.bottom_radius = 0.82
+		planter_mesh.height = 0.42
+		planter.mesh = planter_mesh
+		planter.position = Vector3(cos(angle) * 11.2, 0.2, sin(angle) * 11.2)
+		planter.material_override = _material(Color("#334b50"), 0.75, 0.16)
+		add_child(planter)
+		var shrub := MeshInstance3D.new()
+		var shrub_mesh := SphereMesh.new()
+		shrub_mesh.radius = 0.62
+		shrub_mesh.height = 1.12
+		shrub.mesh = shrub_mesh
+		shrub.position = planter.position + Vector3(0, 0.74, 0)
+		shrub.material_override = _material(Color("#52866b"), 0.88, 0.04)
+		add_child(shrub)
+	# Decorative lamp posts establish a recognizable spatial home plaza.
+	for i in range(8):
+		var angle := TAU * float(i) / 8.0
+		var lamp := Node3D.new()
+		lamp.position = Vector3(cos(angle) * 7.6, 0.0, sin(angle) * 7.6)
+		add_child(lamp)
+		var post := MeshInstance3D.new()
+		var post_mesh := CylinderMesh.new()
+		post_mesh.top_radius = 0.09
+		post_mesh.bottom_radius = 0.13
+		post_mesh.height = 2.8
+		post.mesh = post_mesh
+		post.position.y = 1.4
+		post.material_override = _material(Color("#c9ad70"), 0.35, 0.42)
+		lamp.add_child(post)
+		var lantern := MeshInstance3D.new()
+		var lantern_mesh := SphereMesh.new()
+		lantern_mesh.radius = 0.28
+		lantern_mesh.height = 0.42
+		lantern.mesh = lantern_mesh
+		lantern.position.y = 2.85
+		var lantern_mat := _material(Color("#f3d99a"), 0.2, 0.48)
+		lantern_mat.emission_enabled = true
+		lantern_mat.emission = Color("#f3d99a")
+		lantern_mat.emission_energy_multiplier = 1.2
+		lantern.material_override = lantern_mat
+		lamp.add_child(lantern)
+		var light := OmniLight3D.new()
+		light.position.y = 2.8
+		light.light_color = Color("#f3d99a")
+		light.light_energy = 0.28
+		light.omni_range = 4.0
+		lamp.add_child(light)
+
 
 func _build_camera() -> void:
 	_camera = Camera3D.new()
@@ -432,13 +505,23 @@ func _create_kiosk(item: Dictionary) -> void:
 	collision.position.y = 0.95
 	root.add_child(collision)
 
+	# Portal-style station frame: recognizable spatial doorway instead of flat UI slab.
 	var body := MeshInstance3D.new()
 	var body_mesh := BoxMesh.new()
-	body_mesh.size = Vector3(3.1, 2.5, 0.48)
+	body_mesh.size = Vector3(2.65, 2.05, 0.24)
 	body.mesh = body_mesh
-	body.position.y = 0.95
-	body.material_override = _material(item.color, 0.48, 0.08)
+	body.position.y = 1.18
+	body.material_override = _material(item.color.darkened(0.12), 0.42, 0.18)
 	root.add_child(body)
+	var portal_ring := MeshInstance3D.new()
+	var portal_mesh := TorusMesh.new()
+	portal_mesh.inner_radius = 1.18
+	portal_mesh.outer_radius = 1.34
+	portal_ring.mesh = portal_mesh
+	portal_ring.position = Vector3(0, 1.18, -0.18)
+	portal_ring.rotation_degrees.x = 90.0
+	portal_ring.material_override = _material(item.color.lightened(0.42), 0.28, 0.42)
+	root.add_child(portal_ring)
 
 	var trim := MeshInstance3D.new()
 	var trim_mesh := BoxMesh.new()
