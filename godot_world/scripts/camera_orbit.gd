@@ -1,7 +1,7 @@
 extends Node3D
 ## Third-person orbit camera: right-side touch drag on Android, right mouse drag in editor.
 
-@export var sensitivity: float = 0.006
+@export var sensitivity: float = 0.0048
 @export var min_pitch: float = -0.72
 @export var max_pitch: float = 0.18
 @export var touch_right_zone: float = 0.38
@@ -10,7 +10,7 @@ var _dragging_mouse := false
 var _active_touch := -1
 var _last_position := Vector2.ZERO
 var _touch_drag_started := false
-@export_range(0.0, 24.0, 1.0) var touch_drag_deadzone_px: float = 4.0
+@export_range(0.0, 24.0, 1.0) var touch_drag_deadzone_px: float = 3.0
 
 func _notification(what: int) -> void:
 	# Release drag state when Android interrupts the app or changes focus.
