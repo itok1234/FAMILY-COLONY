@@ -6,6 +6,7 @@ on:
     branches:
       - feature/guest-premium-access
       - feature/direct-3d-entry
+      - visual-depth-clean
     paths:
       - 'app/**'
       - 'godot_world/**'
