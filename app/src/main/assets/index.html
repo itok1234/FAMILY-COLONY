@@ -1951,8 +1951,8 @@ setInterval(fcPollAppStatus,45000);fcPollAppStatus();
 <style id="fc-login-webgl-sphere-v1">
 #landing .hero-art{position:relative;isolation:isolate}
 #fcLoginOrbWebGL{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
-#fcLoginOrb{opacity:0!important}
-#landing .hero-art .hive{position:relative;z-index:2}
+#fcLoginOrb{opacity:1!important}
+#landing .hero-art .hive{position:relative;z-index:2}\n#fcLoginOrbWebGL{opacity:0}\n#fcLoginOrbWebGL.fc-webgl-ready{opacity:1}\n#fcLoginOrb.fc-webgl-ready{opacity:0!important}
 </style>
 <script id="fc-login-webgl-sphere-v1">
 (()=>{const host=document.querySelector('#landing .hero-art');if(!host)return;
@@ -1971,7 +1971,7 @@ function resize(){const d=Math.min(window.devicePixelRatio||1,1.5);c.width=Math.
 function mat(t){const co=Math.cos(t),si=Math.sin(t);return new Float32Array([co,0,-si,0,0,1,0,0,si,0,co,0,0,0,0,1])}
 function projection(aspect){const f=1.25;return new Float32Array([f/aspect,0,0,0,0,f,0,0,0,0,-1,-1,0,0,-.22,0])}
 let raf=0,t=0;function draw(){resize();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.uniformMatrix4fv(mloc,false,mat(t));gl.uniformMatrix4fv(ploc,false,projection(c.width/c.height));gl.drawElements(gl.TRIANGLES,inds.length,gl.UNSIGNED_SHORT,0);t+=.006;raf=requestAnimationFrame(draw)}
-draw();document.addEventListener('visibilitychange',()=>{if(document.hidden&&raf){cancelAnimationFrame(raf);raf=0}else if(!document.hidden&&!raf)draw()});
-}catch(e){console.warn('FC WebGL sphere fallback',e);c.remove();}
+c.classList.add('fc-webgl-ready');document.getElementById('fcLoginOrb')?.classList.add('fc-webgl-ready');c.addEventListener('webglcontextlost',e=>{e.preventDefault();c.classList.remove('fc-webgl-ready');document.getElementById('fcLoginOrb')?.classList.remove('fc-webgl-ready');c.remove();});draw();document.addEventListener('visibilitychange',()=>{if(document.hidden&&raf){cancelAnimationFrame(raf);raf=0}else if(!document.hidden&&!raf)draw()});
+}catch(e){console.warn('FC WebGL sphere fallback',e);document.getElementById('fcLoginOrb')?.classList.remove('fc-webgl-ready');c.remove();}
 })();
 </script>
