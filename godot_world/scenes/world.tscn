@@ -168,5 +168,5 @@ script = ExtResource("14")
 [node name="MiniGameManager" type="Node3D" parent="."]
 script = ExtResource("15")
 
-[node name="AudioStudioSettings" type="Node" parent="."]
+[node name="AudioStudioSettings" type="Node3D" parent="."]
 script = ExtResource("16")
