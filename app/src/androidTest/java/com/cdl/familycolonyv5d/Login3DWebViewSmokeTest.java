@@ -53,10 +53,10 @@ public final class Login3DWebViewSmokeTest {
                     target.evaluateJavascript(probe, v -> { value.set(v); latch.countDown(); }));
             if (!latch.await(2, TimeUnit.SECONDS)) throw new AssertionError("WebView probe timed out");
             result = value.get();
-            if ("\\"CANVAS_WEBGL_OK\\"".equals(result)) break;
+            if ("\"CANVAS_WEBGL_OK\"".equals(result)) break;
             Thread.sleep(1000);
         }
-        assertEquals("Login WebGL canvas runtime probe", "\\"CANVAS_WEBGL_OK\\"", result);
+        assertEquals("Login WebGL canvas runtime probe", "\"CANVAS_WEBGL_OK\"", result);
         InstrumentationRegistry.getInstrumentation().runOnMainSync(activity::finish);
     }
 }
