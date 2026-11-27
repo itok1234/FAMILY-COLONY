@@ -57,6 +57,12 @@ func _capture() -> void:
 		await process_frame
 		await RenderingServer.frame_post_draw
 	_dump_visual_nodes(world, world)
+	print("VISUAL_VIEWPORT_DIAG: viewport_size=", capture_viewport.size, " camera=", capture_viewport.get_camera_3d(), " world3d=", capture_viewport.world_3d, " render_target=", capture_viewport.render_target_update_mode, " texture=", capture_viewport.get_texture())
+	if player_camera != null:
+		print("VISUAL_CAMERA_DIAG: camera_viewport=", player_camera.get_viewport(), " current=", player_camera.current, " global=", player_camera.global_transform)
+	var root_image := root.get_texture().get_image()
+	if root_image != null and not root_image.is_empty():
+		print("VISUAL_ROOT_CAPTURE_DIAG: size=", root_image.get_size(), " sample=", root_image.get_pixel(root_image.get_width()/2, root_image.get_height()/2))
 	var image := capture_viewport.get_texture().get_image()
 	if image == null or image.is_empty():
 		push_error("VISUAL_CAPTURE_FAIL: viewport image empty")
