@@ -30,6 +30,12 @@ func _ready() -> void:
 
 	_android_session_required = OS.has_feature("android")
 	if _android_session_required:
+		# World gameplay is intended for landscape. Set orientation early, before
+		# verified-session transition, and use exclusive fullscreen on mobile.
+		DisplayServer.screen_set_orientation(DisplayServer.SCREEN_LANDSCAPE)
+		if not DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	if _android_session_required:
 		# Disable expensive world post-process and sun shadow maps on Android devices.
 		# The scene remains fully 3D; this is a mobile rendering-cost adjustment.
 		var world_environment := get_node_or_null("WorldEnvironment") as WorldEnvironment
