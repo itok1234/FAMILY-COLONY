@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - feature/direct-3d-entry
+      - visual-depth-clean
     paths:
       - "app/build.gradle"
       - "app/src/main/**"
