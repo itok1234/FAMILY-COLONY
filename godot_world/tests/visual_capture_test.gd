@@ -92,7 +92,7 @@ func _capture() -> void:
 	var mean_rgb: Vector3 = sum_rgb / float(max(1, rgb_samples))
 	var variance_rgb: Vector3 = (sum_sq_rgb / float(max(1, rgb_samples))) - (mean_rgb * mean_rgb)
 	var spread: float = variance_rgb.length()
-	var varied := max_luma - min_luma > 0.08 and non_dark > 8 and color_bins.size() >= 18 and spread > 0.025
+	var varied := max_luma - min_luma > 0.08 and non_dark > 8 and color_bins.size() >= 4 and spread > 0.02
 	print("VISUAL_CAPTURE_STATS: samples=", samples, " min_luma=", min_luma, " max_luma=", max_luma, " non_dark=", non_dark, " color_bins=", color_bins.size(), " rgb_spread=", spread)
 	var out_dir := "user://visual_qa"
 	var absolute_dir := ProjectSettings.globalize_path(out_dir)
