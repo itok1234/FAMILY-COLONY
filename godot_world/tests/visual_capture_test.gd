@@ -24,11 +24,19 @@ func _capture() -> void:
 		push_error("VISUAL_CAPTURE_FAIL: world scene missing")
 		quit(1)
 		return
+	# Render inside an explicit SubViewport rather than SceneTree's root viewport.
+	# Headless window captures can otherwise return only the window clear color.
+	var capture_viewport := SubViewport.new()
+	capture_viewport.name = "VisualCaptureViewport"
+	capture_viewport.size = Vector2i(1280, 720)
+	capture_viewport.disable_3d = false
+	capture_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	root.add_child(capture_viewport)
 	var world := packed.instantiate()
 	var integrator := world.get_node_or_null("ProductionAssetIntegrator")
 	if integrator != null:
 		integrator.allow_candidate_smoke_test = false
-	root.add_child(world)
+	capture_viewport.add_child(world)
 	for i in range(8):
 		await process_frame
 	var player_camera := world.get_node_or_null("Player/CameraPivot/Camera3D")
@@ -49,8 +57,7 @@ func _capture() -> void:
 		await process_frame
 		await RenderingServer.frame_post_draw
 	_dump_visual_nodes(world, world)
-	var viewport := root.get_viewport()
-	var image := viewport.get_texture().get_image()
+	var image := capture_viewport.get_texture().get_image()
 	if image == null or image.is_empty():
 		push_error("VISUAL_CAPTURE_FAIL: viewport image empty")
 		quit(1)
@@ -97,5 +104,5 @@ func _capture() -> void:
 		quit(1)
 		return
 	print("VISUAL_CAPTURE: PASS " + ProjectSettings.globalize_path(path))
-	world.queue_free()
+	capture_viewport.queue_free()
 	quit(0)
