@@ -57,5 +57,9 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -f godot_world/assets/characters godot_world/assets/environment godot_world/assets/production_asset_manifest.json godot_world/assets/asset_download_receipt.json godot_world/assets/asset_structural_report.json
-          git commit -m 'Import verified production 3D candidates for integration QA'
-          git push origin feature/direct-3d-entry
+          if git diff --cached --quiet; then
+            echo 'Candidate assets and manifests already match repository; no commit needed.'
+          else
+            git commit -m 'Import verified production 3D candidates for integration QA'
+            git push origin feature/direct-3d-entry
+          fi
