@@ -92,3 +92,8 @@ func _physics_process(delta: float) -> void:
 	if avatar != null and avatar.has_method("set_motion_strength"):
 		var horizontal_speed := Vector2(velocity.x, velocity.z).length()
 		avatar.set_motion_strength(clampf(horizontal_speed / maxf(walk_speed * sprint_multiplier, 0.01), 0.0, 1.0))
+		if avatar.has_method("set_movement_direction"):
+			var local_direction := Vector2.ZERO
+			if horizontal_speed > 0.08:
+				local_direction = Vector2(direction.x, direction.z).normalized()
+			avatar.call("set_movement_direction", local_direction)
