@@ -24,26 +24,13 @@ func _capture() -> void:
 		push_error("VISUAL_CAPTURE_FAIL: world scene missing")
 		quit(1)
 		return
-	# Render inside an explicit SubViewport rather than SceneTree's root viewport.
-	# Headless window captures can otherwise return only the window clear color.
-	var capture_viewport := SubViewport.new()
-	capture_viewport.name = "VisualCaptureViewport"
-	capture_viewport.size = Vector2i(1280, 720)
-	capture_viewport.disable_3d = false
-	capture_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	# Explicitly share the main viewport World3D so headless capture does not render an isolated empty world.
-	var main_world_3d := root.get_world_3d()
-	if main_world_3d != null:
-		capture_viewport.world_3d = main_world_3d
-		print("VISUAL_WORLD3D_BIND: shared main viewport World3D")
-	else:
-		print("VISUAL_WORLD3D_BIND: main viewport World3D unavailable")
-	root.add_child(capture_viewport)
+	# Render the test scene directly in SceneTree's root viewport. The isolated
+	# SubViewport path produced uniform clear-color captures even with a valid camera.
 	var world := packed.instantiate()
 	var integrator := world.get_node_or_null("ProductionAssetIntegrator")
 	if integrator != null:
 		integrator.allow_candidate_smoke_test = false
-	capture_viewport.add_child(world)
+	root.add_child(world)
 	for i in range(8):
 		await process_frame
 	var player_camera := world.get_node_or_null("Player/CameraPivot/Camera3D")
@@ -70,7 +57,7 @@ func _capture() -> void:
 	var root_image := root.get_texture().get_image()
 	if root_image != null and not root_image.is_empty():
 		print("VISUAL_ROOT_CAPTURE_DIAG: size=", root_image.get_size(), " sample=", root_image.get_pixel(root_image.get_width()/2, root_image.get_height()/2))
-	var image := capture_viewport.get_texture().get_image()
+	var image := root.get_texture().get_image()
 	if image == null or image.is_empty():
 		push_error("VISUAL_CAPTURE_FAIL: viewport image empty")
 		quit(1)
@@ -117,5 +104,5 @@ func _capture() -> void:
 		quit(1)
 		return
 	print("VISUAL_CAPTURE: PASS " + ProjectSettings.globalize_path(path))
-	capture_viewport.queue_free()
+	world.queue_free()
 	quit(0)
