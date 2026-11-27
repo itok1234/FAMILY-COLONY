@@ -32,7 +32,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 godot --path godot_world --script res://tests/renderer_isolation_test.gd 2>&1 | tee renderer-diagnostic.log
+          timeout --signal=TERM --kill-after=10s 90s xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 godot --path godot_world --script res://tests/renderer_isolation_test.gd 2>&1 | tee renderer-diagnostic.log
           grep -F "RENDERER_DIAGNOSTIC_PASS" renderer-diagnostic.log
       - name: Render world and capture screenshot
         shell: bash
