@@ -103,4 +103,22 @@ func _capture() -> void:
 		return
 	print("VISUAL_CAPTURE: PASS " + ProjectSettings.globalize_path(path))
 	world.queue_free()
+	quit(0)	var varied := max_luma - min_luma > 0.08 and non_dark > 8 and color_bins.size() >= 18 and spread > 0.025
+	print("VISUAL_CAPTURE_STATS: samples=", samples, " min_luma=", min_luma, " max_luma=", max_luma, " non_dark=", non_dark, " color_bins=", color_bins.size(), " rgb_spread=", spread)
+	# Preserve PNG evidence even when the QA gate rejects the frame.
+	var out_dir := "user://visual_qa"
+	var absolute_dir := ProjectSettings.globalize_path(out_dir)
+	DirAccess.make_dir_recursive_absolute(absolute_dir)
+	var path := out_dir + "/world_capture.png"
+	var err := image.save_png(path)
+	if err != OK:
+		push_error("VISUAL_CAPTURE_FAIL: save PNG error " + str(err))
+		quit(1)
+		return
+	if samples < 20 or not varied:
+		push_error("VISUAL_CAPTURE_FAIL: image appears blank, uniform, or insufficiently varied; evidence=" + ProjectSettings.globalize_path(path))
+		quit(1)
+		return
+	print("VISUAL_CAPTURE: PASS " + ProjectSettings.globalize_path(path))
+	world.queue_free()
 	quit(0)
