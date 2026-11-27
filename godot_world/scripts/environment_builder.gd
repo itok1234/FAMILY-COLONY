@@ -1116,14 +1116,24 @@ func _build_plaza_accent_lighting() -> void:
 
 
 func _build_imported_environment_scatter() -> void:
-	## Integrate staged CC0 environment GLBs into the visible landscape.
-	## If import is missing, keep procedural foliage and report a QA warning.
+	## Integrate staged CC0 foliage GLBs as low-cost landscape dressing.
+	## Procedural foliage remains the fallback when imports are unavailable.
 	var imported_root := Node3D.new()
 	imported_root.name = "ImportedEnvironmentScatter"
 	add_child(imported_root)
 	var sources := [
 		"res://assets/environment/Bush001.glb",
-		"res://assets/environment/Grass001.glb"
+		"res://assets/environment/Bush002.glb",
+		"res://assets/environment/Grass001.glb",
+		"res://assets/environment/Grass002.glb",
+		"res://assets/environment/Grass003.glb",
+		"res://assets/environment/TreeLow001.glb",
+		"res://assets/environment/TreeLow002.glb",
+		"res://assets/environment/TreeLow003.glb",
+		"res://assets/environment/TreeMed001.glb",
+		"res://assets/environment/TreeMed002.glb",
+		"res://assets/environment/Rock001.glb",
+		"res://assets/environment/Rock002.glb"
 	]
 	var packed_scenes: Array[PackedScene] = []
 	for source in sources:
@@ -1132,18 +1142,20 @@ func _build_imported_environment_scatter() -> void:
 			if packed != null:
 				packed_scenes.append(packed)
 	if packed_scenes.is_empty():
-		push_warning("Imported environment scatter unavailable; procedural landscape retained.")
+		push_warning("Imported foliage unavailable; procedural landscape retained.")
 		return
-	for index in range(18):
+	# Alternating landscape clusters: small ground cover close to the boulevard,
+	# and trees/rocks farther out to preserve walkable sightlines.
+	for index in range(36):
 		var side := -1.0 if index % 2 == 0 else 1.0
-		var z := -26.0 - float(index) * 6.0
-		var x := side * _rng.randf_range(12.5, 18.0)
+		var z := -24.0 - float(index) * 4.6
+		var x := side * _rng.randf_range(12.5, 24.0)
 		var asset := packed_scenes[index % packed_scenes.size()].instantiate()
 		if asset is Node3D:
 			asset.name = "ImportedScatter_%02d" % index
 			asset.position = Vector3(x, 0.0, z)
 			asset.rotation.y = _rng.randf_range(0.0, TAU)
-			var scale_value := _rng.randf_range(0.65, 1.15)
+			var scale_value := _rng.randf_range(0.7, 1.25)
 			asset.scale = Vector3.ONE * scale_value
 			imported_root.add_child(asset)
 		else:
