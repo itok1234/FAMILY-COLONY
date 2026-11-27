@@ -34,8 +34,9 @@ func _mount(category: String, key: String, mount_path: NodePath) -> void:
 		return
 	mount.add_child(model)
 	model.name = "RuntimeModel_" + (key if key.strip_edges() != "" else category)
-	# Never replace the fallback avatar with a pending QA candidate.
-	if category == "character" and is_approved:
+	# In isolated visual QA, hide the procedural avatar so candidate appearance can be evaluated.
+	# In normal gameplay, pending candidates remain gated and the fallback stays visible.
+	if category == "character" and (is_approved or allow_candidate_smoke_test):
 		var fallback := get_node_or_null("../Player/AvatarVisual")
 		if fallback is Node3D:
 			fallback.visible = false
