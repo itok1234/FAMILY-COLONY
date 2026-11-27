@@ -47,10 +47,10 @@ func _capture() -> void:
 	world.add_child(qa_camera)
 	# Dedicated visual-QA framing: player camera is a gameplay camera, not a
 	# composition camera. Aim at the plaza focal point to show actual scene geometry.
-	qa_camera.position = Vector3(0.0, 8.0, 16.0)
-	qa_camera.look_at(Vector3(0.0, 1.5, 0.0), Vector3.UP)
+	qa_camera.position = Vector3(0.0, 24.0, 42.0)
+	qa_camera.look_at(Vector3(0.0, 9.0, -48.0), Vector3.UP)
 	qa_camera.make_current()
-	print("VISUAL_QA_CAMERA: close plaza focal framing position=", qa_camera.global_position, " target=Vector3(0,1.5,0)")
+	print("VISUAL_QA_CAMERA: elevated long-range environment framing position=", qa_camera.global_position, " target=Vector3(0,9,-48)")
 	for i in range(12):
 		await process_frame
 		await RenderingServer.frame_post_draw
