@@ -24,6 +24,10 @@ const HUB_ITEMS := [
 ]
 
 var _camera: Camera3D
+var _animated_shrubs: Array[MeshInstance3D] = []
+var _animated_lamp_lights: Array[OmniLight3D] = []
+var _animated_station_badges: Array[MeshInstance3D] = []
+var _animated_station_lights: Array[OmniLight3D] = []
 var _hint: Label3D
 var _member_board_label: Label3D
 var _ray_length := 40.0
@@ -83,26 +87,49 @@ func _process(delta: float) -> void:
 		var light := beacon.get_node_or_null("BeaconAccentLight") as OmniLight3D
 		if light != null:
 			light.light_energy = 0.58 + sin(elapsed * 1.4) * 0.08
+	for shrub_index in range(_animated_shrubs.size()):
+		var shrub := _animated_shrubs[shrub_index]
+		shrub.rotation.z = sin(elapsed * 0.7 + shrub_index * 0.8) * 0.025
+		shrub.rotation.x = cos(elapsed * 0.6 + shrub_index * 0.6) * 0.018
+	for lamp_index in range(_animated_lamp_lights.size()):
+		var lamp_light := _animated_lamp_lights[lamp_index]
+		lamp_light.light_energy = 0.24 + sin(elapsed * 1.8 + lamp_index * 0.5) * 0.025
+	for station_index in range(_animated_station_badges.size()):
+		var badge := _animated_station_badges[station_index]
+		badge.rotation_degrees.y += delta * (18.0 + station_index * 3.0)
+		badge.scale = Vector3.ONE * (1.0 + sin(elapsed * 1.25 + station_index) * 0.045)
+	for station_index in range(_animated_station_lights.size()):
+		var station_light := _animated_station_lights[station_index]
+		station_light.light_energy = 0.42 + sin(elapsed * 1.5 + station_index * 0.7) * 0.05
+
+
+func _cache_animated_nodes() -> void:
+	# Resolve node references once after hub construction instead of repeated
+	# string-based scene lookups each frame; keeps the mobile hub loop lean.
+	_animated_shrubs.clear()
+	_animated_lamp_lights.clear()
+	_animated_station_badges.clear()
+	_animated_station_lights.clear()
 	for shrub_index in range(16):
 		var shrub := get_node_or_null("PlazaShrub_%02d" % shrub_index) as MeshInstance3D
 		if shrub != null:
-			shrub.rotation.z = sin(elapsed * 0.7 + shrub_index * 0.8) * 0.025
-			shrub.rotation.x = cos(elapsed * 0.6 + shrub_index * 0.6) * 0.018
+			_animated_shrubs.append(shrub)
 	for lamp_index in range(8):
 		var lamp := get_node_or_null("PlazaLamp_%02d" % lamp_index)
-		var lamp_light := lamp.get_node_or_null("PlazaLampLight_%02d" % lamp_index) as OmniLight3D if lamp != null else null
-		if lamp_light != null:
-			lamp_light.light_energy = 0.24 + sin(elapsed * 1.8 + lamp_index * 0.5) * 0.025
-	for station_index in range(HUB_ITEMS.size()):
-		var station := get_node_or_null("Kiosk_" + str(HUB_ITEMS[station_index].id))
-		if station != null:
-			var badge := station.get_node_or_null("StationBadgeRing") as MeshInstance3D
-			if badge != null:
-				badge.rotation_degrees.y += delta * (18.0 + station_index * 3.0)
-				badge.scale = Vector3.ONE * (1.0 + sin(elapsed * 1.25 + station_index) * 0.045)
-			var station_light := station.get_node_or_null("StationAccentLight") as OmniLight3D
-			if station_light != null:
-				station_light.light_energy = 0.42 + sin(elapsed * 1.5 + station_index * 0.7) * 0.05
+		if lamp != null:
+			var light := lamp.get_node_or_null("PlazaLampLight_%02d" % lamp_index) as OmniLight3D
+			if light != null:
+				_animated_lamp_lights.append(light)
+	for item in HUB_ITEMS:
+		var station := get_node_or_null("Kiosk_" + str(item.id))
+		if station == null:
+			continue
+		var badge := station.get_node_or_null("StationBadgeRing") as MeshInstance3D
+		var light := station.get_node_or_null("StationAccentLight") as OmniLight3D
+		if badge != null:
+			_animated_station_badges.append(badge)
+		if light != null:
+			_animated_station_lights.append(light)
 
 
 func _ready() -> void:
@@ -112,6 +139,7 @@ func _ready() -> void:
 	_build_developer_bee()
 	_build_kiosks()
 	_build_hud()
+	_cache_animated_nodes()
 	_developer_auth_request = HTTPRequest.new()
 	_developer_auth_request.timeout = 18.0
 	_developer_auth_request.request_completed.connect(_on_developer_pin_response)
