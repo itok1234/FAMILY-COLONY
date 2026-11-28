@@ -91,6 +91,16 @@ func _process(delta: float) -> void:
 		var lamp_light := get_node_or_null("PlazaLampLight_%02d" % lamp_index) as OmniLight3D
 		if lamp_light != null:
 			lamp_light.light_energy = 0.24 + sin(elapsed * 1.8 + lamp_index * 0.5) * 0.025
+	for station_index in range(HUB_ITEMS.size()):
+		var station := get_node_or_null("Kiosk_" + str(HUB_ITEMS[station_index].id))
+		if station != null:
+			var badge := station.get_node_or_null("StationBadgeRing") as MeshInstance3D
+			if badge != null:
+				badge.rotation_degrees.y += delta * (18.0 + station_index * 3.0)
+				badge.scale = Vector3.ONE * (1.0 + sin(elapsed * 1.25 + station_index) * 0.045)
+			var station_light := station.get_node_or_null("StationAccentLight") as OmniLight3D
+			if station_light != null:
+				station_light.light_energy = 0.42 + sin(elapsed * 1.5 + station_index * 0.7) * 0.05
 
 
 func _ready() -> void:
@@ -654,6 +664,7 @@ func _create_kiosk(item: Dictionary) -> void:
 	root.add_child(pedestal_rim)
 
 	var station_light := OmniLight3D.new()
+	station_light.name = "StationAccentLight"
 	station_light.position = Vector3(0, 2.85, 0.0)
 	station_light.light_color = item.color.lightened(0.35)
 	station_light.light_energy = 0.48
@@ -701,6 +712,7 @@ func _create_kiosk(item: Dictionary) -> void:
 	var badge_ring_mesh := TorusMesh.new()
 	badge_ring_mesh.inner_radius = 0.24
 	badge_ring_mesh.outer_radius = 0.31
+	badge_ring.name = "StationBadgeRing"
 	badge_ring.mesh = badge_ring_mesh
 	badge_ring.position = Vector3(0, 1.88, -0.34)
 	badge_ring.rotation_degrees.x = 90.0
