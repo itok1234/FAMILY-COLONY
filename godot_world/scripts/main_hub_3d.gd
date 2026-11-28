@@ -28,6 +28,8 @@ var _animated_shrubs: Array[MeshInstance3D] = []
 var _animated_lamp_lights: Array[OmniLight3D] = []
 var _animated_station_badges: Array[MeshInstance3D] = []
 var _animated_station_lights: Array[OmniLight3D] = []
+var _animated_beacon_halos: Array[MeshInstance3D] = []
+var _animated_beacon_light: OmniLight3D
 var _hint: Label3D
 var _member_board_label: Label3D
 var _ray_length := 40.0
@@ -77,16 +79,12 @@ func set_member_profile(member: Dictionary) -> void:
 func _process(delta: float) -> void:
 	# Low-cost ambience: rotating/pulsing beacon and gentle garden breeze.
 	var elapsed := float(Time.get_ticks_msec()) / 1000.0
-	var beacon := get_node_or_null("PlazaBeacon")
-	if beacon != null:
-		for index in range(3):
-			var halo := beacon.get_node_or_null("BeaconHalo_%d" % index) as MeshInstance3D
-			if halo != null:
-				halo.rotation_degrees.y += delta * (12.0 + index * 7.0) * (1.0 if index % 2 == 0 else -1.0)
-				halo.scale = Vector3.ONE * (1.0 + sin(elapsed * 1.3 + index) * 0.035)
-		var light := beacon.get_node_or_null("BeaconAccentLight") as OmniLight3D
-		if light != null:
-			light.light_energy = 0.58 + sin(elapsed * 1.4) * 0.08
+	for index in range(_animated_beacon_halos.size()):
+		var halo := _animated_beacon_halos[index]
+		halo.rotation_degrees.y += delta * (12.0 + index * 7.0) * (1.0 if index % 2 == 0 else -1.0)
+		halo.scale = Vector3.ONE * (1.0 + sin(elapsed * 1.3 + index) * 0.035)
+	if is_instance_valid(_animated_beacon_light):
+		_animated_beacon_light.light_energy = 0.58 + sin(elapsed * 1.4) * 0.08
 	for shrub_index in range(_animated_shrubs.size()):
 		var shrub := _animated_shrubs[shrub_index]
 		shrub.rotation.z = sin(elapsed * 0.7 + shrub_index * 0.8) * 0.025
@@ -110,6 +108,15 @@ func _cache_animated_nodes() -> void:
 	_animated_lamp_lights.clear()
 	_animated_station_badges.clear()
 	_animated_station_lights.clear()
+	_animated_beacon_halos.clear()
+	_animated_beacon_light = null
+	var beacon := get_node_or_null("PlazaBeacon")
+	if beacon != null:
+		for index in range(3):
+			var halo := beacon.get_node_or_null("BeaconHalo_%d" % index) as MeshInstance3D
+			if halo != null:
+				_animated_beacon_halos.append(halo)
+		_animated_beacon_light = beacon.get_node_or_null("BeaconAccentLight") as OmniLight3D
 	for shrub_index in range(16):
 		var shrub := get_node_or_null("PlazaShrub_%02d" % shrub_index) as MeshInstance3D
 		if shrub != null:
