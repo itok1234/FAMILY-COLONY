@@ -19,6 +19,12 @@ func _run() -> void:
 	_expect(hub.get_node_or_null("HubCamera") is Camera3D, "hub camera must be generated")
 	_expect(hub.get_node_or_null("SpatialInformationBoard") != null, "spatial information board must be generated")
 	_expect(hub.get_node_or_null("DeveloperBeeEmblem") is Area3D, "developer bee interaction must be present")
+	_expect(hub.get("_animated_beacon_halos").size() == 3, "beacon halo animation references should be cached")
+	_expect(hub.get("_animated_beacon_light") is OmniLight3D, "beacon accent light should be cached")
+	_expect(hub.get("_animated_shrubs").size() == 16, "all plaza shrubs should be cached")
+	_expect(hub.get("_animated_lamp_lights").size() == 8, "all plaza lamp lights should be cached")
+	_expect(hub.get("_animated_station_badges").size() == 5, "all five station badge rings should be cached")
+	_expect(hub.get("_animated_station_lights").size() == 5, "all five station accent lights should be cached")
 	_expect(hub.get_node_or_null("PlazaBeacon") is Node3D, "central plaza beacon must exist")
 	var beacon := hub.get_node_or_null("PlazaBeacon")
 	if beacon != null:
