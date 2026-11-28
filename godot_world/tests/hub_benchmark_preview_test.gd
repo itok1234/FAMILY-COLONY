@@ -1,12 +1,16 @@
 extends SceneTree
-## Standalone hub benchmark harness regression check (headless; not visual acceptance).
+## Structural acceptance for the Beranda 3D harness. This is not visual QA.
 
 var failures := 0
+var destinations := []
 
 func _expect(condition: bool, message: String) -> void:
 	if not condition:
 		failures += 1
 		push_error("HUB_BENCHMARK_PREVIEW: " + message)
+
+func _capture_destination(destination_id: String) -> void:
+	destinations.append(destination_id)
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -25,17 +29,21 @@ func _run() -> void:
 	var hub: Node = root.get_node_or_null("BenchmarkHub")
 	_expect(hub is Node3D, "preview should instantiate production hub script")
 	if hub != null:
+		if hub.has_signal("destination_requested"):
+			hub.destination_requested.connect(_capture_destination)
+		else:
+			_expect(false, "destination_requested signal missing")
 		var camera := hub.get_node_or_null("HubCamera") as Camera3D
 		_expect(camera != null, "hub camera should exist")
 		if camera != null:
 			_expect(camera.current, "hub benchmark camera should be active")
 			_expect(camera.fov >= 50.0 and camera.fov <= 75.0, "camera FOV should remain in benchmark range")
+			_expect(camera.position.y > 0.0 and camera.position.z > 0.0, "camera should use elevated plaza overview framing")
 		_expect(hub.get_node_or_null("PlazaBeacon") != null, "central beacon should exist")
 		var beacon := hub.get_node_or_null("PlazaBeacon")
 		if beacon != null:
-			_expect(beacon.get_node_or_null("BeaconHalo_0") is MeshInstance3D, "beacon first halo must exist")
-			_expect(beacon.get_node_or_null("BeaconHalo_1") is MeshInstance3D, "beacon second halo must exist")
-			_expect(beacon.get_node_or_null("BeaconHalo_2") is MeshInstance3D, "beacon third halo must exist")
+			for halo_index in range(3):
+				_expect(beacon.get_node_or_null("BeaconHalo_%d" % halo_index) is MeshInstance3D, "beacon halo missing: %d" % halo_index)
 			_expect(beacon.get_node_or_null("BeaconAccentLight") is OmniLight3D, "beacon accent light must exist")
 		for spoke_index in range(12):
 			_expect(hub.get_node_or_null("PlazaRadialInlay_%02d" % spoke_index) is MeshInstance3D, "radial plaza inlay missing: %d" % spoke_index)
@@ -51,11 +59,14 @@ func _run() -> void:
 			var station := hub.get_node_or_null("Kiosk_" + destination)
 			_expect(station is Area3D, "feature station missing: " + destination)
 			if station != null:
+				_expect(station.input_ray_pickable, "station must be ray-pickable: " + destination)
 				_expect(station.get_node_or_null("StationBadgeRing") is MeshInstance3D, "station animated badge ring missing: " + destination)
 				_expect(station.get_node_or_null("StationAccentLight") is OmniLight3D, "station accent light missing: " + destination)
 		_expect(hub.get_node_or_null("DeveloperBeeEmblem") is Area3D, "developer bee interaction should exist")
+	await process_frame
+	_expect(destinations.is_empty(), "preview should not auto-navigate to a destination on idle startup")
 	if failures == 0:
-		print("HUB_BENCHMARK_PREVIEW: PASS — isolated harness, camera, beacon and stations")
+		print("HUB_BENCHMARK_PREVIEW: PASS — camera framing, stations, ray-pickability and idle startup")
 	else:
 		push_error("HUB_BENCHMARK_PREVIEW: %d assertion(s) failed" % failures)
 	root.queue_free()
