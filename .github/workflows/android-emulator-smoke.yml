@@ -62,7 +62,7 @@ jobs:
           script: |
             gradle --no-daemon -PfcEmulatorX86_64 connectedDebugAndroidTest --stacktrace
             adb logcat -d > "$RUNNER_TEMP/family-colony-emulator-logcat.txt"
-            # Instrumentation asserts that WorldActivity starts and remains alive after Godot initialization.
+            # Instrumentation asserts that WorldActivity starts and remains alive after Godot initialization; emulator log is checked for fatal engine errors.
             # Avoid brittle log-marker checks that are not emitted by the current plugin/scene.
             ! grep -E "FATAL EXCEPTION|SCRIPT ERROR:|Parse Error:|Failed to load main pack|Failed to load scene|Couldn't load project data|Unable to setup the Godot engine" "$RUNNER_TEMP/family-colony-emulator-logcat.txt"
 
