@@ -37,6 +37,8 @@ func _run() -> void:
 			_expect(beacon.get_node_or_null("BeaconHalo_1") is MeshInstance3D, "beacon second halo must exist")
 			_expect(beacon.get_node_or_null("BeaconHalo_2") is MeshInstance3D, "beacon third halo must exist")
 			_expect(beacon.get_node_or_null("BeaconAccentLight") is OmniLight3D, "beacon accent light must exist")
+		for spoke_index in range(12):
+			_expect(hub.get_node_or_null("PlazaRadialInlay_%02d" % spoke_index) is MeshInstance3D, "radial plaza inlay missing: %d" % spoke_index)
 		_expect(hub.get_node_or_null("SpatialInformationBoard") != null, "spatial information board should exist")
 		for destination in ["profile", "chat", "games", "settings", "world"]:
 			_expect(hub.get_node_or_null("Kiosk_" + destination) is Area3D, "feature station missing: " + destination)
