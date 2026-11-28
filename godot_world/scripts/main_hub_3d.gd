@@ -307,6 +307,27 @@ func _build_central_hall() -> void:
 	beacon_cap.material_override = cap_mat
 	beacon.add_child(beacon_cap)
 
+	# Layered halo rings and light volume make the central beacon read as a landmark.
+	for ring_index in range(3):
+		var halo := MeshInstance3D.new()
+		halo.name = "BeaconHalo_%d" % ring_index
+		var halo_mesh := TorusMesh.new()
+		halo_mesh.inner_radius = 0.62 + ring_index * 0.22
+		halo_mesh.outer_radius = 0.68 + ring_index * 0.22
+		halo.mesh = halo_mesh
+		halo.position.y = 0.28 + ring_index * 0.36
+		halo.rotation_degrees.x = 90.0
+		halo.material_override = _material(Color("#e6bd70") if ring_index == 0 else Color("#8bc8e4"), 0.22, 0.48)
+		beacon.add_child(halo)
+	var beacon_light := OmniLight3D.new()
+	beacon_light.name = "BeaconAccentLight"
+	beacon_light.position.y = 1.15
+	beacon_light.light_color = Color("#e6bd70")
+	beacon_light.light_energy = 0.65
+	beacon_light.omni_range = 5.5
+	beacon_light.shadow_enabled = false
+	beacon.add_child(beacon_light)
+
 func _build_developer_bee() -> void:
 	# Five taps reveal the developer login hologram; this is not authentication.
 	var bee := Area3D.new()
