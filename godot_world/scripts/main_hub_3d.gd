@@ -270,6 +270,43 @@ func _build_central_hall() -> void:
 	ring.material_override = _material(Color("#e3bd70"), 0.3, 0.3)
 	add_child(ring)
 
+	# Additional low-cost architectural accents give the central landmark depth
+	# and a clearer premium plaza silhouette without imported asset dependencies.
+	for i in range(12):
+		var angle := TAU * float(i) / 12.0
+		var accent := MeshInstance3D.new()
+		var accent_mesh := BoxMesh.new()
+		accent_mesh.size = Vector3(0.18, 0.12, 1.25)
+		accent.mesh = accent_mesh
+		accent.position = Vector3(cos(angle) * 4.35, 0.18, sin(angle) * 4.35 - 0.8)
+		accent.rotation.y = -angle
+		accent.material_override = _material(Color("#d5b879"), 0.42, 0.24)
+		add_child(accent)
+	var beacon := Node3D.new()
+	beacon.name = "PlazaBeacon"
+	beacon.position = Vector3(0.0, 0.55, -0.8)
+	add_child(beacon)
+	var beacon_core := MeshInstance3D.new()
+	var core_mesh := CylinderMesh.new()
+	core_mesh.top_radius = 0.18
+	core_mesh.bottom_radius = 0.32
+	core_mesh.height = 1.35
+	beacon_core.mesh = core_mesh
+	beacon_core.material_override = _material(Color("#e5c477"), 0.32, 0.38)
+	beacon.add_child(beacon_core)
+	var beacon_cap := MeshInstance3D.new()
+	var cap_mesh := SphereMesh.new()
+	cap_mesh.radius = 0.36
+	cap_mesh.height = 0.48
+	beacon_cap.mesh = cap_mesh
+	beacon_cap.position.y = 0.84
+	var cap_mat := _material(Color("#f3d99a"), 0.24, 0.18)
+	cap_mat.emission_enabled = true
+	cap_mat.emission = Color("#e6bd70")
+	cap_mat.emission_energy_multiplier = 0.65
+	beacon_cap.material_override = cap_mat
+	beacon.add_child(beacon_cap)
+
 func _build_developer_bee() -> void:
 	# Five taps reveal the developer login hologram; this is not authentication.
 	var bee := Area3D.new()
