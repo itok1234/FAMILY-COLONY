@@ -63,6 +63,12 @@ func _run() -> void:
 				_expect(station.get_node_or_null("StationBadgeRing") is MeshInstance3D, "station animated badge ring missing: " + destination)
 				_expect(station.get_node_or_null("StationAccentLight") is OmniLight3D, "station accent light missing: " + destination)
 		_expect(hub.get_node_or_null("DeveloperBeeEmblem") is Area3D, "developer bee interaction should exist")
+		_expect(hub.get("_animated_beacon_halos").size() == 3, "beacon animation cache should contain three halos")
+		_expect(hub.get("_animated_beacon_light") is OmniLight3D, "beacon light should be cached")
+		_expect(hub.get("_animated_shrubs").size() == 16, "shrub animation cache should contain sixteen entries")
+		_expect(hub.get("_animated_lamp_lights").size() == 8, "lamp animation cache should contain eight lights")
+		_expect(hub.get("_animated_station_badges").size() == 5, "station badge cache should contain five entries")
+		_expect(hub.get("_animated_station_lights").size() == 5, "station accent light cache should contain five entries")
 	await process_frame
 	_expect(destinations.is_empty(), "preview should not auto-navigate to a destination on idle startup")
 	if failures == 0:
