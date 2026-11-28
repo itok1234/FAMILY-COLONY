@@ -494,6 +494,27 @@ func _build_central_hall() -> void:
 	platform.material_override = _material(Color("#b58a45"), 0.42, 0.18)
 	add_child(platform)
 
+	# Add a stepped dais and fine concentric trim to give the hall a grounded silhouette.
+	for tier_index in range(2):
+		var tier := MeshInstance3D.new()
+		var tier_mesh := CylinderMesh.new()
+		tier_mesh.top_radius = 3.55 + tier_index * 0.22
+		tier_mesh.bottom_radius = 3.72 + tier_index * 0.22
+		tier_mesh.height = 0.16
+		tier.mesh = tier_mesh
+		tier.position = Vector3(0.0, -0.16 - tier_index * 0.12, -0.8)
+		tier.material_override = _material(Color("#526a68") if tier_index == 0 else Color("#d5b879"), 0.48, 0.2)
+		add_child(tier)
+	var hall_trim := MeshInstance3D.new()
+	var hall_trim_mesh := TorusMesh.new()
+	hall_trim_mesh.inner_radius = 2.9
+	hall_trim_mesh.outer_radius = 3.02
+	hall_trim.mesh = hall_trim_mesh
+	hall_trim.rotation_degrees.x = 90.0
+	hall_trim.position = Vector3(0.0, 0.46, -0.8)
+	hall_trim.material_override = _material(Color("#e6bd70"), 0.3, 0.42)
+	add_child(hall_trim)
+
 	var emblem := Label3D.new()
 	emblem.text = "FAMILY\nCOLONY"
 	emblem.font_size = 72
