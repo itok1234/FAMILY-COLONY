@@ -840,9 +840,11 @@ func _create_kiosk(item: Dictionary) -> void:
 
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(3.1, 2.5, 0.65)
+	# Broad, forgiving interaction volume for touch-first navigation; it spans
+	# the doorway frame without forcing precise taps on a phone screen.
+	shape.size = Vector3(3.55, 2.85, 1.05)
 	collision.shape = shape
-	collision.position.y = 0.95
+	collision.position = Vector3(0.0, 1.15, 0.0)
 	root.add_child(collision)
 
 	# Portal-style station frame: recognizable spatial doorway instead of flat UI slab.
@@ -861,6 +863,7 @@ func _create_kiosk(item: Dictionary) -> void:
 	portal_ring.mesh = portal_mesh
 	portal_ring.position = Vector3(0, 1.18, -0.18)
 	portal_ring.rotation_degrees.x = 90.0
+	portal_ring.scale = Vector3(1.12, 1.12, 1.12)
 	portal_ring.material_override = _material(item.color.lightened(0.42), 0.28, 0.42)
 	root.add_child(portal_ring)
 
@@ -931,6 +934,7 @@ func _create_kiosk(item: Dictionary) -> void:
 	marker_mesh.height = 0.36
 	marker.mesh = marker_mesh
 	marker.position = Vector3(0, 1.88, -0.31)
+	marker.scale = Vector3(1.18, 1.18, 1.18)
 	var marker_material := _material(Color("#f2d38b"), 0.22, 0.45)
 	marker_material.emission_enabled = true
 	marker_material.emission = Color("#f2d38b")
