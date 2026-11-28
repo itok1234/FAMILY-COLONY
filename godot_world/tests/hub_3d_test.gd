@@ -25,6 +25,11 @@ func _run() -> void:
 	_expect(hub.get("_animated_lamp_lights").size() == 8, "all plaza lamp lights should be cached")
 	_expect(hub.get("_animated_station_badges").size() == 5, "all five station badge rings should be cached")
 	_expect(hub.get("_animated_station_lights").size() == 5, "all five station accent lights should be cached")
+	var halo_before := (hub.get("_animated_beacon_halos")[0] as MeshInstance3D).rotation_degrees.y
+	var shrub_before := (hub.get("_animated_shrubs")[0] as MeshInstance3D).rotation.z
+	hub.call("_process", 0.25)
+	_expect(not is_equal_approx((hub.get("_animated_beacon_halos")[0] as MeshInstance3D).rotation_degrees.y, halo_before), "beacon animation should advance using cached references")
+	_expect(not is_equal_approx((hub.get("_animated_shrubs")[0] as MeshInstance3D).rotation.z, shrub_before), "garden sway animation should update cached shrub references")
 	_expect(hub.get_node_or_null("PlazaBeacon") is Node3D, "central plaza beacon must exist")
 	var beacon := hub.get_node_or_null("PlazaBeacon")
 	if beacon != null:
