@@ -17,12 +17,12 @@ func _run() -> void:
 	if preview == null:
 		quit(1)
 		return
-	var root = preview.instantiate()
+	var root: Node = preview.instantiate()
 	root.name = "BenchmarkPreviewTestRoot"
 	get_root().add_child(root)
 	await process_frame
 	await process_frame
-	var hub := root.get_node_or_null("BenchmarkHub")
+	var hub: Node = root.get_node_or_null("BenchmarkHub")
 	_expect(hub is Node3D, "preview should instantiate production hub script")
 	if hub != null:
 		var camera := hub.get_node_or_null("HubCamera") as Camera3D
