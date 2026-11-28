@@ -1968,6 +1968,10 @@ setInterval(fcPollAppStatus,45000);fcPollAppStatus();
 }
 @media(prefers-reduced-motion:reduce){#landing .hero-art:before,#landing .hero-art:after{animation:none!important}}
 </style>
+
+<script id="fc-beranda-developer-access-fix">
+(()=>{let taps=0,start=0;const logo=document.querySelector('.bee-mark');if(!logo)return;logo.addEventListener('click',()=>{if(session?.role!=='Developer'||!document.getElementById('workspace')||document.getElementById('workspace').classList.contains('hidden'))return;const now=Date.now();if(!start||now-start>3500)taps=0;start=now;taps++;if(taps>=5){taps=0;start=0;if(typeof navigate==='function')navigate('developer');else toast('Menu Developer tidak tersedia.');}},true);})();
+</script>
 </body></html>
 <style id="fc-login-webgl-sphere-v1">
 #landing .hero-art{position:relative;isolation:isolate}
