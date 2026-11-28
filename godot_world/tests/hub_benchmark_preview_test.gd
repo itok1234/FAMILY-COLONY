@@ -42,7 +42,10 @@ func _run() -> void:
 		for shrub_index in range(16):
 			_expect(hub.get_node_or_null("PlazaShrub_%02d" % shrub_index) is MeshInstance3D, "animated garden shrub missing: %d" % shrub_index)
 		for lamp_index in range(8):
-			_expect(hub.get_node_or_null("PlazaLampLight_%02d" % lamp_index) is OmniLight3D, "plaza lantern light missing: %d" % lamp_index)
+			var lamp := hub.get_node_or_null("PlazaLamp_%02d" % lamp_index)
+			_expect(lamp is Node3D, "plaza lamp parent missing: %d" % lamp_index)
+			if lamp != null:
+				_expect(lamp.get_node_or_null("PlazaLampLight_%02d" % lamp_index) is OmniLight3D, "plaza lantern light missing: %d" % lamp_index)
 		_expect(hub.get_node_or_null("SpatialInformationBoard") != null, "spatial information board should exist")
 		for destination in ["profile", "chat", "games", "settings", "world"]:
 			var station := hub.get_node_or_null("Kiosk_" + destination)
