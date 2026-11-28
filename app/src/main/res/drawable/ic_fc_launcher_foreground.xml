@@ -7,7 +7,7 @@
  <path android:fillColor="#F5D365" android:pathData="M48,32 Q42,22 38,25 Q42,18 47,28 M60,32 Q66,22 70,25 Q66,18 61,28"/>
  <path android:fillColor="#F5D365" android:pathData="M54,29 C40,29 34,41 38,52 C41,62 47,66 54,66 C61,66 67,62 70,52 C74,41 68,29 54,29 Z"/>
  <path android:fillColor="#203852" android:pathData="M45,43 Q49,39 52,44 L52,47 L45,47 Z M56,44 Q59,39 63,43 L63,47 L56,47 Z"/>
- <path android:fillColor="#203852" android:pathData="M47,54 Q54,60 61,54 Q59,62 54,62 Q49,62 47,54 Z"/>
+ <path android:fillColor="@android:color/transparent" android:strokeColor="#203852" android:strokeWidth="2.5" android:strokeLineCap="round" android:pathData="M47,55 Q54,59 61,55"/>
  <path android:fillColor="#F5D365" android:pathData="M54,64 C41,64 34,75 37,84 C41,94 49,99 54,101 C59,99 67,94 71,84 C74,75 67,64 54,64 Z"/>
  <path android:fillColor="#203852" android:pathData="M37,76 Q54,82 71,76 L69,83 Q54,89 39,83 Z M43,90 Q54,95 65,90 L61,95 Q54,99 47,95 Z"/>
 </vector>
