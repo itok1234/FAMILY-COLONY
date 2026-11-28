@@ -142,6 +142,7 @@ func _cache_animated_nodes() -> void:
 func _ready() -> void:
 	_build_environment()
 	_build_visual_landmark_layer()
+	_build_plaza_path_composition()
 	_build_camera()
 	_build_central_hall()
 	_build_developer_bee()
@@ -1624,3 +1625,57 @@ func thirty_two() -> int:
 
 func twenty() -> int:
 	return 20
+
+func _build_plaza_path_composition() -> void:
+	# Cohesive approach paths: curved-feeling layered stone strips, edge borders
+	# and small planted pockets, composed to read as a connected plaza.
+	for path_index in range(5):
+		var target: Vector3 = HUB_ITEMS[path_index].position
+		var start := Vector3(0.0, 0.0, 2.8)
+		var direction := Vector2(target.x, target.z + 1.0)
+		if direction.length() < 0.1:
+			continue
+		direction = direction.normalized()
+		var perpendicular := Vector3(-direction.y, 0.0, direction.x)
+		var center := Vector3(direction.x * 5.8, 0.0, direction.y * 5.8)
+		for side in [-1.0, 1.0]:
+			var curb := MeshInstance3D.new()
+			var curb_mesh := BoxMesh.new()
+			curb_mesh.size = Vector3(0.18, 0.12, 4.3)
+			curb.mesh = curb_mesh
+			curb.position = center + perpendicular * side * 0.95 + Vector3(0.0, 0.09, 0.0)
+			curb.rotation.y = atan2(direction.x, direction.y)
+			curb.material_override = _material(Color("#9aaba8"), 0.58, 0.12)
+			add_child(curb)
+		for slab_index in range(4):
+			var slab := MeshInstance3D.new()
+			var slab_mesh := BoxMesh.new()
+			slab_mesh.size = Vector3(1.35, 0.1, 0.88)
+			slab.mesh = slab_mesh
+			slab.position = center + direction * (float(slab_index) * 1.0 - 1.5) + Vector3(0.0, 0.11, 0.0)
+			slab.rotation.y = atan2(direction.x, direction.y)
+			slab.material_override = _material(Color("#718783") if slab_index % 2 == 0 else Color("#849a95"), 0.72, 0.06)
+			add_child(slab)
+		for side in [-1.0, 1.0]:
+			var pocket := Node3D.new()
+			pocket.position = center + perpendicular * side * 1.65
+			add_child(pocket)
+			var bed := MeshInstance3D.new()
+			var bed_mesh := CylinderMesh.new()
+			bed_mesh.top_radius = 0.42
+			bed_mesh.bottom_radius = 0.52
+			bed_mesh.height = 0.2
+			bed.mesh = bed_mesh
+			bed.position.y = 0.1
+			bed.material_override = _material(Color("#405a55"), 0.88, 0.0)
+			pocket.add_child(bed)
+			for bloom_index in range(3):
+				var bloom := MeshInstance3D.new()
+				var bloom_mesh := SphereMesh.new()
+				bloom_mesh.radius = 0.18
+				bloom_mesh.height = 0.3
+				bloom.mesh = bloom_mesh
+				bloom.position = Vector3((float(bloom_index) - 1.0) * 0.22, 0.3, 0.06)
+				bloom.material_override = _material(Color("#c9bfa7") if bloom_index % 2 == 0 else Color("#87b9ad"), 0.76, 0.0)
+				pocket.add_child(bloom)
+
