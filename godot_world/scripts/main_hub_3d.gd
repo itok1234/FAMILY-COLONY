@@ -143,6 +143,7 @@ func _ready() -> void:
 	_build_environment()
 	_build_visual_landmark_layer()
 	_build_plaza_path_composition()
+	_build_hub_focal_lighting()
 	_build_camera()
 	_build_central_hall()
 	_build_developer_bee()
@@ -1700,3 +1701,24 @@ func _build_plaza_path_composition() -> void:
 				bloom.material_override = _material(Color("#c9bfa7") if bloom_index % 2 == 0 else Color("#87b9ad"), 0.76, 0.0)
 				pocket.add_child(bloom)
 
+
+func _build_hub_focal_lighting() -> void:
+	# Mobile-friendly focal lighting to help the plaza landmarks read as one scene.
+	var beacon_fill := OmniLight3D.new()
+	beacon_fill.name = "PlazaBeaconFill"
+	beacon_fill.position = Vector3(0.0, 4.5, -0.8)
+	beacon_fill.light_color = Color("#b8d9e7")
+	beacon_fill.light_energy = 0.6
+	beacon_fill.omni_range = 10.0
+	beacon_fill.shadow_enabled = false
+	add_child(beacon_fill)
+	for index in range(5):
+		var angle := TAU * float(index) / 5.0
+		var light := OmniLight3D.new()
+		light.name = "LandmarkAccent_%02d" % index
+		light.position = Vector3(cos(angle) * 8.0, 2.8, sin(angle) * 8.0)
+		light.light_color = Color("#d5b879") if index % 2 == 0 else Color("#9bcbd6")
+		light.light_energy = 0.34
+		light.omni_range = 5.2
+		light.shadow_enabled = false
+		add_child(light)
