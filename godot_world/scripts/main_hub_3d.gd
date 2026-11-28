@@ -1160,6 +1160,10 @@ func _open_destination_panel(destination_id: String) -> void:
 		_room_snapshot_root.name = "RoomList3D"
 		_room_snapshot_root.position = Vector3(1.45, -1.28, -0.25)
 		_destination_panel.add_child(_room_snapshot_root)
+		# Restore the most recent network snapshot immediately when the panel opens;
+		# don't wait for another broadcast to repopulate the visible room list.
+		_refresh_room_status_label()
+		_render_room_snapshot_page()
 		_create_hub_panel_button("SEBELUM", Vector3(0.72, -2.18, -0.24), "room:page:prev", Vector3(1.12, 0.34, 0.16), Color("#315b70"))
 		_create_hub_panel_button("LANJUT", Vector3(2.18, -2.18, -0.24), "room:page:next", Vector3(1.12, 0.34, 0.16), Color("#397b70"))
 		_create_hub_panel_button("KEMBALI KE HUB", Vector3(0, -2.62, -0.24), "back", Vector3(2.6, 0.36, 0.16), Color("#315b70"))
