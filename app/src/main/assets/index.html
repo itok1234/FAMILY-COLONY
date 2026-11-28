@@ -2000,3 +2000,7 @@ c.classList.add('fc-webgl-ready');document.getElementById('fcLoginOrb')?.classLi
 }catch(e){console.warn('FC WebGL sphere fallback',e);document.getElementById('fcLoginOrb')?.classList.remove('fc-webgl-ready');c.remove();}
 })();
 </script>
+
+<script id="fc-pilot-login-home-safety">
+(()=>{try{const k=typeof FC_SETTINGS_KEY==='string'?FC_SETTINGS_KEY:'fc_app_settings_v1';const s=JSON.parse(localStorage.getItem(k)||'{}');s.world3DEnabled=false;localStorage.setItem(k,JSON.stringify(s));}catch(e){};if(typeof navigate==='function'){const original=navigate;navigate=function(page){if(page==='world'){toast('3D World telah dinonaktifkan sementara.');return;}return original(page)}}})();
+</script>
