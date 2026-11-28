@@ -28,6 +28,7 @@ var _hint: Label3D
 var _member_board_label: Label3D
 var _ray_length := 40.0
 var _touch_start := Vector2.ZERO
+var _tap_candidate := false
 var _bee_tap_count := 0
 var _bee_last_tap_ms := 0
 var _developer_panel: Node3D
@@ -832,10 +833,29 @@ func _refresh_member_board() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventScreenTouch and event.pressed:
-		_pick_destination(event.position)
-	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_pick_destination(event.position)
+	# Resolve on release to avoid activating stations during swipe/drag gestures.
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			_touch_start = event.position
+			_tap_candidate = true
+		else:
+			if _tap_candidate and _touch_start.distance_to(event.position) <= 24.0:
+				_pick_destination(event.position)
+			_tap_candidate = false
+	elif event is InputEventScreenDrag:
+		if _tap_candidate and _touch_start.distance_to(event.position) > 24.0:
+			_tap_candidate = false
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_touch_start = event.position
+			_tap_candidate = true
+		else:
+			if _tap_candidate and _touch_start.distance_to(event.position) <= 8.0:
+				_pick_destination(event.position)
+			_tap_candidate = false
+	elif event is InputEventMouseMotion:
+		if _tap_candidate and _touch_start.distance_to(event.position) > 8.0:
+			_tap_candidate = false
 
 
 func _pick_destination(screen_position: Vector2) -> void:
