@@ -145,6 +145,7 @@ func _ready() -> void:
 	_build_plaza_path_composition()
 	_build_hub_focal_lighting()
 	_build_distant_colony_silhouette()
+	_build_plaza_wayfinding()
 	_build_camera()
 	_build_central_hall()
 	_build_developer_bee()
@@ -1753,3 +1754,34 @@ func _build_distant_colony_silhouette() -> void:
 			cap.position = tower.position + Vector3(0.0, height * 0.5 + 0.08, 0.0)
 			cap.material_override = _material(Color("#526d78"), 0.62, 0.18)
 			cluster.add_child(cap)
+
+func _build_plaza_wayfinding() -> void:
+	# Radial direction markers and illuminated inset plates guide members between
+	# the central hall and feature stations without cluttering the touch surfaces.
+	for index in range(5):
+		var item: Dictionary = HUB_ITEMS[index]
+		var direction := Vector2(float(item.position.x), float(item.position.z)).normalized()
+		var marker_root := Node3D.new()
+		marker_root.name = "Wayfinding_%s" % str(item.id)
+		marker_root.position = Vector3(direction.x * 4.15, 0.0, direction.y * 4.15)
+		marker_root.rotation.y = atan2(direction.x, direction.y)
+		add_child(marker_root)
+		var plate := MeshInstance3D.new()
+		var plate_mesh := BoxMesh.new()
+		plate_mesh.size = Vector3(0.72, 0.045, 1.25)
+		plate.mesh = plate_mesh
+		plate.position.y = 0.19
+		plate.material_override = _material(Color("#263b49"), 0.42, 0.3)
+		marker_root.add_child(plate)
+		for stripe_index in range(3):
+			var stripe := MeshInstance3D.new()
+			var stripe_mesh := BoxMesh.new()
+			stripe_mesh.size = Vector3(0.12, 0.025, 0.26)
+			stripe.mesh = stripe_mesh
+			stripe.position = Vector3(0.0, 0.23, -0.34 + float(stripe_index) * 0.32)
+			var stripe_material := _material(item.color.lightened(0.28), 0.25, 0.35)
+			stripe_material.emission_enabled = true
+			stripe_material.emission = item.color.lightened(0.2)
+			stripe_material.emission_energy_multiplier = 0.3
+			stripe.material_override = stripe_material
+			marker_root.add_child(stripe)
