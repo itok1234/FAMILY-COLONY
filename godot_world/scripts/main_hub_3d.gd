@@ -1699,19 +1699,19 @@ func _build_plaza_path_composition() -> void:
 	for path_index in range(5):
 		var target: Vector3 = HUB_ITEMS[path_index].position
 		var start := Vector3(0.0, 0.0, 2.8)
-		var direction := Vector2(target.x, target.z + 1.0)
+		var direction := Vector3(target.x, 0.0, target.z + 1.0)
 		if direction.length() < 0.1:
 			continue
 		direction = direction.normalized()
-		var perpendicular := Vector3(-direction.y, 0.0, direction.x)
-		var center := Vector3(direction.x * 5.8, 0.0, direction.y * 5.8)
+		var perpendicular := Vector3(-direction.z, 0.0, direction.x)
+		var center := Vector3(direction.x * 5.8, 0.0, direction.z * 5.8)
 		for side in [-1.0, 1.0]:
 			var curb := MeshInstance3D.new()
 			var curb_mesh := BoxMesh.new()
 			curb_mesh.size = Vector3(0.18, 0.12, 4.3)
 			curb.mesh = curb_mesh
 			curb.position = center + perpendicular * side * 0.95 + Vector3(0.0, 0.09, 0.0)
-			curb.rotation.y = atan2(direction.x, direction.y)
+			curb.rotation.y = atan2(direction.x, direction.z)
 			curb.material_override = _material(Color("#9aaba8"), 0.58, 0.12)
 			add_child(curb)
 		for slab_index in range(4):
@@ -1720,7 +1720,7 @@ func _build_plaza_path_composition() -> void:
 			slab_mesh.size = Vector3(1.35, 0.1, 0.88)
 			slab.mesh = slab_mesh
 			slab.position = center + direction * (float(slab_index) * 1.0 - 1.5) + Vector3(0.0, 0.11, 0.0)
-			slab.rotation.y = atan2(direction.x, direction.y)
+			slab.rotation.y = atan2(direction.x, direction.z)
 			slab.material_override = _material(Color("#718783") if slab_index % 2 == 0 else Color("#849a95"), 0.72, 0.06)
 			add_child(slab)
 		for side in [-1.0, 1.0]:
@@ -1807,7 +1807,7 @@ func _build_plaza_wayfinding() -> void:
 		var marker_root := Node3D.new()
 		marker_root.name = "Wayfinding_%s" % str(item.id)
 		marker_root.position = Vector3(direction.x * 4.15, 0.0, direction.y * 4.15)
-		marker_root.rotation.y = atan2(direction.x, direction.y)
+		marker_root.rotation.y = atan2(direction.x, direction.z)
 		add_child(marker_root)
 		var plate := MeshInstance3D.new()
 		var plate_mesh := BoxMesh.new()
@@ -1838,7 +1838,7 @@ func _build_feature_approach_lanes() -> void:
 		var lane_root := Node3D.new()
 		lane_root.name = "ApproachLane_%s" % str(item.id)
 		lane_root.position = Vector3(0.0, 0.0, -0.8)
-		lane_root.rotation.y = atan2(direction.x, direction.y)
+		lane_root.rotation.y = atan2(direction.x, direction.z)
 		add_child(lane_root)
 		for segment_index in range(4):
 			var segment := MeshInstance3D.new()
