@@ -877,6 +877,46 @@ func _create_kiosk(item: Dictionary) -> void:
 		side_trim.material_override = _material(Color("#d6b16c"), 0.32, 0.42)
 		root.add_child(side_trim)
 
+	# New visual pass: sculpted station shoulders, inset jewel and floor approach.
+	for side in [-1.0, 1.0]:
+		var shoulder := MeshInstance3D.new()
+		var shoulder_mesh := BoxMesh.new()
+		shoulder_mesh.size = Vector3(0.42, 2.18, 0.38)
+		shoulder.mesh = shoulder_mesh
+		shoulder.position = Vector3(side * 1.58, 1.12, 0.02)
+		shoulder.material_override = _material(item.color.darkened(0.32), 0.48, 0.24)
+		root.add_child(shoulder)
+		var shoulder_cap := MeshInstance3D.new()
+		var cap_mesh := BoxMesh.new()
+		cap_mesh.size = Vector3(0.5, 0.12, 0.46)
+		shoulder_cap.mesh = cap_mesh
+		shoulder_cap.position = Vector3(side * 1.58, 2.25, 0.02)
+		shoulder_cap.material_override = _material(Color("#d5b879"), 0.32, 0.34)
+		root.add_child(shoulder_cap)
+	# Floating jewel-like station crest, emissive but inexpensive on mobile.
+	var crest := MeshInstance3D.new()
+	var crest_mesh := SphereMesh.new()
+	crest_mesh.radius = 0.23
+	crest_mesh.height = 0.42
+	crest.mesh = crest_mesh
+	crest.position = Vector3(0, 2.52, -0.06)
+	crest.scale = Vector3(1.0, 1.35, 0.72)
+	var crest_mat := _material(item.color.lightened(0.48), 0.22, 0.36)
+	crest_mat.emission_enabled = true
+	crest_mat.emission = item.color.lightened(0.3)
+	crest_mat.emission_energy_multiplier = 0.45
+	crest.material_override = crest_mat
+	root.add_child(crest)
+	# Three shallow approach slabs visibly anchor each kiosk into the plaza.
+	for step_index in range(3):
+		var step := MeshInstance3D.new()
+		var step_mesh := BoxMesh.new()
+		step_mesh.size = Vector3(2.5 - step_index * 0.18, 0.12, 0.46)
+		step.mesh = step_mesh
+		step.position = Vector3(0, -0.31 - step_index * 0.08, 0.55 + step_index * 0.34)
+		step.material_override = _material(Color("#415b68"), 0.58, 0.16)
+		root.add_child(step)
+
 	add_child(root)
 
 
