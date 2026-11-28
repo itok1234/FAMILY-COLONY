@@ -1099,6 +1099,12 @@ func _input(event: InputEvent) -> void:
 			_hub_orbit_yaw -= event.relative.x * 0.004
 			_hub_orbit_pitch = clampf(_hub_orbit_pitch + event.relative.y * 0.003, 0.22, 0.72)
 			_update_hub_camera_framing()
+	elif event is InputEventMouseButton and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN] and event.pressed:
+		_hub_orbit_distance = clampf(_hub_orbit_distance + (-1.0 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0), 14.0, 30.0)
+		_update_hub_camera_framing()
+	elif event is InputEventMagnifyGesture:
+		_hub_orbit_distance = clampf(_hub_orbit_distance / maxf(event.factor, 0.1), 14.0, 30.0)
+		_update_hub_camera_framing()
 
 
 
