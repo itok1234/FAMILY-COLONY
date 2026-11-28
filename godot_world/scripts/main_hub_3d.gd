@@ -27,6 +27,7 @@ var _camera: Camera3D
 var _animated_shrubs: Array[MeshInstance3D] = []
 var _animated_lamp_lights: Array[OmniLight3D] = []
 var _animated_station_badges: Array[MeshInstance3D] = []
+var _animated_station_portal_rings: Array[MeshInstance3D] = []
 var _animated_station_lights: Array[OmniLight3D] = []
 var _animated_beacon_halos: Array[MeshInstance3D] = []
 var _animated_beacon_light: OmniLight3D
@@ -96,6 +97,10 @@ func _process(delta: float) -> void:
 		var badge := _animated_station_badges[station_index]
 		badge.rotation_degrees.y += delta * (18.0 + station_index * 3.0)
 		badge.scale = Vector3.ONE * (1.0 + sin(elapsed * 1.25 + station_index) * 0.045)
+	for portal_index in range(_animated_station_portal_rings.size()):
+		var portal := _animated_station_portal_rings[portal_index]
+		portal.rotation_degrees.y += delta * (9.0 if portal_index % 2 == 0 else -9.0)
+		portal.scale = Vector3.ONE * (1.0 + sin(elapsed * 1.1 + portal_index) * 0.025)
 	for station_index in range(_animated_station_lights.size()):
 		var station_light := _animated_station_lights[station_index]
 		station_light.light_energy = 0.42 + sin(elapsed * 1.5 + station_index * 0.7) * 0.05
@@ -107,6 +112,7 @@ func _cache_animated_nodes() -> void:
 	_animated_shrubs.clear()
 	_animated_lamp_lights.clear()
 	_animated_station_badges.clear()
+	_animated_station_portal_rings.clear()
 	_animated_station_lights.clear()
 	_animated_beacon_halos.clear()
 	_animated_beacon_light = null
@@ -132,9 +138,12 @@ func _cache_animated_nodes() -> void:
 		if station == null:
 			continue
 		var badge := station.get_node_or_null("StationBadgeRing") as MeshInstance3D
+		var portal := station.get_node_or_null("StationPortalRing") as MeshInstance3D
 		var light := station.get_node_or_null("StationAccentLight") as OmniLight3D
 		if badge != null:
 			_animated_station_badges.append(badge)
+		if portal != null:
+			_animated_station_portal_rings.append(portal)
 		if light != null:
 			_animated_station_lights.append(light)
 
@@ -848,6 +857,7 @@ func _create_kiosk(item: Dictionary) -> void:
 	var portal_mesh := TorusMesh.new()
 	portal_mesh.inner_radius = 1.18
 	portal_mesh.outer_radius = 1.34
+	portal_ring.name = "StationPortalRing"
 	portal_ring.mesh = portal_mesh
 	portal_ring.position = Vector3(0, 1.18, -0.18)
 	portal_ring.rotation_degrees.x = 90.0
