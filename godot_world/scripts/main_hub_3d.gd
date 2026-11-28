@@ -89,7 +89,7 @@ func _process(delta: float) -> void:
 			shrub.rotation.x = cos(elapsed * 0.6 + shrub_index * 0.6) * 0.018
 	for lamp_index in range(8):
 		var lamp := get_node_or_null("PlazaLamp_%02d" % lamp_index)
-		var lamp_light := lamp.get_node_or_null("PlazaLampLight") as OmniLight3D if lamp != null else null
+		var lamp_light := lamp.get_node_or_null("PlazaLampLight_%02d" % lamp_index) as OmniLight3D if lamp != null else null
 		if lamp_light != null:
 			lamp_light.light_energy = 0.24 + sin(elapsed * 1.8 + lamp_index * 0.5) * 0.025
 	for station_index in range(HUB_ITEMS.size()):
