@@ -229,6 +229,7 @@ func _build_environment() -> void:
 	for i in range(8):
 		var angle := TAU * float(i) / 8.0
 		var lamp := Node3D.new()
+		lamp.name = "PlazaLamp_%02d" % i
 		lamp.position = Vector3(cos(angle) * 7.6, 0.0, sin(angle) * 7.6)
 		add_child(lamp)
 		var post := MeshInstance3D.new()
