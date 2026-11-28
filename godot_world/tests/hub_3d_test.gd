@@ -21,7 +21,8 @@ func _run() -> void:
 	_expect(hub.get_node_or_null("DeveloperBeeEmblem") is Area3D, "developer bee interaction must be present")
 	_expect(hub.get_node_or_null("PlazaBeacon") is Node3D, "central plaza beacon must exist")
 	var beacon := hub.get_node_or_null("PlazaBeacon")
-	_expect(beacon.get_child_count() >= 2, "beacon must contain core and illuminated cap elements")
+	if beacon != null:
+		_expect(beacon.get_child_count() >= 2, "beacon must contain core and illuminated cap elements")
 	var camera := hub.get_node_or_null("HubCamera") as Camera3D
 	_expect(camera != null and camera.current, "benchmark camera must be active")
 	if camera != null:
