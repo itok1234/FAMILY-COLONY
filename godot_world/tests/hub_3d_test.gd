@@ -19,6 +19,22 @@ func _run() -> void:
 	_expect(hub.get_node_or_null("HubCamera") is Camera3D, "hub camera must be generated")
 	_expect(hub.get_node_or_null("SpatialInformationBoard") != null, "spatial information board must be generated")
 	_expect(hub.get_node_or_null("DeveloperBeeEmblem") is Area3D, "developer bee interaction must be present")
+	_expect(hub.get_node_or_null("PlazaBeacon") is Node3D, "central plaza beacon must exist")
+	var beacon := hub.get_node_or_null("PlazaBeacon")
+	_expect(beacon.get_child_count() >= 2, "beacon must contain core and illuminated cap elements")
+	var camera := hub.get_node_or_null("HubCamera") as Camera3D
+	_expect(camera != null and camera.current, "benchmark camera must be active")
+	if camera != null:
+		_expect(camera.fov >= 50.0 and camera.fov <= 75.0, "benchmark camera FOV must remain within the mobile composition range")
+	var accent_count := 0
+	var ring_count := 0
+	for child in hub.get_children():
+		if child is MeshInstance3D and child.mesh is BoxMesh and child.mesh.size == Vector3(0.18, 0.12, 1.25):
+			accent_count += 1
+		if child is MeshInstance3D and child.mesh is TorusMesh:
+			ring_count += 1
+	_expect(accent_count >= 12, "central landmark radial accent set must contain twelve pieces")
+	_expect(ring_count >= 2, "plaza must retain two inset path rings")
 	for destination in ["profile", "chat", "games", "settings", "world"]:
 		var kiosk := hub.get_node_or_null("Kiosk_" + destination) as Area3D
 		_expect(kiosk is Area3D, "3D kiosk missing: " + destination)
