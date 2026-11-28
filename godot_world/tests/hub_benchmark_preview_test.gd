@@ -45,7 +45,11 @@ func _run() -> void:
 			_expect(hub.get_node_or_null("PlazaLampLight_%02d" % lamp_index) is OmniLight3D, "plaza lantern light missing: %d" % lamp_index)
 		_expect(hub.get_node_or_null("SpatialInformationBoard") != null, "spatial information board should exist")
 		for destination in ["profile", "chat", "games", "settings", "world"]:
-			_expect(hub.get_node_or_null("Kiosk_" + destination) is Area3D, "feature station missing: " + destination)
+			var station := hub.get_node_or_null("Kiosk_" + destination)
+			_expect(station is Area3D, "feature station missing: " + destination)
+			if station != null:
+				_expect(station.get_node_or_null("StationBadgeRing") is MeshInstance3D, "station animated badge ring missing: " + destination)
+				_expect(station.get_node_or_null("StationAccentLight") is OmniLight3D, "station accent light missing: " + destination)
 		_expect(hub.get_node_or_null("DeveloperBeeEmblem") is Area3D, "developer bee interaction should exist")
 	if failures == 0:
 		print("HUB_BENCHMARK_PREVIEW: PASS — isolated harness, camera, beacon and stations")
