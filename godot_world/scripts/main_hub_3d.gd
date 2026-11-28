@@ -141,6 +141,7 @@ func _cache_animated_nodes() -> void:
 
 func _ready() -> void:
 	_build_environment()
+	_build_visual_landmark_layer()
 	_build_camera()
 	_build_central_hall()
 	_build_developer_bee()
@@ -297,6 +298,67 @@ func _build_environment() -> void:
 		light.light_energy = 0.28
 		light.omni_range = 4.0
 		lamp.add_child(light)
+
+
+func _build_visual_landmark_layer() -> void:
+	# Art pass: layered entrance arches, reflective trim and sculpted wayfinding.
+	# These are production-facing visual additions, not benchmark/test geometry.
+	for arch_index in range(5):
+		var angle := TAU * float(arch_index) / 5.0
+		var arch_root := Node3D.new()
+		arch_root.name = "LandmarkArch_%02d" % arch_index
+		arch_root.position = Vector3(cos(angle) * 8.35, 0.0, sin(angle) * 8.35)
+		arch_root.rotation.y = -angle + PI * 0.5
+		add_child(arch_root)
+		var stone_color := Color("#536d78") if arch_index % 2 == 0 else Color("#49665f")
+		for side in [-1.0, 1.0]:
+			var column := MeshInstance3D.new()
+			var column_mesh := CylinderMesh.new()
+			column_mesh.top_radius = 0.18
+			column_mesh.bottom_radius = 0.24
+			column_mesh.height = 2.75
+			column.mesh = column_mesh
+			column.position = Vector3(side * 1.05, 1.38, 0.0)
+			column.material_override = _material(stone_color, 0.62, 0.12)
+			arch_root.add_child(column)
+			var capital := MeshInstance3D.new()
+			var capital_mesh := BoxMesh.new()
+			capital_mesh.size = Vector3(0.55, 0.16, 0.42)
+			capital.mesh = capital_mesh
+			capital.position = Vector3(side * 1.05, 2.82, 0.0)
+			capital.material_override = _material(Color("#d5b879"), 0.38, 0.22)
+			arch_root.add_child(capital)
+		var lintel := MeshInstance3D.new()
+		var lintel_mesh := BoxMesh.new()
+		lintel_mesh.size = Vector3(2.5, 0.24, 0.34)
+		lintel.mesh = lintel_mesh
+		lintel.position.y = 2.92
+		lintel.material_override = _material(Color("#d5b879"), 0.34, 0.28)
+		arch_root.add_child(lintel)
+		var crest := MeshInstance3D.new()
+		var crest_mesh := SphereMesh.new()
+		crest_mesh.radius = 0.28
+		crest_mesh.height = 0.38
+		crest.mesh = crest_mesh
+		crest.position = Vector3(0.0, 3.25, 0.0)
+		var crest_material := _material(Color("#e6bd70"), 0.28, 0.22)
+		crest_material.emission_enabled = true
+		crest_material.emission = Color("#e6bd70")
+		crest_material.emission_energy_multiplier = 0.22
+		crest.material_override = crest_material
+		arch_root.add_child(crest)
+	# Small raised stepping stones soften the plaza's straight radial inlays.
+	for stone_index in range(24):
+		var angle := TAU * float(stone_index) / 24.0
+		var stone := MeshInstance3D.new()
+		var stone_mesh := CylinderMesh.new()
+		stone_mesh.top_radius = 0.24
+		stone_mesh.bottom_radius = 0.27
+		stone_mesh.height = 0.09
+		stone.mesh = stone_mesh
+		stone.position = Vector3(cos(angle) * 9.8, 0.14, sin(angle) * 9.8)
+		stone.material_override = _material(Color("#b7c6bd"), 0.7, 0.06)
+		add_child(stone)
 
 
 func _build_garden_trees() -> void:
