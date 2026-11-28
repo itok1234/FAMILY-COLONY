@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - visual-depth-clean
+      - beranda-25d-pilot
 
 permissions:
   contents: read
