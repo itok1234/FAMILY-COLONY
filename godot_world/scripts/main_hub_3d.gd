@@ -225,13 +225,17 @@ func _build_camera() -> void:
 func _update_hub_camera_framing() -> void:
 	if not is_instance_valid(_camera):
 		return
-	# The hub spans several kiosk stations. Portrait Android needs a wider
-	# viewing distance so the hub composition does not crop its outer stations.
+	# Compose a wide, landscape-first benchmark shot with all feature stations
+	# visible and the central landmark dominating the visual hierarchy.
 	var viewport_size := get_viewport().get_visible_rect().size
 	var is_portrait := viewport_size.x < viewport_size.y
-	_camera.position = Vector3(0.0, 14.0 if is_portrait else 11.5, 25.0 if is_portrait else 19.0)
-	_camera.fov = 64.0 if is_portrait else 58.0
-	_camera.look_at(Vector3(0.0, 1.0, -1.0), Vector3.UP)
+	if is_portrait:
+		_camera.position = Vector3(0.0, 16.0, 29.0)
+		_camera.fov = 68.0
+	else:
+		_camera.position = Vector3(0.0, 11.0, 20.5)
+		_camera.fov = 56.0
+	_camera.look_at(Vector3(0.0, 1.1, -1.0), Vector3.UP)
 
 
 func _build_central_hall() -> void:
