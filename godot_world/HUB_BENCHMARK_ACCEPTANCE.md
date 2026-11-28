@@ -1,17 +1,25 @@
-# Beranda 3D Master Benchmark
+# Beranda 3D Master Benchmark — Acceptance
 
-This isolated preview harness instantiates the existing production hub scene script without login, account-session or backend dependencies.
+This isolated preview harness instantiates the production hub script without login or backend dependencies.
 
-## Preview entry point
-- Scene: `scenes/hub_benchmark_preview.tscn`
-- Harness script: `scripts/hub_benchmark_preview.gd`
+## Automated acceptance (CI)
+- Scene loads and active camera exists.
+- Elevated overview camera framing and FOV remain within structural bounds.
+- Central beacon, rings, plaza inlays, shrubs, lamps and information board exist.
+- Five feature stations exist and are ray-pickable.
+- Idle startup does not emit a navigation destination.
+- Godot parse/import, startup and Android emulator smoke tests pass.
 
-## Acceptance gates (do not mark visual lock based on headless tests)
-1. Scene loads and camera is active.
-2. Landscape composition: central landmark readable; plaza edge and stations not clipped.
-3. Visual hierarchy: beacon, plaza rings, stations and surrounding garden read as one designed space (not primitive-only blockout).
-4. Android device validation at target device resolution and frame-rate stability.
-5. Touch hit areas work, no unintended auto-entry into World.
-6. User evidence (device capture) reviewed before LOCK.
+These checks are structural and do **not** prove visual quality, real touch navigation, device performance, or orientation transitions.
 
-Headless checks are structural only. Physical Android and human visual acceptance remain mandatory.
+## Required real-device acceptance before visual LOCK
+1. Capture Beranda in landscape at target Android device resolution.
+2. Confirm landmark, radial plaza, feature kiosks and garden are visible, readable and not clipped.
+3. Reject primitive-only/blockout appearance; review actual screenshots against intended premium 3D art quality.
+4. Tap each station and verify touch hit areas, panel entry, return path, and no unintended auto-entry.
+5. Enable World from Beranda; confirm landscape orientation persists, World loads, and returning restores Beranda without severe lag or orientation glitch.
+6. Run a 10-minute device session; note frame rate, overheating, memory pressure, stutters and touch responsiveness.
+7. Save device capture and test notes; only then LOCK visual acceptance.
+
+## Current limitation
+The existing hub script still describes its artwork as procedural blockout geometry. CI can validate scene structure and runtime but cannot approve the visual-art gate or physical-device navigation/performance gate without reviewed device evidence.
