@@ -31,6 +31,12 @@ func _run() -> void:
 			_expect(camera.current, "hub benchmark camera should be active")
 			_expect(camera.fov >= 50.0 and camera.fov <= 75.0, "camera FOV should remain in benchmark range")
 		_expect(hub.get_node_or_null("PlazaBeacon") != null, "central beacon should exist")
+		var beacon := hub.get_node_or_null("PlazaBeacon")
+		if beacon != null:
+			_expect(beacon.get_node_or_null("BeaconHalo_0") is MeshInstance3D, "beacon first halo must exist")
+			_expect(beacon.get_node_or_null("BeaconHalo_1") is MeshInstance3D, "beacon second halo must exist")
+			_expect(beacon.get_node_or_null("BeaconHalo_2") is MeshInstance3D, "beacon third halo must exist")
+			_expect(beacon.get_node_or_null("BeaconAccentLight") is OmniLight3D, "beacon accent light must exist")
 		_expect(hub.get_node_or_null("SpatialInformationBoard") != null, "spatial information board should exist")
 		for destination in ["profile", "chat", "games", "settings", "world"]:
 			_expect(hub.get_node_or_null("Kiosk_" + destination) is Area3D, "feature station missing: " + destination)
