@@ -1807,7 +1807,7 @@ func _build_plaza_wayfinding() -> void:
 		var marker_root := Node3D.new()
 		marker_root.name = "Wayfinding_%s" % str(item.id)
 		marker_root.position = Vector3(direction.x * 4.15, 0.0, direction.y * 4.15)
-		marker_root.rotation.y = atan2(direction.x, direction.z)
+		marker_root.rotation.y = atan2(direction.x, direction.y)
 		add_child(marker_root)
 		var plate := MeshInstance3D.new()
 		var plate_mesh := BoxMesh.new()
@@ -1838,7 +1838,7 @@ func _build_feature_approach_lanes() -> void:
 		var lane_root := Node3D.new()
 		lane_root.name = "ApproachLane_%s" % str(item.id)
 		lane_root.position = Vector3(0.0, 0.0, -0.8)
-		lane_root.rotation.y = atan2(direction.x, direction.z)
+		lane_root.rotation.y = atan2(direction.x, direction.y)
 		add_child(lane_root)
 		for segment_index in range(4):
 			var segment := MeshInstance3D.new()
