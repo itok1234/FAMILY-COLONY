@@ -263,6 +263,7 @@ func _build_environment() -> void:
 		shrub.name = "PlazaShrub_%02d" % i
 		add_child(shrub)
 	_build_garden_trees()
+	_build_outer_garden_composition()
 	# Decorative lamp posts establish a recognizable spatial home plaza.
 	for i in range(8):
 		var angle := TAU * float(i) / 8.0
@@ -359,6 +360,58 @@ func _build_visual_landmark_layer() -> void:
 		stone.position = Vector3(cos(angle) * 9.8, 0.14, sin(angle) * 9.8)
 		stone.material_override = _material(Color("#b7c6bd"), 0.7, 0.06)
 		add_child(stone)
+
+
+func _build_outer_garden_composition() -> void:
+	# Sculpted garden edge, low layered beds and curved walkways frame the plaza.
+	for bed_index in range(12):
+		var angle := TAU * float(bed_index) / 12.0
+		var bed_root := Node3D.new()
+		bed_root.name = "GardenBed_%02d" % bed_index
+		bed_root.position = Vector3(cos(angle) * 13.15, 0.0, sin(angle) * 13.15)
+		bed_root.rotation.y = angle
+		add_child(bed_root)
+		var bed := MeshInstance3D.new()
+		var bed_mesh := CylinderMesh.new()
+		bed_mesh.top_radius = 1.25
+		bed_mesh.bottom_radius = 1.38
+		bed_mesh.height = 0.24
+		bed.mesh = bed_mesh
+		bed.position.y = 0.12
+		bed.material_override = _material(Color("#344e4b"), 0.92, 0.0)
+		bed_root.add_child(bed)
+		for bloom_index in range(5):
+			var bloom_angle := TAU * float(bloom_index) / 5.0
+			var bloom := MeshInstance3D.new()
+			var bloom_mesh := SphereMesh.new()
+			bloom_mesh.radius = 0.17
+			bloom_mesh.height = 0.28
+			bloom.mesh = bloom_mesh
+			bloom.position = Vector3(cos(bloom_angle) * 0.72, 0.42, sin(bloom_angle) * 0.72)
+			bloom.material_override = _material(Color("#c9bfa7") if bloom_index % 2 == 0 else Color("#87b9ad"), 0.78, 0.0)
+			bed_root.add_child(bloom)
+	# Outer paving segments and subtle border markers reinforce navigable scale.
+	for tile_index in range(32):
+		var angle := TAU * float(tile_index) / 32.0
+		var tile := MeshInstance3D.new()
+		var tile_mesh := BoxMesh.new()
+		tile_mesh.size = Vector3(1.35, 0.08, 0.34)
+		tile.mesh = tile_mesh
+		tile.position = Vector3(cos(angle) * 15.1, 0.03, sin(angle) * 15.1)
+		tile.rotation.y = -angle
+		tile.material_override = _material(Color("#91a6a4") if tile_index % 2 == 0 else Color("#536d78"), 0.68, 0.08)
+		add_child(tile)
+	for marker_index in range(8):
+		var angle := TAU * float(marker_index) / 8.0 + PI / 8.0
+		var marker := MeshInstance3D.new()
+		var marker_mesh := CylinderMesh.new()
+		marker_mesh.top_radius = 0.16
+		marker_mesh.bottom_radius = 0.24
+		marker_mesh.height = 0.62
+		marker.mesh = marker_mesh
+		marker.position = Vector3(cos(angle) * 14.0, 0.31, sin(angle) * 14.0)
+		marker.material_override = _material(Color("#d5b879"), 0.38, 0.24)
+		add_child(marker)
 
 
 func _build_garden_trees() -> void:
