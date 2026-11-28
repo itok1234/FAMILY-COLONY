@@ -141,6 +141,21 @@ jobs:
             exit 1
           fi
 
+      - name: Run isolated Beranda benchmark harness test
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          timeout 90s godot --headless --path godot_world --script res://tests/hub_benchmark_preview_test.gd 2>&1 | tee "$log_file"
+          if ! grep -F "HUB_BENCHMARK_PREVIEW: PASS" "$log_file"; then
+            echo "::error::Isolated hub benchmark preview did not pass."
+            exit 1
+          fi
+          if grep -E "SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script" "$log_file"; then
+            echo "::error::Godot reported script/resource errors during benchmark preview test."
+            exit 1
+          fi
+
       - name: Run procedural avatar regression test
         shell: bash
         run: |
