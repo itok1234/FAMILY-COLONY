@@ -69,6 +69,22 @@ func set_member_profile(member: Dictionary) -> void:
 	_refresh_member_board()
 
 
+func _process(delta: float) -> void:
+	# Subtle motion keeps the plaza beacon alive without heavy shaders.
+	var beacon := get_node_or_null("PlazaBeacon")
+	if beacon == null:
+		return
+	var elapsed := float(Time.get_ticks_msec()) / 1000.0
+	for index in range(3):
+		var halo := beacon.get_node_or_null("BeaconHalo_%d" % index) as MeshInstance3D
+		if halo != null:
+			halo.rotation_degrees.y += delta * (12.0 + index * 7.0) * (1.0 if index % 2 == 0 else -1.0)
+			halo.scale = Vector3.ONE * (1.0 + sin(elapsed * 1.3 + index) * 0.035)
+	var light := beacon.get_node_or_null("BeaconAccentLight") as OmniLight3D
+	if light != null:
+		light.light_energy = 0.58 + sin(elapsed * 1.4) * 0.08
+
+
 func _ready() -> void:
 	_build_environment()
 	_build_camera()
