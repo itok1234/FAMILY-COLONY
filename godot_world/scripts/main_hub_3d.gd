@@ -70,19 +70,27 @@ func set_member_profile(member: Dictionary) -> void:
 
 
 func _process(delta: float) -> void:
-	# Subtle motion keeps the plaza beacon alive without heavy shaders.
-	var beacon := get_node_or_null("PlazaBeacon")
-	if beacon == null:
-		return
+	# Low-cost ambience: rotating/pulsing beacon and gentle garden breeze.
 	var elapsed := float(Time.get_ticks_msec()) / 1000.0
-	for index in range(3):
-		var halo := beacon.get_node_or_null("BeaconHalo_%d" % index) as MeshInstance3D
-		if halo != null:
-			halo.rotation_degrees.y += delta * (12.0 + index * 7.0) * (1.0 if index % 2 == 0 else -1.0)
-			halo.scale = Vector3.ONE * (1.0 + sin(elapsed * 1.3 + index) * 0.035)
-	var light := beacon.get_node_or_null("BeaconAccentLight") as OmniLight3D
-	if light != null:
-		light.light_energy = 0.58 + sin(elapsed * 1.4) * 0.08
+	var beacon := get_node_or_null("PlazaBeacon")
+	if beacon != null:
+		for index in range(3):
+			var halo := beacon.get_node_or_null("BeaconHalo_%d" % index) as MeshInstance3D
+			if halo != null:
+				halo.rotation_degrees.y += delta * (12.0 + index * 7.0) * (1.0 if index % 2 == 0 else -1.0)
+				halo.scale = Vector3.ONE * (1.0 + sin(elapsed * 1.3 + index) * 0.035)
+		var light := beacon.get_node_or_null("BeaconAccentLight") as OmniLight3D
+		if light != null:
+			light.light_energy = 0.58 + sin(elapsed * 1.4) * 0.08
+	for shrub_index in range(16):
+		var shrub := get_node_or_null("PlazaShrub_%02d" % shrub_index) as MeshInstance3D
+		if shrub != null:
+			shrub.rotation.z = sin(elapsed * 0.7 + shrub_index * 0.8) * 0.025
+			shrub.rotation.x = cos(elapsed * 0.6 + shrub_index * 0.6) * 0.018
+	for lamp_index in range(8):
+		var lamp_light := get_node_or_null("PlazaLampLight_%02d" % lamp_index) as OmniLight3D
+		if lamp_light != null:
+			lamp_light.light_energy = 0.24 + sin(elapsed * 1.8 + lamp_index * 0.5) * 0.025
 
 
 func _ready() -> void:
@@ -204,6 +212,7 @@ func _build_environment() -> void:
 		shrub.mesh = shrub_mesh
 		shrub.position = planter.position + Vector3(0, 0.74, 0)
 		shrub.material_override = _material(Color("#52866b"), 0.88, 0.04)
+		shrub.name = "PlazaShrub_%02d" % i
 		add_child(shrub)
 	# Decorative lamp posts establish a recognizable spatial home plaza.
 	for i in range(8):
@@ -235,6 +244,7 @@ func _build_environment() -> void:
 		var light := OmniLight3D.new()
 		light.position.y = 2.8
 		light.light_color = Color("#f3d99a")
+		light.name = "PlazaLampLight_%02d" % i
 		light.light_energy = 0.28
 		light.omni_range = 4.0
 		lamp.add_child(light)
