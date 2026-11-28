@@ -155,6 +155,7 @@ func _ready() -> void:
 	_build_hub_focal_lighting()
 	_build_distant_colony_silhouette()
 	_build_plaza_wayfinding()
+	_build_feature_approach_lanes()
 	_build_camera()
 	_build_central_hall()
 	_build_developer_bee()
@@ -1803,3 +1804,27 @@ func _build_plaza_wayfinding() -> void:
 			stripe_material.emission_energy_multiplier = 0.3
 			stripe.material_override = stripe_material
 			marker_root.add_child(stripe)
+
+
+func _build_feature_approach_lanes() -> void:
+	# Subtle segmented inlays connect the central landmark to each feature kiosk.
+	# They are static mesh accents (no per-frame processing) to keep mobile cost low.
+	for item in HUB_ITEMS:
+		var direction := Vector2(float(item.position.x), float(item.position.z) - -0.8).normalized()
+		var lane_root := Node3D.new()
+		lane_root.name = "ApproachLane_%s" % str(item.id)
+		lane_root.position = Vector3(0.0, 0.0, -0.8)
+		lane_root.rotation.y = atan2(direction.x, direction.y)
+		add_child(lane_root)
+		for segment_index in range(4):
+			var segment := MeshInstance3D.new()
+			var segment_mesh := BoxMesh.new()
+			segment_mesh.size = Vector3(0.22, 0.035, 0.62)
+			segment.mesh = segment_mesh
+			segment.position = Vector3(0.0, 0.17, -4.25 - float(segment_index) * 1.0)
+			var segment_material := _material(item.color.lightened(0.18), 0.42, 0.22)
+			segment_material.emission_enabled = true
+			segment_material.emission = item.color.darkened(0.12)
+			segment_material.emission_energy_multiplier = 0.16
+			segment.material_override = segment_material
+			lane_root.add_child(segment)
