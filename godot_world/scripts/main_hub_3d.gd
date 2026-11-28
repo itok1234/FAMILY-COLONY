@@ -225,6 +225,7 @@ func _build_environment() -> void:
 		shrub.material_override = _material(Color("#52866b"), 0.88, 0.04)
 		shrub.name = "PlazaShrub_%02d" % i
 		add_child(shrub)
+	_build_garden_trees()
 	# Decorative lamp posts establish a recognizable spatial home plaza.
 	for i in range(8):
 		var angle := TAU * float(i) / 8.0
@@ -260,6 +261,48 @@ func _build_environment() -> void:
 		light.light_energy = 0.28
 		light.omni_range = 4.0
 		lamp.add_child(light)
+
+
+func _build_garden_trees() -> void:
+	# Lightweight layered ornamental trees: silhouettes and leaf volumes improve
+	# the plaza's scale/depth without relying on external assets or heavy shaders.
+	for tree_index in range(10):
+		var angle := TAU * float(tree_index) / 10.0
+		var tree_root := Node3D.new()
+		tree_root.name = "PlazaTree_%02d" % tree_index
+		tree_root.position = Vector3(cos(angle) * 12.35, 0.0, sin(angle) * 12.35)
+		tree_root.rotation.y = angle
+		add_child(tree_root)
+		var trunk := MeshInstance3D.new()
+		var trunk_mesh := CylinderMesh.new()
+		trunk_mesh.top_radius = 0.18
+		trunk_mesh.bottom_radius = 0.28
+		trunk_mesh.height = 2.35
+		trunk.mesh = trunk_mesh
+		trunk.position.y = 1.18
+		trunk.material_override = _material(Color("#71513a"), 0.88, 0.0)
+		tree_root.add_child(trunk)
+		for crown_index in range(3):
+			var crown := MeshInstance3D.new()
+			var crown_mesh := SphereMesh.new()
+			crown_mesh.radius = 1.0 - crown_index * 0.12
+			crown_mesh.height = 1.65 - crown_index * 0.12
+			crown.mesh = crown_mesh
+			crown.position = Vector3(0.0, 2.25 + crown_index * 0.72, 0.0)
+			crown.material_override = _material(Color("#4f896c") if crown_index != 1 else Color("#629a79"), 0.92, 0.0)
+			tree_root.add_child(crown)
+		var accent := MeshInstance3D.new()
+		var accent_mesh := SphereMesh.new()
+		accent_mesh.radius = 0.13
+		accent_mesh.height = 0.18
+		accent.mesh = accent_mesh
+		accent.position = Vector3(0.32, 3.55, 0.16)
+		var accent_material := _material(Color("#d5b879"), 0.4, 0.08)
+		accent_material.emission_enabled = true
+		accent_material.emission = Color("#d5b879")
+		accent_material.emission_energy_multiplier = 0.25
+		accent.material_override = accent_material
+		tree_root.add_child(accent)
 
 
 func _build_camera() -> void:
