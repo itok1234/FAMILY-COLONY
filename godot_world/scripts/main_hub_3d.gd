@@ -144,6 +144,7 @@ func _ready() -> void:
 	_build_visual_landmark_layer()
 	_build_plaza_path_composition()
 	_build_hub_focal_lighting()
+	_build_distant_colony_silhouette()
 	_build_camera()
 	_build_central_hall()
 	_build_developer_bee()
@@ -1722,3 +1723,33 @@ func _build_hub_focal_lighting() -> void:
 		light.omni_range = 5.2
 		light.shadow_enabled = false
 		add_child(light)
+
+func _build_distant_colony_silhouette() -> void:
+	# Low-poly distant skyline framing the hub; silhouettes create depth without
+	# heavy assets or collision bodies.
+	for cluster_index in range(9):
+		var angle := TAU * float(cluster_index) / 9.0
+		var cluster := Node3D.new()
+		cluster.name = "ColonySkyline_%02d" % cluster_index
+		cluster.position = Vector3(cos(angle) * 19.0, 0.0, sin(angle) * 19.0)
+		cluster.rotation.y = angle
+		add_child(cluster)
+		for tower_index in range(2):
+			var tower := MeshInstance3D.new()
+			var tower_mesh := CylinderMesh.new()
+			var height := 3.6 + float((cluster_index + tower_index * 3) % 4) * 1.15
+			tower_mesh.top_radius = 0.22
+			tower_mesh.bottom_radius = 0.62
+			tower_mesh.height = height
+			tower.mesh = tower_mesh
+			tower.position = Vector3((tower_index - 0.5) * 1.6, height * 0.5 - 0.12, -1.0)
+			tower.material_override = _material(Color("#344b60") if cluster_index % 2 == 0 else Color("#405b60"), 0.82, 0.08)
+			cluster.add_child(tower)
+			var cap := MeshInstance3D.new()
+			var cap_mesh := SphereMesh.new()
+			cap_mesh.radius = 0.42
+			cap_mesh.height = 0.62
+			cap.mesh = cap_mesh
+			cap.position = tower.position + Vector3(0.0, height * 0.5 + 0.08, 0.0)
+			cap.material_override = _material(Color("#526d78"), 0.62, 0.18)
+			cluster.add_child(cap)
