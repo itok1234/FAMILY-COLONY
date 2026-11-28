@@ -23,11 +23,24 @@ const HUB_ITEMS := [
 	{"id":"world","title":"DUNIA KOLONI","subtitle":"Jelajahi dunia bersama","position":Vector3(0.0,1.35,1.0),"color":Color("#527d43")}
 ]
 
+var _hub_orbit_yaw := 0.0
+var _hub_orbit_pitch := 0.42
+var _hub_orbit_distance := 22.0
+var _hub_drag_last := Vector2.ZERO
+var _hub_drag_active := false
 var _camera: Camera3D
+var _animated_shrubs: Array[MeshInstance3D] = []
+var _animated_lamp_lights: Array[OmniLight3D] = []
+var _animated_station_badges: Array[MeshInstance3D] = []
+var _animated_station_portal_rings: Array[MeshInstance3D] = []
+var _animated_station_lights: Array[OmniLight3D] = []
+var _animated_beacon_halos: Array[MeshInstance3D] = []
+var _animated_beacon_light: OmniLight3D
 var _hint: Label3D
 var _member_board_label: Label3D
 var _ray_length := 40.0
 var _touch_start := Vector2.ZERO
+var _tap_candidate := false
 var _bee_tap_count := 0
 var _bee_last_tap_ms := 0
 var _developer_panel: Node3D
@@ -69,13 +82,91 @@ func set_member_profile(member: Dictionary) -> void:
 	_refresh_member_board()
 
 
+func _process(delta: float) -> void:
+	# Low-cost ambience: rotating/pulsing beacon and gentle garden breeze.
+	var elapsed := float(Time.get_ticks_msec()) / 1000.0
+	for index in range(_animated_beacon_halos.size()):
+		var halo := _animated_beacon_halos[index]
+		halo.rotation_degrees.y += delta * (12.0 + index * 7.0) * (1.0 if index % 2 == 0 else -1.0)
+		halo.scale = Vector3.ONE * (1.0 + sin(elapsed * 1.3 + index) * 0.035)
+	if is_instance_valid(_animated_beacon_light):
+		_animated_beacon_light.light_energy = 0.58 + sin(elapsed * 1.4) * 0.08
+	for shrub_index in range(_animated_shrubs.size()):
+		var shrub := _animated_shrubs[shrub_index]
+		shrub.rotation.z = sin(elapsed * 0.7 + shrub_index * 0.8) * 0.025
+		shrub.rotation.x = cos(elapsed * 0.6 + shrub_index * 0.6) * 0.018
+	for lamp_index in range(_animated_lamp_lights.size()):
+		var lamp_light := _animated_lamp_lights[lamp_index]
+		lamp_light.light_energy = 0.24 + sin(elapsed * 1.8 + lamp_index * 0.5) * 0.025
+	for station_index in range(_animated_station_badges.size()):
+		var badge := _animated_station_badges[station_index]
+		badge.rotation_degrees.y += delta * (18.0 + station_index * 3.0)
+		badge.scale = Vector3.ONE * (1.0 + sin(elapsed * 1.25 + station_index) * 0.045)
+	for portal_index in range(_animated_station_portal_rings.size()):
+		var portal := _animated_station_portal_rings[portal_index]
+		portal.rotation_degrees.y += delta * (9.0 if portal_index % 2 == 0 else -9.0)
+		portal.scale = Vector3.ONE * (1.0 + sin(elapsed * 1.1 + portal_index) * 0.025)
+	for station_index in range(_animated_station_lights.size()):
+		var station_light := _animated_station_lights[station_index]
+		station_light.light_energy = 0.42 + sin(elapsed * 1.5 + station_index * 0.7) * 0.05
+
+
+func _cache_animated_nodes() -> void:
+	# Resolve node references once after hub construction instead of repeated
+	# string-based scene lookups each frame; keeps the mobile hub loop lean.
+	_animated_shrubs.clear()
+	_animated_lamp_lights.clear()
+	_animated_station_badges.clear()
+	_animated_station_portal_rings.clear()
+	_animated_station_lights.clear()
+	_animated_beacon_halos.clear()
+	_animated_beacon_light = null
+	var beacon := get_node_or_null("PlazaBeacon")
+	if beacon != null:
+		for index in range(3):
+			var halo := beacon.get_node_or_null("BeaconHalo_%d" % index) as MeshInstance3D
+			if halo != null:
+				_animated_beacon_halos.append(halo)
+		_animated_beacon_light = beacon.get_node_or_null("BeaconAccentLight") as OmniLight3D
+	for shrub_index in range(16):
+		var shrub := get_node_or_null("PlazaShrub_%02d" % shrub_index) as MeshInstance3D
+		if shrub != null:
+			_animated_shrubs.append(shrub)
+	for lamp_index in range(8):
+		var lamp := get_node_or_null("PlazaLamp_%02d" % lamp_index)
+		if lamp != null:
+			var light := lamp.get_node_or_null("PlazaLampLight_%02d" % lamp_index) as OmniLight3D
+			if light != null:
+				_animated_lamp_lights.append(light)
+	for item in HUB_ITEMS:
+		var station := get_node_or_null("Kiosk_" + str(item.id))
+		if station == null:
+			continue
+		var badge := station.get_node_or_null("StationBadgeRing") as MeshInstance3D
+		var portal := station.get_node_or_null("StationPortalRing") as MeshInstance3D
+		var light := station.get_node_or_null("StationAccentLight") as OmniLight3D
+		if badge != null:
+			_animated_station_badges.append(badge)
+		if portal != null:
+			_animated_station_portal_rings.append(portal)
+		if light != null:
+			_animated_station_lights.append(light)
+
+
 func _ready() -> void:
 	_build_environment()
+	_build_visual_landmark_layer()
+	_build_plaza_path_composition()
+	_build_hub_focal_lighting()
+	_build_distant_colony_silhouette()
+	_build_plaza_wayfinding()
+	_build_feature_approach_lanes()
 	_build_camera()
 	_build_central_hall()
 	_build_developer_bee()
 	_build_kiosks()
 	_build_hud()
+	_cache_animated_nodes()
 	_developer_auth_request = HTTPRequest.new()
 	_developer_auth_request.timeout = 18.0
 	_developer_auth_request.request_completed.connect(_on_developer_pin_response)
@@ -138,6 +229,251 @@ func _build_environment() -> void:
 		pillar.material_override = _material(Color("#8da2a0"), 0.65)
 		add_child(pillar)
 
+	# Home-hub benchmark: circular plaza, inset paths and stylized garden landmarks.
+	var plaza := MeshInstance3D.new()
+	var plaza_mesh := CylinderMesh.new()
+	plaza_mesh.top_radius = 10.2
+	plaza_mesh.bottom_radius = 10.5
+	plaza_mesh.height = 0.22
+	plaza.mesh = plaza_mesh
+	plaza.position.y = 0.02
+	plaza.material_override = _material(Color("#526a68"), 0.78, 0.12)
+	add_child(plaza)
+	for ring_radius in [5.2, 9.2]:
+		var path_ring := MeshInstance3D.new()
+		var path_mesh := TorusMesh.new()
+		path_mesh.inner_radius = ring_radius - 0.16
+		path_mesh.outer_radius = ring_radius + 0.16
+		path_ring.mesh = path_mesh
+		path_ring.rotation_degrees.x = 90.0
+		path_ring.position.y = 0.18
+		path_ring.material_override = _material(Color("#d5b879"), 0.52, 0.22)
+		add_child(path_ring)
+	# Twelve radial inlays connect the central plaza to the outer garden ring.
+	for spoke_index in range(12):
+		var spoke_angle := TAU * float(spoke_index) / 12.0
+		var spoke := MeshInstance3D.new()
+		var spoke_mesh := BoxMesh.new()
+		spoke_mesh.size = Vector3(0.12, 0.035, 4.0)
+		spoke.mesh = spoke_mesh
+		spoke.position = Vector3(cos(spoke_angle) * 7.15, 0.16, sin(spoke_angle) * 7.15)
+		spoke.rotation.y = -spoke_angle
+		spoke.material_override = _material(Color("#b7c6bd"), 0.58, 0.16)
+		spoke.name = "PlazaRadialInlay_%02d" % spoke_index
+		add_child(spoke)
+	for i in range(16):
+		var angle := TAU * float(i) / 16.0
+		var planter := MeshInstance3D.new()
+		var planter_mesh := CylinderMesh.new()
+		planter_mesh.top_radius = 0.68
+		planter_mesh.bottom_radius = 0.82
+		planter_mesh.height = 0.42
+		planter.mesh = planter_mesh
+		planter.position = Vector3(cos(angle) * 11.2, 0.2, sin(angle) * 11.2)
+		planter.material_override = _material(Color("#334b50"), 0.75, 0.16)
+		add_child(planter)
+		var shrub := MeshInstance3D.new()
+		var shrub_mesh := SphereMesh.new()
+		shrub_mesh.radius = 0.62
+		shrub_mesh.height = 1.12
+		shrub.mesh = shrub_mesh
+		shrub.position = planter.position + Vector3(0, 0.74, 0)
+		shrub.material_override = _material(Color("#52866b"), 0.88, 0.04)
+		shrub.name = "PlazaShrub_%02d" % i
+		add_child(shrub)
+	_build_garden_trees()
+	_build_outer_garden_composition()
+	# Decorative lamp posts establish a recognizable spatial home plaza.
+	for i in range(8):
+		var angle := TAU * float(i) / 8.0
+		var lamp := Node3D.new()
+		lamp.name = "PlazaLamp_%02d" % i
+		lamp.position = Vector3(cos(angle) * 7.6, 0.0, sin(angle) * 7.6)
+		add_child(lamp)
+		var post := MeshInstance3D.new()
+		var post_mesh := CylinderMesh.new()
+		post_mesh.top_radius = 0.09
+		post_mesh.bottom_radius = 0.13
+		post_mesh.height = 2.8
+		post.mesh = post_mesh
+		post.position.y = 1.4
+		post.material_override = _material(Color("#c9ad70"), 0.35, 0.42)
+		lamp.add_child(post)
+		var lantern := MeshInstance3D.new()
+		var lantern_mesh := SphereMesh.new()
+		lantern_mesh.radius = 0.28
+		lantern_mesh.height = 0.42
+		lantern.mesh = lantern_mesh
+		lantern.position.y = 2.85
+		var lantern_mat := _material(Color("#f3d99a"), 0.2, 0.48)
+		lantern_mat.emission_enabled = true
+		lantern_mat.emission = Color("#f3d99a")
+		lantern_mat.emission_energy_multiplier = 1.2
+		lantern.material_override = lantern_mat
+		lamp.add_child(lantern)
+		var light := OmniLight3D.new()
+		light.position.y = 2.8
+		light.light_color = Color("#f3d99a")
+		light.name = "PlazaLampLight_%02d" % i
+		light.light_energy = 0.28
+		light.omni_range = 4.0
+		lamp.add_child(light)
+
+
+func _build_visual_landmark_layer() -> void:
+	# Art pass: layered entrance arches, reflective trim and sculpted wayfinding.
+	# These are production-facing visual additions, not benchmark/test geometry.
+	for arch_index in range(5):
+		var angle := TAU * float(arch_index) / 5.0
+		var arch_root := Node3D.new()
+		arch_root.name = "LandmarkArch_%02d" % arch_index
+		arch_root.position = Vector3(cos(angle) * 8.35, 0.0, sin(angle) * 8.35)
+		arch_root.rotation.y = -angle + PI * 0.5
+		add_child(arch_root)
+		var stone_color := Color("#536d78") if arch_index % 2 == 0 else Color("#49665f")
+		for side in [-1.0, 1.0]:
+			var column := MeshInstance3D.new()
+			var column_mesh := CylinderMesh.new()
+			column_mesh.top_radius = 0.18
+			column_mesh.bottom_radius = 0.24
+			column_mesh.height = 2.75
+			column.mesh = column_mesh
+			column.position = Vector3(side * 1.05, 1.38, 0.0)
+			column.material_override = _material(stone_color, 0.62, 0.12)
+			arch_root.add_child(column)
+			var capital := MeshInstance3D.new()
+			var capital_mesh := BoxMesh.new()
+			capital_mesh.size = Vector3(0.55, 0.16, 0.42)
+			capital.mesh = capital_mesh
+			capital.position = Vector3(side * 1.05, 2.82, 0.0)
+			capital.material_override = _material(Color("#d5b879"), 0.38, 0.22)
+			arch_root.add_child(capital)
+		var lintel := MeshInstance3D.new()
+		var lintel_mesh := BoxMesh.new()
+		lintel_mesh.size = Vector3(2.5, 0.24, 0.34)
+		lintel.mesh = lintel_mesh
+		lintel.position.y = 2.92
+		lintel.material_override = _material(Color("#d5b879"), 0.34, 0.28)
+		arch_root.add_child(lintel)
+		var crest := MeshInstance3D.new()
+		var crest_mesh := SphereMesh.new()
+		crest_mesh.radius = 0.28
+		crest_mesh.height = 0.38
+		crest.mesh = crest_mesh
+		crest.position = Vector3(0.0, 3.25, 0.0)
+		var crest_material := _material(Color("#e6bd70"), 0.28, 0.22)
+		crest_material.emission_enabled = true
+		crest_material.emission = Color("#e6bd70")
+		crest_material.emission_energy_multiplier = 0.22
+		crest.material_override = crest_material
+		arch_root.add_child(crest)
+	# Small raised stepping stones soften the plaza's straight radial inlays.
+	for stone_index in range(24):
+		var angle := TAU * float(stone_index) / 24.0
+		var stone := MeshInstance3D.new()
+		var stone_mesh := CylinderMesh.new()
+		stone_mesh.top_radius = 0.24
+		stone_mesh.bottom_radius = 0.27
+		stone_mesh.height = 0.09
+		stone.mesh = stone_mesh
+		stone.position = Vector3(cos(angle) * 9.8, 0.14, sin(angle) * 9.8)
+		stone.material_override = _material(Color("#b7c6bd"), 0.7, 0.06)
+		add_child(stone)
+
+
+func _build_outer_garden_composition() -> void:
+	# Sculpted garden edge, low layered beds and curved walkways frame the plaza.
+	for bed_index in range(12):
+		var angle := TAU * float(bed_index) / 12.0
+		var bed_root := Node3D.new()
+		bed_root.name = "GardenBed_%02d" % bed_index
+		bed_root.position = Vector3(cos(angle) * 13.15, 0.0, sin(angle) * 13.15)
+		bed_root.rotation.y = angle
+		add_child(bed_root)
+		var bed := MeshInstance3D.new()
+		var bed_mesh := CylinderMesh.new()
+		bed_mesh.top_radius = 1.25
+		bed_mesh.bottom_radius = 1.38
+		bed_mesh.height = 0.24
+		bed.mesh = bed_mesh
+		bed.position.y = 0.12
+		bed.material_override = _material(Color("#344e4b"), 0.92, 0.0)
+		bed_root.add_child(bed)
+		for bloom_index in range(5):
+			var bloom_angle := TAU * float(bloom_index) / 5.0
+			var bloom := MeshInstance3D.new()
+			var bloom_mesh := SphereMesh.new()
+			bloom_mesh.radius = 0.17
+			bloom_mesh.height = 0.28
+			bloom.mesh = bloom_mesh
+			bloom.position = Vector3(cos(bloom_angle) * 0.72, 0.42, sin(bloom_angle) * 0.72)
+			bloom.material_override = _material(Color("#c9bfa7") if bloom_index % 2 == 0 else Color("#87b9ad"), 0.78, 0.0)
+			bed_root.add_child(bloom)
+	# Outer paving segments and subtle border markers reinforce navigable scale.
+	for tile_index in range(32):
+		var angle := TAU * float(tile_index) / 32.0
+		var tile := MeshInstance3D.new()
+		var tile_mesh := BoxMesh.new()
+		tile_mesh.size = Vector3(1.35, 0.08, 0.34)
+		tile.mesh = tile_mesh
+		tile.position = Vector3(cos(angle) * 15.1, 0.03, sin(angle) * 15.1)
+		tile.rotation.y = -angle
+		tile.material_override = _material(Color("#91a6a4") if tile_index % 2 == 0 else Color("#536d78"), 0.68, 0.08)
+		add_child(tile)
+	for marker_index in range(8):
+		var angle := TAU * float(marker_index) / 8.0 + PI / 8.0
+		var marker := MeshInstance3D.new()
+		var marker_mesh := CylinderMesh.new()
+		marker_mesh.top_radius = 0.16
+		marker_mesh.bottom_radius = 0.24
+		marker_mesh.height = 0.62
+		marker.mesh = marker_mesh
+		marker.position = Vector3(cos(angle) * 14.0, 0.31, sin(angle) * 14.0)
+		marker.material_override = _material(Color("#d5b879"), 0.38, 0.24)
+		add_child(marker)
+
+
+func _build_garden_trees() -> void:
+	# Lightweight layered ornamental trees: silhouettes and leaf volumes improve
+	# the plaza's scale/depth without relying on external assets or heavy shaders.
+	for tree_index in range(10):
+		var angle := TAU * float(tree_index) / 10.0
+		var tree_root := Node3D.new()
+		tree_root.name = "PlazaTree_%02d" % tree_index
+		tree_root.position = Vector3(cos(angle) * 12.35, 0.0, sin(angle) * 12.35)
+		tree_root.rotation.y = angle
+		add_child(tree_root)
+		var trunk := MeshInstance3D.new()
+		var trunk_mesh := CylinderMesh.new()
+		trunk_mesh.top_radius = 0.18
+		trunk_mesh.bottom_radius = 0.28
+		trunk_mesh.height = 2.35
+		trunk.mesh = trunk_mesh
+		trunk.position.y = 1.18
+		trunk.material_override = _material(Color("#71513a"), 0.88, 0.0)
+		tree_root.add_child(trunk)
+		for crown_index in range(3):
+			var crown := MeshInstance3D.new()
+			var crown_mesh := SphereMesh.new()
+			crown_mesh.radius = 1.0 - crown_index * 0.12
+			crown_mesh.height = 1.65 - crown_index * 0.12
+			crown.mesh = crown_mesh
+			crown.position = Vector3(0.0, 2.25 + crown_index * 0.72, 0.0)
+			crown.material_override = _material(Color("#4f896c") if crown_index != 1 else Color("#629a79"), 0.92, 0.0)
+			tree_root.add_child(crown)
+		var accent := MeshInstance3D.new()
+		var accent_mesh := SphereMesh.new()
+		accent_mesh.radius = 0.13
+		accent_mesh.height = 0.18
+		accent.mesh = accent_mesh
+		accent.position = Vector3(0.32, 3.55, 0.16)
+		var accent_material := _material(Color("#d5b879"), 0.4, 0.08)
+		accent_material.emission_enabled = true
+		accent_material.emission = Color("#d5b879")
+		accent_material.emission_energy_multiplier = 0.25
+		accent.material_override = accent_material
+		tree_root.add_child(accent)
+
 
 func _build_camera() -> void:
 	_camera = Camera3D.new()
@@ -152,13 +488,16 @@ func _build_camera() -> void:
 func _update_hub_camera_framing() -> void:
 	if not is_instance_valid(_camera):
 		return
-	# The hub spans several kiosk stations. Portrait Android needs a wider
-	# viewing distance so the hub composition does not crop its outer stations.
+	# Landscape/portrait framing is responsive; orbit values remain user-adjustable.
 	var viewport_size := get_viewport().get_visible_rect().size
 	var is_portrait := viewport_size.x < viewport_size.y
-	_camera.position = Vector3(0.0, 14.0 if is_portrait else 11.5, 25.0 if is_portrait else 19.0)
-	_camera.fov = 64.0 if is_portrait else 58.0
-	_camera.look_at(Vector3(0.0, 1.0, -1.0), Vector3.UP)
+	_camera.fov = 68.0 if is_portrait else 56.0
+	_hub_orbit_distance = clampf(_hub_orbit_distance, 14.0, 30.0)
+	_hub_orbit_pitch = clampf(_hub_orbit_pitch, 0.22, 0.72)
+	var target := Vector3(0.0, 1.1, -1.0)
+	var horizontal := _hub_orbit_distance * cos(_hub_orbit_pitch)
+	_camera.position = target + Vector3(sin(_hub_orbit_yaw) * horizontal, _hub_orbit_distance * sin(_hub_orbit_pitch), cos(_hub_orbit_yaw) * horizontal)
+	_camera.look_at(target, Vector3.UP)
 
 
 func _build_central_hall() -> void:
@@ -171,6 +510,27 @@ func _build_central_hall() -> void:
 	platform.position = Vector3(0, 0.15, -0.8)
 	platform.material_override = _material(Color("#b58a45"), 0.42, 0.18)
 	add_child(platform)
+
+	# Add a stepped dais and fine concentric trim to give the hall a grounded silhouette.
+	for tier_index in range(2):
+		var tier := MeshInstance3D.new()
+		var tier_mesh := CylinderMesh.new()
+		tier_mesh.top_radius = 3.55 + tier_index * 0.22
+		tier_mesh.bottom_radius = 3.72 + tier_index * 0.22
+		tier_mesh.height = 0.16
+		tier.mesh = tier_mesh
+		tier.position = Vector3(0.0, -0.16 - tier_index * 0.12, -0.8)
+		tier.material_override = _material(Color("#526a68") if tier_index == 0 else Color("#d5b879"), 0.48, 0.2)
+		add_child(tier)
+	var hall_trim := MeshInstance3D.new()
+	var hall_trim_mesh := TorusMesh.new()
+	hall_trim_mesh.inner_radius = 2.9
+	hall_trim_mesh.outer_radius = 3.02
+	hall_trim.mesh = hall_trim_mesh
+	hall_trim.rotation_degrees.x = 90.0
+	hall_trim.position = Vector3(0.0, 0.46, -0.8)
+	hall_trim.material_override = _material(Color("#e6bd70"), 0.3, 0.42)
+	add_child(hall_trim)
 
 	var emblem := Label3D.new()
 	emblem.text = "FAMILY\nCOLONY"
@@ -192,6 +552,64 @@ func _build_central_hall() -> void:
 	ring.rotation_degrees.x = 90
 	ring.material_override = _material(Color("#e3bd70"), 0.3, 0.3)
 	add_child(ring)
+
+	# Additional low-cost architectural accents give the central landmark depth
+	# and a clearer premium plaza silhouette without imported asset dependencies.
+	for i in range(12):
+		var angle := TAU * float(i) / 12.0
+		var accent := MeshInstance3D.new()
+		var accent_mesh := BoxMesh.new()
+		accent_mesh.size = Vector3(0.18, 0.12, 1.25)
+		accent.mesh = accent_mesh
+		accent.position = Vector3(cos(angle) * 4.35, 0.18, sin(angle) * 4.35 - 0.8)
+		accent.rotation.y = -angle
+		accent.material_override = _material(Color("#d5b879"), 0.42, 0.24)
+		add_child(accent)
+	var beacon := Node3D.new()
+	beacon.name = "PlazaBeacon"
+	beacon.position = Vector3(0.0, 0.55, -0.8)
+	add_child(beacon)
+	var beacon_core := MeshInstance3D.new()
+	var core_mesh := CylinderMesh.new()
+	core_mesh.top_radius = 0.18
+	core_mesh.bottom_radius = 0.32
+	core_mesh.height = 1.35
+	beacon_core.mesh = core_mesh
+	beacon_core.material_override = _material(Color("#e5c477"), 0.32, 0.38)
+	beacon.add_child(beacon_core)
+	var beacon_cap := MeshInstance3D.new()
+	var cap_mesh := SphereMesh.new()
+	cap_mesh.radius = 0.36
+	cap_mesh.height = 0.48
+	beacon_cap.mesh = cap_mesh
+	beacon_cap.position.y = 0.84
+	var cap_mat := _material(Color("#f3d99a"), 0.24, 0.18)
+	cap_mat.emission_enabled = true
+	cap_mat.emission = Color("#e6bd70")
+	cap_mat.emission_energy_multiplier = 0.65
+	beacon_cap.material_override = cap_mat
+	beacon.add_child(beacon_cap)
+
+	# Layered halo rings and light volume make the central beacon read as a landmark.
+	for ring_index in range(3):
+		var halo := MeshInstance3D.new()
+		halo.name = "BeaconHalo_%d" % ring_index
+		var halo_mesh := TorusMesh.new()
+		halo_mesh.inner_radius = 0.62 + ring_index * 0.22
+		halo_mesh.outer_radius = 0.68 + ring_index * 0.22
+		halo.mesh = halo_mesh
+		halo.position.y = 0.28 + ring_index * 0.36
+		halo.rotation_degrees.x = 90.0
+		halo.material_override = _material(Color("#e6bd70") if ring_index == 0 else Color("#8bc8e4"), 0.22, 0.48)
+		beacon.add_child(halo)
+	var beacon_light := OmniLight3D.new()
+	beacon_light.name = "BeaconAccentLight"
+	beacon_light.position.y = 1.15
+	beacon_light.light_color = Color("#e6bd70")
+	beacon_light.light_energy = 0.65
+	beacon_light.omni_range = 5.5
+	beacon_light.shadow_enabled = false
+	beacon.add_child(beacon_light)
 
 func _build_developer_bee() -> void:
 	# Five taps reveal the developer login hologram; this is not authentication.
@@ -427,18 +845,32 @@ func _create_kiosk(item: Dictionary) -> void:
 
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(3.1, 2.5, 0.65)
+	# Broad, forgiving interaction volume for touch-first navigation; it spans
+	# the doorway frame without forcing precise taps on a phone screen.
+	shape.size = Vector3(3.55, 2.85, 1.05)
 	collision.shape = shape
-	collision.position.y = 0.95
+	collision.position = Vector3(0.0, 1.15, 0.0)
 	root.add_child(collision)
 
+	# Portal-style station frame: recognizable spatial doorway instead of flat UI slab.
 	var body := MeshInstance3D.new()
 	var body_mesh := BoxMesh.new()
-	body_mesh.size = Vector3(3.1, 2.5, 0.48)
+	body_mesh.size = Vector3(2.65, 2.05, 0.24)
 	body.mesh = body_mesh
-	body.position.y = 0.95
-	body.material_override = _material(item.color, 0.48, 0.08)
+	body.position.y = 1.18
+	body.material_override = _material(item.color.darkened(0.12), 0.42, 0.18)
 	root.add_child(body)
+	var portal_ring := MeshInstance3D.new()
+	var portal_mesh := TorusMesh.new()
+	portal_mesh.inner_radius = 1.18
+	portal_mesh.outer_radius = 1.34
+	portal_ring.name = "StationPortalRing"
+	portal_ring.mesh = portal_mesh
+	portal_ring.position = Vector3(0, 1.18, -0.18)
+	portal_ring.rotation_degrees.x = 90.0
+	portal_ring.scale = Vector3(1.12, 1.12, 1.12)
+	portal_ring.material_override = _material(item.color.lightened(0.42), 0.28, 0.42)
+	root.add_child(portal_ring)
 
 	var trim := MeshInstance3D.new()
 	var trim_mesh := BoxMesh.new()
@@ -471,6 +903,7 @@ func _create_kiosk(item: Dictionary) -> void:
 	root.add_child(pedestal_rim)
 
 	var station_light := OmniLight3D.new()
+	station_light.name = "StationAccentLight"
 	station_light.position = Vector3(0, 2.85, 0.0)
 	station_light.light_color = item.color.lightened(0.35)
 	station_light.light_energy = 0.48
@@ -506,6 +939,7 @@ func _create_kiosk(item: Dictionary) -> void:
 	marker_mesh.height = 0.36
 	marker.mesh = marker_mesh
 	marker.position = Vector3(0, 1.88, -0.31)
+	marker.scale = Vector3(1.18, 1.18, 1.18)
 	var marker_material := _material(Color("#f2d38b"), 0.22, 0.45)
 	marker_material.emission_enabled = true
 	marker_material.emission = Color("#f2d38b")
@@ -518,6 +952,7 @@ func _create_kiosk(item: Dictionary) -> void:
 	var badge_ring_mesh := TorusMesh.new()
 	badge_ring_mesh.inner_radius = 0.24
 	badge_ring_mesh.outer_radius = 0.31
+	badge_ring.name = "StationBadgeRing"
 	badge_ring.mesh = badge_ring_mesh
 	badge_ring.position = Vector3(0, 1.88, -0.34)
 	badge_ring.rotation_degrees.x = 90.0
@@ -538,6 +973,46 @@ func _create_kiosk(item: Dictionary) -> void:
 		side_trim.position = Vector3(side_x, 0.95, -0.255)
 		side_trim.material_override = _material(Color("#d6b16c"), 0.32, 0.42)
 		root.add_child(side_trim)
+
+	# New visual pass: sculpted station shoulders, inset jewel and floor approach.
+	for side in [-1.0, 1.0]:
+		var shoulder := MeshInstance3D.new()
+		var shoulder_mesh := BoxMesh.new()
+		shoulder_mesh.size = Vector3(0.42, 2.18, 0.38)
+		shoulder.mesh = shoulder_mesh
+		shoulder.position = Vector3(side * 1.58, 1.12, 0.02)
+		shoulder.material_override = _material(item.color.darkened(0.32), 0.48, 0.24)
+		root.add_child(shoulder)
+		var shoulder_cap := MeshInstance3D.new()
+		var cap_mesh := BoxMesh.new()
+		cap_mesh.size = Vector3(0.5, 0.12, 0.46)
+		shoulder_cap.mesh = cap_mesh
+		shoulder_cap.position = Vector3(side * 1.58, 2.25, 0.02)
+		shoulder_cap.material_override = _material(Color("#d5b879"), 0.32, 0.34)
+		root.add_child(shoulder_cap)
+	# Floating jewel-like station crest, emissive but inexpensive on mobile.
+	var crest := MeshInstance3D.new()
+	var crest_mesh := SphereMesh.new()
+	crest_mesh.radius = 0.23
+	crest_mesh.height = 0.42
+	crest.mesh = crest_mesh
+	crest.position = Vector3(0, 2.52, -0.06)
+	crest.scale = Vector3(1.0, 1.35, 0.72)
+	var crest_mat := _material(item.color.lightened(0.48), 0.22, 0.36)
+	crest_mat.emission_enabled = true
+	crest_mat.emission = item.color.lightened(0.3)
+	crest_mat.emission_energy_multiplier = 0.45
+	crest.material_override = crest_mat
+	root.add_child(crest)
+	# Three shallow approach slabs visibly anchor each kiosk into the plaza.
+	for step_index in range(3):
+		var step := MeshInstance3D.new()
+		var step_mesh := BoxMesh.new()
+		step_mesh.size = Vector3(2.5 - step_index * 0.18, 0.12, 0.46)
+		step.mesh = step_mesh
+		step.position = Vector3(0, -0.31 - step_index * 0.08, 0.55 + step_index * 0.34)
+		step.material_override = _material(Color("#415b68"), 0.58, 0.16)
+		root.add_child(step)
 
 	add_child(root)
 
@@ -592,10 +1067,49 @@ func _refresh_member_board() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventScreenTouch and event.pressed:
-		_pick_destination(event.position)
-	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_pick_destination(event.position)
+	# Resolve on release to avoid activating stations during swipe/drag gestures.
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			_touch_start = event.position
+			_tap_candidate = true
+		else:
+			if _tap_candidate and _touch_start.distance_to(event.position) <= 24.0:
+				_pick_destination(event.position)
+			_tap_candidate = false
+	elif event is InputEventScreenDrag:
+		if _tap_candidate and _touch_start.distance_to(event.position) > 24.0:
+			_tap_candidate = false
+		if _touch_candidate_for_orbit(event):
+			_hub_drag_active = true
+			_hub_orbit_yaw -= event.relative.x * 0.004
+			_hub_orbit_pitch = clampf(_hub_orbit_pitch + event.relative.y * 0.003, 0.22, 0.72)
+			_update_hub_camera_framing()
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_touch_start = event.position
+			_tap_candidate = true
+		else:
+			if _tap_candidate and _touch_start.distance_to(event.position) <= 8.0:
+				_pick_destination(event.position)
+			_tap_candidate = false
+	elif event is InputEventMouseMotion:
+		if _tap_candidate and _touch_start.distance_to(event.position) > 8.0:
+			_tap_candidate = false
+		if event.button_mask & MOUSE_BUTTON_MASK_LEFT:
+			_hub_orbit_yaw -= event.relative.x * 0.004
+			_hub_orbit_pitch = clampf(_hub_orbit_pitch + event.relative.y * 0.003, 0.22, 0.72)
+			_update_hub_camera_framing()
+	elif event is InputEventMouseButton and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN] and event.pressed:
+		_hub_orbit_distance = clampf(_hub_orbit_distance + (-1.0 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0), 14.0, 30.0)
+		_update_hub_camera_framing()
+	elif event is InputEventMagnifyGesture:
+		_hub_orbit_distance = clampf(_hub_orbit_distance / maxf(event.factor, 0.1), 14.0, 30.0)
+		_update_hub_camera_framing()
+
+
+
+func _touch_candidate_for_orbit(_event: InputEventScreenDrag) -> bool:
+	return not _tap_candidate
 
 
 func _pick_destination(screen_position: Vector2) -> void:
@@ -685,6 +1199,10 @@ func _open_destination_panel(destination_id: String) -> void:
 		_room_snapshot_root.name = "RoomList3D"
 		_room_snapshot_root.position = Vector3(1.45, -1.28, -0.25)
 		_destination_panel.add_child(_room_snapshot_root)
+		# Restore the most recent network snapshot immediately when the panel opens;
+		# don't wait for another broadcast to repopulate the visible room list.
+		_refresh_room_status_label()
+		_render_room_snapshot_page()
 		_create_hub_panel_button("SEBELUM", Vector3(0.72, -2.18, -0.24), "room:page:prev", Vector3(1.12, 0.34, 0.16), Color("#315b70"))
 		_create_hub_panel_button("LANJUT", Vector3(2.18, -2.18, -0.24), "room:page:next", Vector3(1.12, 0.34, 0.16), Color("#397b70"))
 		_create_hub_panel_button("KEMBALI KE HUB", Vector3(0, -2.62, -0.24), "back", Vector3(2.6, 0.36, 0.16), Color("#315b70"))
@@ -1174,3 +1692,163 @@ func thirty_two() -> int:
 
 func twenty() -> int:
 	return 20
+
+func _build_plaza_path_composition() -> void:
+	# Cohesive approach paths: curved-feeling layered stone strips, edge borders
+	# and small planted pockets, composed to read as a connected plaza.
+	for path_index in range(5):
+		var target: Vector3 = HUB_ITEMS[path_index].position
+		var start := Vector3(0.0, 0.0, 2.8)
+		var direction := Vector3(target.x, 0.0, target.z + 1.0)
+		if direction.length() < 0.1:
+			continue
+		direction = direction.normalized()
+		var perpendicular := Vector3(-direction.z, 0.0, direction.x)
+		var center := Vector3(direction.x * 5.8, 0.0, direction.z * 5.8)
+		for side in [-1.0, 1.0]:
+			var curb := MeshInstance3D.new()
+			var curb_mesh := BoxMesh.new()
+			curb_mesh.size = Vector3(0.18, 0.12, 4.3)
+			curb.mesh = curb_mesh
+			curb.position = center + perpendicular * side * 0.95 + Vector3(0.0, 0.09, 0.0)
+			curb.rotation.y = atan2(direction.x, direction.z)
+			curb.material_override = _material(Color("#9aaba8"), 0.58, 0.12)
+			add_child(curb)
+		for slab_index in range(4):
+			var slab := MeshInstance3D.new()
+			var slab_mesh := BoxMesh.new()
+			slab_mesh.size = Vector3(1.35, 0.1, 0.88)
+			slab.mesh = slab_mesh
+			slab.position = center + direction * (float(slab_index) * 1.0 - 1.5) + Vector3(0.0, 0.11, 0.0)
+			slab.rotation.y = atan2(direction.x, direction.z)
+			slab.material_override = _material(Color("#718783") if slab_index % 2 == 0 else Color("#849a95"), 0.72, 0.06)
+			add_child(slab)
+		for side in [-1.0, 1.0]:
+			var pocket := Node3D.new()
+			pocket.position = center + perpendicular * side * 1.65
+			add_child(pocket)
+			var bed := MeshInstance3D.new()
+			var bed_mesh := CylinderMesh.new()
+			bed_mesh.top_radius = 0.42
+			bed_mesh.bottom_radius = 0.52
+			bed_mesh.height = 0.2
+			bed.mesh = bed_mesh
+			bed.position.y = 0.1
+			bed.material_override = _material(Color("#405a55"), 0.88, 0.0)
+			pocket.add_child(bed)
+			for bloom_index in range(3):
+				var bloom := MeshInstance3D.new()
+				var bloom_mesh := SphereMesh.new()
+				bloom_mesh.radius = 0.18
+				bloom_mesh.height = 0.3
+				bloom.mesh = bloom_mesh
+				bloom.position = Vector3((float(bloom_index) - 1.0) * 0.22, 0.3, 0.06)
+				bloom.material_override = _material(Color("#c9bfa7") if bloom_index % 2 == 0 else Color("#87b9ad"), 0.76, 0.0)
+				pocket.add_child(bloom)
+
+
+func _build_hub_focal_lighting() -> void:
+	# Mobile-friendly focal lighting to help the plaza landmarks read as one scene.
+	var beacon_fill := OmniLight3D.new()
+	beacon_fill.name = "PlazaBeaconFill"
+	beacon_fill.position = Vector3(0.0, 4.5, -0.8)
+	beacon_fill.light_color = Color("#b8d9e7")
+	beacon_fill.light_energy = 0.6
+	beacon_fill.omni_range = 10.0
+	beacon_fill.shadow_enabled = false
+	add_child(beacon_fill)
+	for index in range(5):
+		var angle := TAU * float(index) / 5.0
+		var light := OmniLight3D.new()
+		light.name = "LandmarkAccent_%02d" % index
+		light.position = Vector3(cos(angle) * 8.0, 2.8, sin(angle) * 8.0)
+		light.light_color = Color("#d5b879") if index % 2 == 0 else Color("#9bcbd6")
+		light.light_energy = 0.34
+		light.omni_range = 5.2
+		light.shadow_enabled = false
+		add_child(light)
+
+func _build_distant_colony_silhouette() -> void:
+	# Low-poly distant skyline framing the hub; silhouettes create depth without
+	# heavy assets or collision bodies.
+	for cluster_index in range(9):
+		var angle := TAU * float(cluster_index) / 9.0
+		var cluster := Node3D.new()
+		cluster.name = "ColonySkyline_%02d" % cluster_index
+		cluster.position = Vector3(cos(angle) * 19.0, 0.0, sin(angle) * 19.0)
+		cluster.rotation.y = angle
+		add_child(cluster)
+		for tower_index in range(2):
+			var tower := MeshInstance3D.new()
+			var tower_mesh := CylinderMesh.new()
+			var height := 3.6 + float((cluster_index + tower_index * 3) % 4) * 1.15
+			tower_mesh.top_radius = 0.22
+			tower_mesh.bottom_radius = 0.62
+			tower_mesh.height = height
+			tower.mesh = tower_mesh
+			tower.position = Vector3((tower_index - 0.5) * 1.6, height * 0.5 - 0.12, -1.0)
+			tower.material_override = _material(Color("#344b60") if cluster_index % 2 == 0 else Color("#405b60"), 0.82, 0.08)
+			cluster.add_child(tower)
+			var cap := MeshInstance3D.new()
+			var cap_mesh := SphereMesh.new()
+			cap_mesh.radius = 0.42
+			cap_mesh.height = 0.62
+			cap.mesh = cap_mesh
+			cap.position = tower.position + Vector3(0.0, height * 0.5 + 0.08, 0.0)
+			cap.material_override = _material(Color("#526d78"), 0.62, 0.18)
+			cluster.add_child(cap)
+
+func _build_plaza_wayfinding() -> void:
+	# Radial direction markers and illuminated inset plates guide members between
+	# the central hall and feature stations without cluttering the touch surfaces.
+	for index in range(5):
+		var item: Dictionary = HUB_ITEMS[index]
+		var direction := Vector2(float(item.position.x), float(item.position.z)).normalized()
+		var marker_root := Node3D.new()
+		marker_root.name = "Wayfinding_%s" % str(item.id)
+		marker_root.position = Vector3(direction.x * 4.15, 0.0, direction.y * 4.15)
+		marker_root.rotation.y = atan2(direction.x, direction.y)
+		add_child(marker_root)
+		var plate := MeshInstance3D.new()
+		var plate_mesh := BoxMesh.new()
+		plate_mesh.size = Vector3(0.72, 0.045, 1.25)
+		plate.mesh = plate_mesh
+		plate.position.y = 0.19
+		plate.material_override = _material(Color("#263b49"), 0.42, 0.3)
+		marker_root.add_child(plate)
+		for stripe_index in range(3):
+			var stripe := MeshInstance3D.new()
+			var stripe_mesh := BoxMesh.new()
+			stripe_mesh.size = Vector3(0.12, 0.025, 0.26)
+			stripe.mesh = stripe_mesh
+			stripe.position = Vector3(0.0, 0.23, -0.34 + float(stripe_index) * 0.32)
+			var stripe_material := _material(item.color.lightened(0.28), 0.25, 0.35)
+			stripe_material.emission_enabled = true
+			stripe_material.emission = item.color.lightened(0.2)
+			stripe_material.emission_energy_multiplier = 0.3
+			stripe.material_override = stripe_material
+			marker_root.add_child(stripe)
+
+
+func _build_feature_approach_lanes() -> void:
+	# Subtle segmented inlays connect the central landmark to each feature kiosk.
+	# They are static mesh accents (no per-frame processing) to keep mobile cost low.
+	for item in HUB_ITEMS:
+		var direction := Vector2(float(item.position.x), float(item.position.z) - -0.8).normalized()
+		var lane_root := Node3D.new()
+		lane_root.name = "ApproachLane_%s" % str(item.id)
+		lane_root.position = Vector3(0.0, 0.0, -0.8)
+		lane_root.rotation.y = atan2(direction.x, direction.y)
+		add_child(lane_root)
+		for segment_index in range(4):
+			var segment := MeshInstance3D.new()
+			var segment_mesh := BoxMesh.new()
+			segment_mesh.size = Vector3(0.22, 0.035, 0.62)
+			segment.mesh = segment_mesh
+			segment.position = Vector3(0.0, 0.17, -4.25 - float(segment_index) * 1.0)
+			var segment_material := _material(item.color.lightened(0.18), 0.42, 0.22)
+			segment_material.emission_enabled = true
+			segment_material.emission = item.color.darkened(0.12)
+			segment_material.emission_energy_multiplier = 0.16
+			segment.material_override = segment_material
+			lane_root.add_child(segment)

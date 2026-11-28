@@ -172,8 +172,133 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:360px){.game-options{grid-template-columns:1fr}.game-meta{gap:6px}.game-meta span{font-size:.75rem}}
 @media(hover:hover) and (pointer:fine){.module-card:hover{transform:translateY(-3px);border-color:#e8bd6288;box-shadow:0 14px 32px #0005}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* Spatial visual enhancement — preserve auth, navigation, and existing page content */
+#landing,#workspace{perspective:1200px;transform-style:preserve-3d}
+#landing>.hero{transform-style:preserve-3d}
+#landing .hero>div:first-child{transform:translateZ(20px);border:1px solid rgba(151,205,234,.16);border-radius:24px;padding:clamp(16px,3vw,28px);box-shadow:0 22px 42px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.09)}
+#landing .hero-art{transform-style:preserve-3d;perspective:1000px}
+#landing .hive{transform:translateZ(28px) rotateY(-8deg);transition:transform .6s ease;filter:drop-shadow(0 24px 32px rgba(0,0,0,.35))}
+#landing .login-panel{transform:translateZ(24px);border:1px solid rgba(205,228,246,.24);box-shadow:0 24px 55px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.12)}
+#landing .login-panel input{box-shadow:inset 0 3px 12px rgba(0,0,0,.32);border-color:rgba(126,174,206,.3)}
+#workspace .app-layout{transform-style:preserve-3d;perspective:1500px}
+#workspace .sidebar{transform:translateZ(12px);box-shadow:12px 20px 40px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.08)}
+#workspace .content{transform:translateZ(6px)}
+#workspace .content .module-card,#workspace .content .stat,#workspace .content .panel{border-color:rgba(157,204,232,.22);box-shadow:0 14px 28px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.07);transition:transform .25s ease,box-shadow .25s ease}
+@media(max-width:850px){#landing .hero>div:first-child{transform:translateZ(8px)}#landing .hive{transform:translateZ(12px)}#landing .login-panel{transform:translateZ(10px)}#workspace .sidebar,#workspace .content{transform:none}}
+@media(prefers-reduced-motion:reduce){#landing .hive,#workspace .content .module-card{transition:none!important;transform:none!important}}
+
+
+/* Login orb: canvas-rendered perspective wireframe */
+#landing .hero-art{position:relative;min-height:260px;overflow:hidden}
+#fcLoginOrb{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+#landing .hero-art .hive{position:relative;z-index:2;pointer-events:none}
+@media(max-width:600px){#landing .hero-art{min-height:210px}}
 </style>
 <script>window.FC_SUPABASE_URL="https://irwtnqekrwhgompulach.supabase.co";</script>
+
+<style id="fc-login-visual-v3">
+/* Login visual upgrade pass: layered spatial composition, without touching auth handlers */
+#landing{position:relative;isolation:isolate;overflow:visible;background:radial-gradient(ellipse at 75% 20%,rgba(77,132,178,.13),transparent 42%)}
+#landing .hero{position:relative;gap:clamp(18px,4vw,48px);padding:clamp(18px,4vw,40px) 0 30px}
+#landing .hero>div:first-child{background:linear-gradient(145deg,rgba(21,46,72,.72),rgba(8,19,34,.38));border:1px solid rgba(173,214,241,.17);box-shadow:0 30px 65px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.13);border-radius:28px;padding:clamp(20px,4vw,38px);backdrop-filter:blur(14px)}
+#landing .hero h1{ text-shadow:0 5px 28px rgba(0,0,0,.4); }
+#landing .hero-art{min-height:clamp(280px,38vw,440px);transform-style:preserve-3d;filter:drop-shadow(0 24px 40px rgba(0,0,0,.22))}
+#landing .hero-art:before,#landing .hero-art:after{content:"";position:absolute;left:50%;top:50%;width:min(86%,340px);aspect-ratio:1;border:1px solid rgba(226,190,111,.25);border-radius:50%;transform:translate(-50%,-50%) rotateX(68deg);box-shadow:0 0 28px rgba(232,189,98,.09);pointer-events:none}
+#landing .hero-art:after{width:min(100%,390px);border-style:dashed;opacity:.5;transform:translate(-50%,-50%) rotateX(68deg) rotateZ(28deg)}
+#landing .hive{width:min(300px,72vw);filter:drop-shadow(0 32px 34px rgba(0,0,0,.44));transform:translateZ(48px) rotateY(-10deg);transition:transform .55s cubic-bezier(.2,.7,.2,1),filter .5s}
+#landing .hive span{filter:drop-shadow(0 16px 16px rgba(0,0,0,.55));transform:translateZ(24px)}
+#landing .login-grid{position:relative;max-width:820px;perspective:1300px;gap:20px}
+#landing .login-panel{position:relative;overflow:hidden;background:linear-gradient(150deg,rgba(28,49,74,.97),rgba(7,18,31,.97));border:1px solid rgba(203,224,244,.23);border-radius:24px;box-shadow:0 32px 72px rgba(0,0,0,.44),inset 0 1px rgba(255,255,255,.12),inset 0 -18px 38px rgba(2,8,15,.2);transform:translateZ(22px);transition:border-color .25s,box-shadow .25s}
+#landing .login-panel:before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,transparent,#e8bd62,#d5ecff,transparent);opacity:.65;pointer-events:none}
+#landing .login-panel:after{content:"";position:absolute;top:-100px;right:-90px;width:230px;height:230px;border-radius:50%;background:radial-gradient(circle,rgba(112,176,220,.12),transparent 68%);pointer-events:none}
+#landing .login-panel h2{font-size:clamp(1.3rem,4vw,1.65rem);letter-spacing:-.02em;text-shadow:0 3px 15px #0006}
+#landing .login-panel .field input{background:linear-gradient(180deg,#071321,#0c1b2d);border:1px solid rgba(153,191,221,.28);border-radius:13px;box-shadow:inset 0 5px 15px rgba(0,0,0,.35),0 1px rgba(255,255,255,.05);padding:14px 15px}
+#landing .login-panel .btn.primary{background:linear-gradient(145deg,#f8e3a5,#e4b65c 48%,#ad7429);box-shadow:0 12px 26px rgba(184,126,42,.25),inset 0 1px rgba(255,255,255,.5);text-shadow:0 1px rgba(255,255,255,.25);border-radius:14px}
+#landing .login-panel .btn.primary:active{transform:translateY(1px) scale(.99);box-shadow:0 5px 12px rgba(184,126,42,.2)}
+@media(min-width:851px){#landing .hero-art:hover .hive{transform:translateZ(58px) rotateY(7deg) rotateX(3deg)}#landing .login-panel:hover{border-color:rgba(229,207,148,.38);box-shadow:0 36px 80px rgba(0,0,0,.48),inset 0 1px rgba(255,255,255,.14)}}
+@media(max-width:850px){#landing .hero{grid-template-columns:1fr;padding-top:14px}#landing .hero-art{min-height:250px;order:0}#landing .hero>div:first-child{order:1}#landing .login-grid{max-width:100%}#landing .login-panel{transform:translateZ(10px)}}
+@media(prefers-reduced-motion:reduce){#landing .hive,#landing .login-panel{transition:none!important;transform:none!important}}
+</style>
+
+<style id="fc-login-visual-v4">
+/* Pass 2: spatial scene framing + glass-card hierarchy */
+#landing .hero-art{isolation:isolate}
+#landing .hero-art #fcLoginOrb{mix-blend-mode:screen;opacity:.95}
+#landing .hero-art .hive{background:radial-gradient(circle at 34% 28%,#f8e8b7 0 2%,#d9a34e 4% 8%,#354b61 9% 25%,#152c45 27% 48%,#0b1727 49% 53%,transparent 54%);border:1px solid rgba(207,232,250,.2);box-shadow:inset -25px -30px 65px rgba(2,8,20,.75),inset 12px 12px 28px rgba(255,244,202,.14),0 0 45px rgba(106,191,222,.14),0 0 90px rgba(232,189,98,.08)}
+#landing .hero-art .hive:before{inset:2%;border:1px solid rgba(226,190,111,.32);box-shadow:0 0 22px rgba(226,190,111,.09),inset 0 0 20px rgba(226,190,111,.06)}
+#landing .hero-art .hive:after{inset:-12%;border-color:rgba(145,205,232,.18);border-width:1px}
+#landing .hero-art .hive span{font-size:clamp(74px,14vw,108px);text-shadow:0 2px 4px #000;filter:drop-shadow(0 0 14px rgba(248,220,138,.25)) drop-shadow(0 20px 18px rgba(0,0,0,.6)}
+#landing .hero-art:before{z-index:0;border-color:rgba(137,203,235,.2);box-shadow:0 0 35px rgba(100,183,226,.08)}
+#landing .hero-art:after{z-index:0}
+#landing .hero>div:first-child .toolbar{gap:10px}
+#landing .hero>div:first-child .status{box-shadow:inset 0 1px rgba(255,255,255,.08),0 8px 20px #0003}
+#landing .login-grid{padding:0 0 12px}
+#landing .login-panel{backdrop-filter:blur(22px);background:linear-gradient(155deg,rgba(32,53,78,.97),rgba(8,19,33,.98) 72%)}
+#landing .login-panel .field label{letter-spacing:.025em}
+#landing .login-panel .field input{min-height:49px;color:#f4f8ff}
+#landing .login-panel .field input::placeholder{color:#8193a8}
+#landing .login-panel .btn.primary{min-height:48px;letter-spacing:.045em}
+@media(max-width:850px){#landing .hero-art{min-height:260px}#landing .hero-art .hive{width:min(260px,67vw)}#landing .hero>div:first-child{padding:22px}}
+@media(max-width:390px){#landing .hero-art{min-height:225px}#landing .hero>div:first-child{padding:17px}#landing .login-panel{padding:18px}}
+</style>
+<style id="fc-login-visual-v5">
+/* Pass 4: layered spatial stage and perceptual depth polish. Auth structure untouched. */
+#landing .hero-art{position:relative;isolation:isolate;perspective:1100px;transform-style:preserve-3d}
+#landing .hero-art #fcLoginOrb{position:relative;z-index:2;transform:translateZ(24px);filter:drop-shadow(0 24px 32px rgba(8,20,48,.32))}
+#landing .hero-art:before{content:"";position:absolute;inset:8% 10%;border-radius:50%;z-index:0;background:radial-gradient(ellipse at 35% 30%,rgba(137,231,255,.18),transparent 55%),radial-gradient(ellipse at 70% 80%,rgba(103,123,245,.13),transparent 62%);filter:blur(24px);animation:fcLoginAtmosphere 7s ease-in-out infinite alternate}
+#landing .hero-art:after{content:"";position:absolute;left:12%;right:12%;bottom:3%;height:16%;border-radius:50%;z-index:1;background:radial-gradient(ellipse,rgba(68,154,208,.20),transparent 68%);filter:blur(14px);transform:translateZ(-20px)}
+#landing .login-panel{position:relative;transform:translateZ(16px);backdrop-filter:blur(22px) saturate(1.22);-webkit-backdrop-filter:blur(22px) saturate(1.22);box-shadow:0 24px 65px rgba(3,12,30,.30),inset 0 1px 0 rgba(255,255,255,.14)}
+#landing .login-panel input{transition:border-color .2s,box-shadow .2s,background .2s}
+#landing .login-panel input:focus{box-shadow:0 0 0 3px rgba(108,207,239,.13),0 8px 24px rgba(9,32,58,.15);border-color:rgba(112,213,241,.65)}
+#landing .login-panel button{transition:transform .18s,filter .18s,box-shadow .18s}
+#landing .login-panel button:active{transform:translateY(1px) scale(.985);filter:brightness(1.06)}
+@keyframes fcLoginAtmosphere{from{opacity:.55;transform:scale(.94) translateZ(-12px)}to{opacity:1;transform:scale(1.06) translateZ(-12px)}}
+@media(max-width:600px){#landing .hero-art{perspective:800px}#landing .hero-art #fcLoginOrb{transform:translateZ(8px);filter:drop-shadow(0 14px 20px rgba(8,20,48,.26))}#landing .login-panel{transform:none;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}}
+@media(prefers-reduced-motion:reduce){#landing .hero-art:before{animation:none!important}#landing .login-panel,#landing .login-panel button,#landing .login-panel input{transition:none!important}}
+</style>
+<style id="fc-login-visual-v6">
+/* Pass 6: scene composition refinement, contrast, and accessible motion handling */
+#landing .hero-art{overflow:visible}
+#landing .hero-art #fcLoginOrb{max-width:100%;height:auto}
+#landing .login-panel{border:1px solid rgba(164,221,245,.20);background:linear-gradient(145deg,rgba(26,48,76,.78),rgba(9,20,39,.82));}
+#landing .login-panel:before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(125deg,rgba(255,255,255,.075),transparent 38%,rgba(125,200,245,.035));}
+#landing .login-panel>*{position:relative}
+#landing .hero-art #fcLoginOrb{filter:drop-shadow(0 0 14px rgba(87,202,242,.12)) drop-shadow(0 20px 28px rgba(4,13,32,.36))}
+#landing .login-panel button:not(:disabled):hover{filter:brightness(1.08);box-shadow:0 8px 24px rgba(88,183,229,.18)}
+@media(max-width:600px){#landing .login-panel{margin-inline:auto;width:min(100%,480px);box-shadow:0 16px 38px rgba(2,8,24,.28)}#landing .hero-art #fcLoginOrb{max-width:min(100%,340px)}}
+@media(prefers-reduced-motion:reduce){#landing .hero-art,#landing .hero-art #fcLoginOrb,#landing .login-panel{transform:none!important;animation:none!important;transition:none!important}}
+</style>
+<style id="fc-login-visual-v7">
+/* Pass 7: keyboard focus, form clarity, touch-safe feedback */
+#landing .login-panel .field{position:relative}
+#landing .login-panel .field label{display:block;margin-bottom:8px;letter-spacing:.025em}
+#landing .login-panel input, #landing .login-panel select{width:100%;min-height:46px}
+#landing .login-panel input:focus-visible{outline:2px solid rgba(123,220,247,.75);outline-offset:2px}
+#landing .login-panel button:focus-visible{outline:2px solid rgba(239,210,139,.85);outline-offset:3px}
+#landing .login-panel button{min-height:44px}
+#landing .login-panel .notice{border-radius:14px;line-height:1.55}
+#landing .login-grid{align-items:stretch}
+#landing .login-panel{height:100%;display:flex;flex-direction:column}
+#landing .login-panel .field,#landing .login-panel .notice{flex-shrink:0}
+@media(max-width:600px){#landing .login-grid{gap:14px}#landing .login-panel{height:auto;padding:clamp(16px,4vw,22px)}#landing .login-panel input{font-size:16px}}
+@media(prefers-reduced-motion:reduce){#landing .login-panel input,#landing .login-panel button{transition:none!important}}
+</style>
+<style id="fc-login-visual-v8">
+/* Pass 8: final composition balance and visual hierarchy */
+#landing .hero>div:first-child{position:relative;z-index:2}
+#landing .hero-art .hive{position:relative;z-index:3;filter:drop-shadow(0 8px 22px rgba(246,202,107,.24));transform:translateZ(32px)}
+#landing .hero-art .hive span{display:inline-block;animation:fcBeeFloat 4.8s ease-in-out infinite}
+#landing .hero .eyebrow,#landing .login-grid .eyebrow{letter-spacing:.16em;font-weight:750;text-shadow:0 1px 10px rgba(100,190,230,.12)}
+#landing .hero h1{letter-spacing:-.035em;text-wrap:balance}
+#landing .hero p{max-width:58ch;line-height:1.75}
+#landing .login-grid{position:relative;z-index:2}
+#landing .login-panel h2{letter-spacing:-.02em}
+#landing .toolbar .status{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+@keyframes fcBeeFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-7px) rotate(2deg)}}
+@media(max-width:600px){#landing .hero h1{font-size:clamp(2rem,9vw,3.2rem);line-height:1.08}#landing .hero p{line-height:1.65}#landing .hero-art .hive span{animation-duration:6s}}
+@media(prefers-reduced-motion:reduce){#landing .hero-art .hive span{animation:none!important}}
+</style>
 </head>
 <body>
 <div id="cdlStudioIntro" role="dialog" aria-label="CDL Project Studio">
@@ -188,7 +313,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div></header>
 <main class="shell">
 <section id="landing">
-  <div class="hero"><div><div class="eyebrow">A DIGITAL KINGDOM • EST. BY COMMUNITY</div><h1>One Colony.<br><span>One Kingdom.</span></h1><p>Selamat datang di dunia Family Colony — Bee Kingdom. Ruang digital untuk mengenal anggota, membangun kebersamaan, menikmati hiburan, dan menjaga kehidupan koloni.</p><div class="toolbar"><span class="status ok">● ANDROID APP • SERVER AUTH</span><span class="status">♢ Premium Royal Experience</span></div></div><div class="hero-art"><div class="hive"><span>🐝</span></div></div></div>
+  <div class="hero"><div><div class="eyebrow">A DIGITAL KINGDOM • EST. BY COMMUNITY</div><h1>One Colony.<br><span>One Kingdom.</span></h1><p>Selamat datang di dunia Family Colony — Bee Kingdom. Ruang digital untuk mengenal anggota, membangun kebersamaan, menikmati hiburan, dan menjaga kehidupan koloni.</p><div class="toolbar"><span class="status ok">● ANDROID APP • SERVER AUTH</span><span class="status">♢ Premium Royal Experience</span></div></div><div class="hero-art"><canvas id="fcLoginOrb" aria-hidden="true"></canvas><div class="hive"><span>🐝</span></div></div></div>
   <div class="login-grid">
     <section class="panel login-panel"><div class="eyebrow">COLONY ACCESS</div><h2>Member Login</h2><p class="muted tiny">Masuk menggunakan username Family Colony dan password akunmu. Email pribadi tidak diperlukan.</p>
       <div class="field"><label for="memberName">Username</label><input id="memberName" maxlength="32" autocomplete="username" placeholder="Contoh: dhita atau @dhita" oninput="openPrivateDeveloperPanelIfOwner(this.value)" onchange="openPrivateDeveloperPanelIfOwner(this.value)"></div>
@@ -641,8 +766,8 @@ function enterApp(){
  renderPage();
  requestPortrait();
  syncDeveloperTestControls();
- // Authenticated non-guest members are routed into the native Godot 3D hub after session setup.
- if(session && session.role!=="Guest" && session.accessToken) launchGodotWorld();
+ // Login always lands on the dashboard. The 3D world is entered only through its explicit feature action.
+ // Do not auto-launch Godot here; preserve the overview page as the post-login destination.
 }
 function requestPortrait(){
   // Android Activity is locked to portrait; this class keeps the in-app layout vertical.
@@ -1791,4 +1916,62 @@ setInterval(fcPollAppStatus,45000);fcPollAppStatus();
 <script>
 (()=>{const intro=document.getElementById("cdlStudioIntro");if(!intro)return;const close=()=>intro.classList.add("cdl-hide");intro.addEventListener("click",close,{once:true});window.setTimeout(close,2600)})();
 </script>
+
+<script>
+(()=>{const canvas=document.getElementById('fcLoginOrb');if(!canvas)return;const ctx=canvas.getContext('2d');if(!ctx)return;let w=0,h=0,t=0,raf=0;const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;const resize=()=>{const r=canvas.getBoundingClientRect();w=Math.max(1,r.width);h=Math.max(1,r.height);const d=Math.min(window.devicePixelRatio||1,1.5);canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);ctx.setTransform(d,0,0,d,0,0);draw()};const points=[];for(let i=0;i<460;i++){const u=(i+.5)/460,v=i*.61803398875%1,phi=Math.acos(1-2*u),theta=2*Math.PI*v;points.push([Math.sin(phi)*Math.cos(theta),Math.cos(phi),Math.sin(phi)*Math.sin(theta)])}const lines=[];for(let lat=-1.35;lat<=1.35;lat+=.17){const a=[];for(let lon=0;lon<=Math.PI*2+.01;lon+=.075)a.push([Math.cos(lat)*Math.cos(lon),Math.sin(lat),Math.cos(lat)*Math.sin(lon)]);lines.push(a)}for(let lon=0;lon<Math.PI*2;lon+=.18){const a=[];for(let lat=-Math.PI/2+.03;lat<=Math.PI/2-.03;lat+=.065)a.push([Math.cos(lat)*Math.cos(lon),Math.sin(lat),Math.cos(lat)*Math.sin(lon)]);lines.push(a)}function draw(){ctx.clearRect(0,0,w,h);const cx=w*.5,cy=h*.52,R=Math.min(w,h)*.34;const halo=ctx.createRadialGradient(cx,cy,R*.2,cx,cy,R*1.9);halo.addColorStop(0,'rgba(108,220,245,.15)');halo.addColorStop(.55,'rgba(64,130,220,.10)');halo.addColorStop(1,'rgba(9,20,42,0)');ctx.fillStyle=halo;ctx.fillRect(0,0,w,h);const project=p=>{const a=t*.34,b=-.38,x=p[0]*Math.cos(a)-p[2]*Math.sin(a),z1=p[0]*Math.sin(a)+p[2]*Math.cos(a),y=p[1]*Math.cos(b)-z1*Math.sin(b),z=p[1]*Math.sin(b)+z1*Math.cos(b),k=4/(4+z);return[cx+x*R*k,cy+y*R*k,z,k]};const sphere=ctx.createRadialGradient(cx-R*.42,cy-R*.46,R*.05,cx+R*.12,cy+R*.18,R*1.5);sphere.addColorStop(0,'rgba(117,224,247,.24)');sphere.addColorStop(.4,'rgba(35,101,158,.13)');sphere.addColorStop(.82,'rgba(13,33,66,.20)');sphere.addColorStop(1,'rgba(5,12,28,.05)');ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fillStyle=sphere;ctx.fill();ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.clip();ctx.lineWidth=.7;for(const line of lines){ctx.beginPath();let started=false;for(const p of line){const q=project(p);if(q[2]<-.12){started=false;continue}if(!started){ctx.moveTo(q[0],q[1]);started=true}else ctx.lineTo(q[0],q[1])}ctx.strokeStyle='rgba(124,219,243,.25)';ctx.stroke()}for(let i=0;i<points.length;i++){const q=project(points[i]);if(q[2]<-.04)continue;ctx.fillStyle='rgba(173,226,248,'+(.12+q[3]*.38)+')';ctx.beginPath();ctx.arc(q[0],q[1],.45+q[3]*1.05,0,Math.PI*2);ctx.fill()}ctx.restore();ctx.lineWidth=1;ctx.strokeStyle='rgba(130,226,249,.48)';ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();for(let j=0;j<3;j++){ctx.save();ctx.translate(cx,cy);ctx.rotate(t*.16+j*1.05);ctx.scale(1,.26+j*.1);ctx.beginPath();ctx.ellipse(0,0,R*1.48,R*1.48,0,0,Math.PI*2);ctx.strokeStyle=j===1?'rgba(231,198,119,.42)':'rgba(117,196,236,.23)';ctx.lineWidth=j===1?1.1:.7;ctx.stroke();ctx.restore()}for(let i=0;i<16;i++){const a=i*2.399+t*.23,rr=R*(1.5+(i%4)*.12),x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr*.55;ctx.fillStyle=i%4===0?'rgba(245,214,143,.85)':'rgba(143,216,242,.55)';ctx.beginPath();ctx.arc(x,y,1+(i%3)*.45,0,Math.PI*2);ctx.fill()}if(!reduced){t+=.008;raf=requestAnimationFrame(draw)}}function start(){if(!document.hidden&&!reduced&&!raf)raf=requestAnimationFrame(draw)}function stop(){if(raf){cancelAnimationFrame(raf);raf=0}}resize();window.addEventListener('resize',resize,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else start()});if('ResizeObserver'in window)new ResizeObserver(resize).observe(canvas);if(!reduced)start()})();</script>
+<script id="fc-login-parallax-v1">
+(()=>{const scene=document.querySelector('#landing .hero-art');if(!scene||matchMedia('(prefers-reduced-motion: reduce)').matches)return;let raf=0,x=0,y=0;const apply=()=>{raf=0;scene.style.setProperty('--fc-scene-tilt-x',(-y*2.2).toFixed(2)+'deg');scene.style.setProperty('--fc-scene-tilt-y',(x*2.2).toFixed(2)+'deg')};const move=e=>{const r=scene.getBoundingClientRect();if(!r.width||!r.height)return;x=((e.clientX-r.left)/r.width-.5);y=((e.clientY-r.top)/r.height-.5);if(!raf)raf=requestAnimationFrame(apply)};const reset=()=>{x=0;y=0;if(!raf)raf=requestAnimationFrame(apply)};scene.addEventListener('pointermove',move,{passive:true});scene.addEventListener('pointerleave',reset,{passive:true});scene.addEventListener('pointercancel',reset,{passive:true})})();
+</script>
+<style id="fc-login-parallax-css">
+@media(hover:hover) and (pointer:fine){#landing .hero-art{transform:rotateX(var(--fc-scene-tilt-x,0deg)) rotateY(var(--fc-scene-tilt-y,0deg));transition:transform .24s ease-out}}
+@media(hover:none){#landing .hero-art{transform:none!important}}
+</style>
+
+<style id="fc-login-pass9-mobile-depth">
+/* Pass 9: touch-sized composition + layered depth kept strictly inside Login */
+#landing .hero-art{contain:layout paint;isolation:isolate}
+#landing .hero-art:before,#landing .hero-art:after{z-index:0}
+#landing .hero-art #fcLoginOrb{z-index:1}
+#landing .hero-art .hive{z-index:2}
+#landing .hero-art .hive span{display:block;transform-style:preserve-3d}
+#landing .login-panel .field{position:relative;z-index:1}
+#landing .login-panel .field input{min-height:48px;font-size:16px;touch-action:manipulation}
+#landing .login-panel .btn{min-height:44px;touch-action:manipulation}
+@media(max-width:600px){
+ #landing .shell{width:min(100% - 22px,1200px)}
+ #landing .hero-art{min-height:clamp(210px,58vw,280px)}
+ #landing .hero>div:first-child{padding:20px;border-radius:22px}
+ #landing .hero-art:after{width:min(94%,330px)}
+ #landing .login-panel{border-radius:20px;padding:clamp(16px,5vw,22px)}
+ #landing .login-panel .field input{padding:14px 12px}
+}
+@media(prefers-reduced-motion:reduce){#landing .hero-art:before,#landing .hero-art:after{animation:none!important}}
+</style>
 </body></html>
+<style id="fc-login-webgl-sphere-v1">
+#landing .hero-art{position:relative;isolation:isolate}
+#fcLoginOrbWebGL{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+#fcLoginOrb{opacity:1!important}
+#landing .hero-art .hive{position:relative;z-index:2}\n#fcLoginOrbWebGL{opacity:0}\n#fcLoginOrbWebGL.fc-webgl-ready{opacity:1}\n#fcLoginOrb.fc-webgl-ready{opacity:0!important}
+</style>
+<script id="fc-login-webgl-sphere-v1">
+(()=>{const host=document.querySelector('#landing .hero-art');if(!host)return;
+const c=document.createElement('canvas');c.id='fcLoginOrbWebGL';host.appendChild(c);
+const gl=c.getContext('webgl',{alpha:true,antialias:true,powerPreference:'low-power'});if(!gl){c.remove();return;}
+const vs='attribute vec3 p; uniform mat4 m; uniform mat4 proj; varying vec3 n; void main(){n=p;gl_Position=proj*m*vec4(p,1.0);gl_PointSize=2.0;}';
+const fs='precision mediump float; varying vec3 n; uniform float t; void main(){vec3 N=normalize(n);vec3 L=normalize(vec3(-0.45,0.65,0.8));float d=max(dot(N,L),0.0);float rim=pow(1.0-max(dot(N,vec3(0.0,0.0,1.0)),0.0),2.0);vec3 base=mix(vec3(0.06,0.18,0.32),vec3(0.18,0.52,0.70),d);base+=rim*vec3(0.14,0.34,0.48);float grid=pow(abs(sin(N.y*38.0)),18.0)+pow(abs(sin(atan(N.z,N.x)*22.0)),18.0);base+=grid*0.09;gl_FragColor=vec4(base,0.76); }';
+function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s}
+try{const pr=gl.createProgram();gl.attachShader(pr,shader(gl.VERTEX_SHADER,vs));gl.attachShader(pr,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);if(!gl.getProgramParameter(pr,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(pr));gl.useProgram(pr);
+const verts=[],inds=[],lat=36,lon=48;for(let y=0;y<=lat;y++){const a=y*Math.PI/lat;for(let x=0;x<=lon;x++){const b=x*2*Math.PI/lon;verts.push(Math.sin(a)*Math.cos(b),Math.cos(a),Math.sin(a)*Math.sin(b));}}
+for(let y=0;y<lat;y++)for(let x=0;x<lon;x++){const q=y*(lon+1)+x,r=q+lon+1;inds.push(q,r,q+1,r,r+1,q+1);}
+const vb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(verts),gl.STATIC_DRAW);const ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(inds),gl.STATIC_DRAW);
+const loc=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,3,gl.FLOAT,false,0,0);
+const mloc=gl.getUniformLocation(pr,'m'),ploc=gl.getUniformLocation(pr,'proj');
+function resize(){const d=Math.min(window.devicePixelRatio||1,1.5);c.width=Math.max(1,host.clientWidth*d);c.height=Math.max(1,host.clientHeight*d);gl.viewport(0,0,c.width,c.height)}
+function mat(t){const co=Math.cos(t),si=Math.sin(t);return new Float32Array([co,0,-si,0,0,1,0,0,si,0,co,0,0,0,0,1])}
+function projection(aspect){const f=1.25;return new Float32Array([f/aspect,0,0,0,0,f,0,0,0,0,-1,-1,0,0,-.22,0])}
+let raf=0,t=0;function draw(){resize();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.uniformMatrix4fv(mloc,false,mat(t));gl.uniformMatrix4fv(ploc,false,projection(c.width/c.height));gl.drawElements(gl.TRIANGLES,inds.length,gl.UNSIGNED_SHORT,0);t+=.006;raf=requestAnimationFrame(draw)}
+c.classList.add('fc-webgl-ready');document.getElementById('fcLoginOrb')?.classList.add('fc-webgl-ready');c.addEventListener('webglcontextlost',e=>{e.preventDefault();c.classList.remove('fc-webgl-ready');document.getElementById('fcLoginOrb')?.classList.remove('fc-webgl-ready');c.remove();});draw();document.addEventListener('visibilitychange',()=>{if(document.hidden&&raf){cancelAnimationFrame(raf);raf=0}else if(!document.hidden&&!raf)draw()});
+}catch(e){console.warn('FC WebGL sphere fallback',e);document.getElementById('fcLoginOrb')?.classList.remove('fc-webgl-ready');c.remove();}
+})();
+</script>
