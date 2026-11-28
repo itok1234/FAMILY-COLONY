@@ -158,6 +158,18 @@ func _build_environment() -> void:
 		path_ring.position.y = 0.18
 		path_ring.material_override = _material(Color("#d5b879"), 0.52, 0.22)
 		add_child(path_ring)
+	# Twelve radial inlays connect the central plaza to the outer garden ring.
+	for spoke_index in range(12):
+		var spoke_angle := TAU * float(spoke_index) / 12.0
+		var spoke := MeshInstance3D.new()
+		var spoke_mesh := BoxMesh.new()
+		spoke_mesh.size = Vector3(0.12, 0.035, 4.0)
+		spoke.mesh = spoke_mesh
+		spoke.position = Vector3(cos(spoke_angle) * 7.15, 0.16, sin(spoke_angle) * 7.15)
+		spoke.rotation.y = -spoke_angle
+		spoke.material_override = _material(Color("#b7c6bd"), 0.58, 0.16)
+		spoke.name = "PlazaRadialInlay_%02d" % spoke_index
+		add_child(spoke)
 	for i in range(16):
 		var angle := TAU * float(i) / 16.0
 		var planter := MeshInstance3D.new()
