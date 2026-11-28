@@ -23,6 +23,11 @@ const HUB_ITEMS := [
 	{"id":"world","title":"DUNIA KOLONI","subtitle":"Jelajahi dunia bersama","position":Vector3(0.0,1.35,1.0),"color":Color("#527d43")}
 ]
 
+var _hub_orbit_yaw := 0.0
+var _hub_orbit_pitch := 0.42
+var _hub_orbit_distance := 22.0
+var _hub_drag_last := Vector2.ZERO
+var _hub_drag_active := false
 var _camera: Camera3D
 var _animated_shrubs: Array[MeshInstance3D] = []
 var _animated_lamp_lights: Array[OmniLight3D] = []
@@ -483,17 +488,16 @@ func _build_camera() -> void:
 func _update_hub_camera_framing() -> void:
 	if not is_instance_valid(_camera):
 		return
-	# Compose a wide, landscape-first benchmark shot with all feature stations
-	# visible and the central landmark dominating the visual hierarchy.
+	# Landscape/portrait framing is responsive; orbit values remain user-adjustable.
 	var viewport_size := get_viewport().get_visible_rect().size
 	var is_portrait := viewport_size.x < viewport_size.y
-	if is_portrait:
-		_camera.position = Vector3(0.0, 16.0, 29.0)
-		_camera.fov = 68.0
-	else:
-		_camera.position = Vector3(0.0, 11.0, 20.5)
-		_camera.fov = 56.0
-	_camera.look_at(Vector3(0.0, 1.1, -1.0), Vector3.UP)
+	_camera.fov = 68.0 if is_portrait else 56.0
+	_hub_orbit_distance = clampf(_hub_orbit_distance, 14.0, 30.0)
+	_hub_orbit_pitch = clampf(_hub_orbit_pitch, 0.22, 0.72)
+	var target := Vector3(0.0, 1.1, -1.0)
+	var horizontal := _hub_orbit_distance * cos(_hub_orbit_pitch)
+	_camera.position = target + Vector3(sin(_hub_orbit_yaw) * horizontal, _hub_orbit_distance * sin(_hub_orbit_pitch), cos(_hub_orbit_yaw) * horizontal)
+	_camera.look_at(target, Vector3.UP)
 
 
 func _build_central_hall() -> void:
@@ -1075,6 +1079,11 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventScreenDrag:
 		if _tap_candidate and _touch_start.distance_to(event.position) > 24.0:
 			_tap_candidate = false
+		if _touch_candidate_for_orbit(event):
+			_hub_drag_active = true
+			_hub_orbit_yaw -= event.relative.x * 0.004
+			_hub_orbit_pitch = clampf(_hub_orbit_pitch + event.relative.y * 0.003, 0.22, 0.72)
+			_update_hub_camera_framing()
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			_touch_start = event.position
@@ -1086,6 +1095,15 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseMotion:
 		if _tap_candidate and _touch_start.distance_to(event.position) > 8.0:
 			_tap_candidate = false
+		if event.button_mask & MOUSE_BUTTON_MASK_LEFT:
+			_hub_orbit_yaw -= event.relative.x * 0.004
+			_hub_orbit_pitch = clampf(_hub_orbit_pitch + event.relative.y * 0.003, 0.22, 0.72)
+			_update_hub_camera_framing()
+
+
+
+func _touch_candidate_for_orbit(_event: InputEventScreenDrag) -> bool:
+	return not _tap_candidate
 
 
 func _pick_destination(screen_position: Vector2) -> void:
